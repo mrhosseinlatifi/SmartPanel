@@ -1,7 +1,5 @@
 <?php
 
-use function PHPSTORM_META\type;
-
 trait main_admin_text
 {
     public function atext($tx, $data = null)
@@ -704,9 +702,10 @@ trait main_admin_text
             case 'edit_code_2':
                 $info = $data;
                 $code = $info['code'];
-                $type = $info['type'];
-                $max = $info['max_amount'];
-                $amount = $info['amount'];
+                $type = str_replace(['fix','percent'],['کد شارژ','کد تخفیف'],$info['type']);
+                $decode = json_decode($info['amount'],true);
+                $max = $decode['max'];
+                $amount = $decode['amount'];
                 $count = $info['count'];
                 $t = "کد : $code\nنوع : $type\nمقدار : $amount\nسقف : $max\nتعداد قابل استفاده : $count\nانتخاب کنید";
                 break;
