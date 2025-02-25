@@ -122,6 +122,7 @@ function table($db)
         ],
         'ids' => [
             'TEXT',
+            "DEFAULT '[]'",
         ],
     ], [
         'CHARSET' => 'utf8mb4'
@@ -544,11 +545,21 @@ function first_data($db, $admin)
 {
     $accessConfig = [
         "main" => array_fill_keys([
-            "status", "sendall", "userinfo", "settings", "apis", "products", "payments", "channels", "referral", "text"], 1),
-        "sub" => array_fill_keys(["ch_order", "support", "card","payout"], 1)
+            "status",
+            "sendall",
+            "userinfo",
+            "settings",
+            "apis",
+            "products",
+            "payments",
+            "channels",
+            "referral",
+            "text"
+        ], 1),
+        "sub" => array_fill_keys(["ch_order", "support", "card", "payout"], 1)
     ];
     $accessConfig["main"]["status"] = 1;
-    
+
     $db->insert('admins', ['user_id' => $admin, 'access[JSON]' => $accessConfig]);
 
     $db->insert('pattern', [
@@ -582,26 +593,65 @@ function first_data($db, $admin)
     }
 
     $staticSettings = [
-        'text_start' => 'Start',
-        'number_float' => '0', 'last_cron_send' => '0', 'last_cron_orders' => '0',
-        'version' => '9', 'sall' => '50', 'fall' => '30', 'DIFF_TIME' => '0', 'ticket' => '3',
-        'from_number' => '0', 'pas_sms' => '0', 'user_sms' => '0', 'ptid_ref' => '0', 'ptid_payment' => '0',
-        's_spam' => '0.1', 's_block' => '30', 'limit' => '300', 'limit_multi' => '100', 'min_deposit' => '1000',
-        'max_deposit' => '500000', 'min_move_balance' => '1000', 'min_kyc' => '100000', 'channel_main' => '0',
-        'channel_lock' => '0', 'channel_transaction' => '0', 'channel_ads' => '0', 'channel_order_api' => '0',
-        'channel_order_noapi' => '0', 'channel_support' => '0', 'channel_kyc' => '0',
-        'channel_gift_transaction' => '0', 'channel_errors' => '0', 'baner_tx' => 'Baner', 'gift_referral' => '1000',
-        'gift_payment' => '10', 'gift_start' => '5000', 'min_payment_gift' => '10000', 'min_move_gift' => '5000',
-        'p2p' => 'Crad', 'text_payment' => 'Thanks', 'text_order' => 'Thanks', 'text_kyc' => 'KYC',
-        'usd_rate' => '0', 'last_order_page' => '10', 'last_transactions_page' => '10', 'cron_order_lock' => '0',
+        'text_start' => 'سلام خوش آمدید',
+        'number_float' => 0,
+        'last_cron_send' => 0,
+        'last_cron_orders' => 0,
+        'version' => 9,
+        'sall' => 50,
+        'fall' => 30,
+        'DIFF_TIME' => 0,
+        'ticket' => 3,
+        'from_number' => 0,
+        'pas_sms' => 0,
+        'user_sms' => 0,
+        'ptid_ref' => 0,
+        'ptid_payment' => 0,
+        's_spam' => 0.1,
+        's_block' => 30,
+        'limit' => 300,
+        'limit_multi' => 100,
+        'min_deposit' => 1000,
+        'max_deposit' => 500000,
+        'min_move_balance' => 1000,
+        'min_kyc' => 100000,
+        'channel_main' => 0,
+        'channel_lock' => 0,
+        'channel_transaction' => $admin,
+        'channel_ads' => 0,
+        'channel_order_api' => $admin,
+        'channel_order_noapi' => $admin,
+        'channel_support' => $admin,
+        'channel_kyc' => $admin,
+        'channel_gift_transaction' => $admin,
+        'channel_errors' => $admin,
+        'baner_tx' => '🤖 ربات خدمات مجازی (رایگان؛پولی)
+	🔰 تو این ربات میتونید تمامی خدمات شبکه های اجتماعی مثل؛فالوور، ممبر، لایک، کامنت، ویو، و... رو دریافت کنید، اونهم به صورت رایگان!
+	
+	👇🏻 همین الان وارد این ربات فوق العاده شو',
+        'gift_referral' => 1000,
+        'gift_payment' => 10,
+        'gift_start' => 5000,
+        'min_payment_gift' => 10000,
+        'min_move_gift' => 5000,
+        'p2p' => '💳 درصورتی که امکان خرید به صورت آنلاین و با رمز دوم ندارید میتوانید پرداخت را آفلاین انجام دهید ! برای راهنمایی بیشتر به پشتیبانی مراجعه کنید.',
+        'text_payment' => 'درصورت پرداخت موفق حساب شما به صورت خودکار شارژ میشود.',
+        'text_order' => 'ممنون از اعتما شما. به منوی اصلی بازگشتید',
+        'text_kyc' => 'دوست عزیز به دلیل بالا بودن مبلغ واریزی و امنیت بیشتر و جلوگیری از پرداخت های فیشینگ میبایست یک کارت را احراز کنید
+
+لطفا عکس یک کارت بانکی که قصد دارید تراکنش های خودتون را با آن کارت انجام بدید ارسال کنید داخل عکس میتوانید موارد امنیتی از جمله CVV2 ، تاریخ انقضاح را بپوشانید',
+        'usd_rate' => 0,
+        'last_order_page' => 10,
+        'last_transactions_page' => 10,
+        'cron_order_lock' => 0,
         'delay_time_sms' => 300
     ];
-    
-    
+
+
     foreach ($staticSettings as $key => $value) {
         $st = null;
         $st = ['option_key' => $key, 'option_value[JSON]' => $value];
-        $db->insert('setting_options',$st);
+        $db->insert('setting_options', $st);
     }
 }
 
