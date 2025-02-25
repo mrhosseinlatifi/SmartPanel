@@ -172,4 +172,12 @@ if (!get_option('cron_order_lock', 1)) {
 
 	update_option('cron_order_lock', 0);
 	update_option('last_cron_orders', time());
+} else{
+    echo 'Lock';
+    $now = time();
+	$last = get_option('last_cron_orders', time()) + 120;
+	if ($now >= $last) {
+		update_option('cron_order_lock', 0);
+		update_option('last_cron_orders', time());
+	}
 }
