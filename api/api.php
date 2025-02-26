@@ -53,7 +53,7 @@ class api
 			if ($result['result']) {
 				return ['result' => true, 'data' => $result['data']];
 			} else {
-				error_log('error status multi : ' . $result['data']['error'].' - id : '. $id.' - api : '. $api['name']);
+				error_log('error status multi : ' . $result['data']['error'].' - id : '. json_encode($ids).' - api : '. $api['name']);
 				return ['result' => false, 'error' => $result['data']['error']];
 			}
 		}
