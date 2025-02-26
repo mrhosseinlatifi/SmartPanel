@@ -33,7 +33,7 @@ class api
 			if ($result['result']) {
 				return ['result' => true, 'data' => $result['data']];
 			} else {
-				error_log('error add order : ' . json_encode($result));
+				error_log('error status : ' . json_encode($result));
 				return ['result' => false, 'error' => $result['data']['error']];
 			}
 		}
@@ -53,7 +53,7 @@ class api
 			if ($result['result']) {
 				return ['result' => true, 'data' => $result['data']];
 			} else {
-				error_log('error add order : ' . json_encode($result));
+				error_log('error status multi : ' . json_encode($result));
 				return ['result' => false, 'error' => $result['data']['error']];
 			}
 		}
