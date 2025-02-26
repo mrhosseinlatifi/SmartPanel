@@ -923,7 +923,7 @@ $tt
             case 'order_cancel':
                 $order_info = $data[0];
                 $code = type_text($order_info['id'], 'c');
-                $amount = nformat($order_info['price']);
+                $amount = $order_info['price'];
                 $channel = $data[1];
                 $time = jdate('H:i:s');
                 $date = jdate('Y/m/d');
@@ -939,7 +939,7 @@ $tt
             case 'order_partial':
                 $order_info = $data[1];
                 $code = $order_info['code'];
-                $back = nformat($data[2]);
+                $back = $data[2];
                 $channel = $data[3];
                 $time = jdate('H:i:s');
                 $date = jdate('Y/m/d');

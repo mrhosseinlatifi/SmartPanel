@@ -1,97 +1,93 @@
-<?php //00507
-// 14.0 83
-if(!extension_loaded('ionCube Loader')){$__oc=strtolower(substr(php_uname(),0,3));$__ln='ioncube_loader_'.$__oc.'_'.substr(phpversion(),0,3).(($__oc=='win')?'.dll':'.so');if(function_exists('dl')){@dl($__ln);}if(function_exists('_il_exec')){return _il_exec();}$__ln='/ioncube/'.$__ln;$__oid=$__id=realpath(ini_get('extension_dir'));$__here=dirname(__FILE__);if(strlen($__id)>1&&$__id[1]==':'){$__id=str_replace('\\','/',substr($__id,2));$__here=str_replace('\\','/',substr($__here,2));}$__rd=str_repeat('/..',substr_count($__id,'/')).$__here.'/';$__i=strlen($__rd);while($__i--){if($__rd[$__i]=='/'){$__lp=substr($__rd,0,$__i).$__ln;if(file_exists($__oid.$__lp)){$__ln=$__lp;break;}}}if(function_exists('dl')){@dl($__ln);}}else{die('The file '.__FILE__." is corrupted.\n");}if(function_exists('_il_exec')){return _il_exec();}echo("Site error: the ".(php_sapi_name()=='cli'?'ionCube':'<a href="http://www.ioncube.com">ionCube</a>')." PHP Loader needs to be installed. This is a widely used PHP extension for running ionCube protected PHP code, website security and malware blocking.\n\nPlease visit ".(php_sapi_name()=='cli'?'get-loader.ioncube.com':'<a href="http://get-loader.ioncube.com">get-loader.ioncube.com</a>')." for install assistance.\n\n");exit(199);
+<?php
 
-?>
-HR+cPngrLxISBQoxMN32bqP9erXSrE1otqgK5VrIS1UDxOpoYrlJY0khQevRpHV3VlF0JkQMeamS
-u92xUUVCpRqnKle3YdLG4o4jWANTsbmgfk3BueQxPgbn+pD5Cjs+xGvi5DHto90Ji3RYTYNIVxvb
-BizfYPxME3RAr6DTDexuRAIUtGORPnwedyKW1A62WvvKoE8enlfzMXBPBmxfMLW6rxuEg3wdyY6Y
-BYNeu/zd/nf3o5VOqqAbWxIbHTSLuUmh/zHTsGlyA2WNPo3WLjxiTy2UhUM3RspsQ0AlH0KQ1bce
-NSwo9pkwUo1Bnrw+fMACHRFsBwKfjQjzG2rvJvU8b4T0aHH3qkD3YISi9b2IFOImqzhWktmW0aj3
-aQFmXEt3Z1S1cPU8B6ow0ht6fox0sXcUxzL1tOODLpsTKUq4Fra8jDnwoAcXefG5knS00IJUX1XJ
-UEmsr4Db5ut/wsTjmOAuHBVpEAMYQQ++q0DvzxrXT1/HhofyCfFi1QLbKyRa0VaOY5VdnKZhiACC
-Z0VD6BPI8wYCZrfLIGfLmkbA3fK0CBsDSe641sJIJp5/+Lo+eck6SwnWyDhs5o+X8iEF7Nw8dFAP
-egOKZ57v5BkauGkDA0BbPfAuUTSwQ4qDLoEyr5iw8ON0McNHJ7UWQJOgu09kKWKo+ES9MhPR8HgA
-NWwC/RJjuk9F1uamf2uZgUy8NITTQ9f/9VBCbincQbMAn5d5wqs8yzc+DZh0PzxbqJqqM62f7OFh
-eJzX5nj1ME2/htAUi+CV6dTTWmGU6qqgogHyW73KqsXBOQcJGN7GBeHKrQTVrX30iKOmJA+VDnuw
-EMZLf3AdIWEY0vlPYF7Va7Q1851lkxc62I1f2dNwCl7F8AmbFLBmIQA3JsgA+Q0ooLaFkIxPSdg4
-KCLqjzcixDxY/L5lb2mLXCbsEKmBBWHqHVLrWt3IqqdJM5O+Dh3o9B9WkMd0efumPHjklRyz7gsa
-mN9Lit2GTc95nhxN1p96oXAMUl/MvIWQyZ+ayAXU4ezA3w5RfR5yXIYR6CYVVSVrJf5aemA9rlk1
-gXnEZu+YDIWL0bq2jPYgxHnkTMDplAOlfLsLjhZD/OczZQCh1IqhW8+JG9Ba+9T9R678M/f5Saph
-AMOEyAt6OZ+g8XOzXuRBUArIjWivQTmsM3JcBNmiWzqIZk5IOPaBLd1H4P0qNMtl7F5ELQyWWsT5
-EaU1R8Qv7S8eFsGG85Raie67MQB2oOOvEp+0NSjqDByew6VxLd0Iq0c8B/mGawupr232rFoxBOfT
-oLCKqXrrK9xbW48ga2Xlyck6OvpvLizNEUxY8X8JCZ3iulyphzUMTYBCjHtVWSGD/ts8cbc9n09A
-M+thFr+qpSIlSbSguwri8roQo6aZ8Mgnb48L5qHXvuDM+zDDC8wdScDqusKa5UBBMXTEXvhvpazY
-ftYI/6VAkk7buJxuwFhvY30nSe79KuQvJdXR8WY+wxZzawwzYn4CKH22HKdbnkK3mtmk/hZg26IP
-69ADtOIqFHEARxcXg/q63Zg7KDLZ6nB5mWJvc0SlHfJvE0fiy2fQugLDQCWsDKE+nkN48t/ShHXZ
-ldEtGH1fne6gUhm9QyFMk08GcHitq7CLhHAUBzTBnFwetQ/dEYzYkgYc6+ABeonvujW9aYBWX5nO
-6iPym9MwJu0bMEwifqzDPNlBkNl/vD5IWOi3gOU7qT53a68JcM9uGrY9vpqHadoDqSKmcY40rJ6V
-3DwGicUNRWT6yZQLXHPdaTFFXDTRwYwkhGQLGDqfBdkhpfDkiQK7EjP2PMVWHU8pq0Rss6bVtSka
-gBVRnvQ+lt3zQmQ77xC0N9N3QjvP9Hp0t6ggqr5/ksowmYpp2l3wbIITDtyrgdj9DPSYy3JeHoDA
-01DLExWvCiz3Tfw3KlY6yjtUl4dOf5HYBmknPucO/j6VfWsa5M5lYepSYF03/oqjAfqeHg00fUZw
-SKyLW1j5YeCvN2GF3jtMQZCgyxvg5WtT8ubs/Wroxj/tmX9J4dXW9pOY6PGJD+1eEqgU4ITaC6by
-i+pGMyAwshjduViM6nhwnuIHhXEd6l7fqZPC2V95CxvoXpC1WkK4ew3wM21va9MyU0wksb10xc76
-kCPfQwRDV3NMAPkhVbWSSgAgvTkYeChGgcKaktcdb9P7KW2qVmMo4/frRYcQwhDuCP2pPlnIhuL1
-sghhJXOpsHIF7iBuFW3+KK/EtPl/eWl0qfEp0sXzLn/lu14R5KlwODN0HJ6Fdhv1M+gm2q3gUdoS
-PpjuGjv3FQptPjDBVzRcH9JBP/wb1fmrIicMslc5n9YQQC1vGCNmaXLxQC6R1DUBFg9sbOIeFT4M
-xX1s5rsk2FWa4GN01MVUAhEHA3U6Zc9FaYb7/x5DuhP8jo4fRph6jegg6+ZPruJRmUXT8OTTNIcK
-Nxvbr4ik5R8gl7naPsd5b2oXooQ2CgqraJfvyLdWJekUOfjfnEXaJXYYlZPKo8OwzsTqq1XNHfEL
-0B0liIN/hF9uKdIiPJ6VWbUXTBg5lmTxzuyP1xx4ZdiIGlxVv8RwgO2nrF9cCdGJQValbXkKRKK1
-GeUXhddOh3ux08dNrTjNwD+TsELgw7bUlwBj7EK+JiHv6RI0f0w7GsFT/HgrUXaYD/ygjiwuSMa5
-q9EpAkOspTK3AO4f5ns5WQnRu1l9mfY+Eeqf4TRlldJXx1Ng0b3o087SnI3ls+gcRKqc+RJ/gXx/
-m1lL01NHreCs9trlGg/DkaLr1hoyjPY75rzXg/cimmf3T6n6f9yVC3GlJUirb/x1ADQ8ZFhgLv38
-yU7Xq02RRr1AUXjlWE6BucVQ0b0Yr0yOYaVB900TJyZY6j5dDN0fsTds4PDyKTi3bBeqm9FhDd+z
-zu8urwRSfB1v4XdWivV8CKIzz7yUk/UzavhO3y8zEjNEsMCSltdy1lyc07SnY414twzwQCbfYwmJ
-pCWPEM3z6MHo9bJpybWM7P3ewEzygSody0hIg4jQSdWvgXkGFGhYxb+QqWeP3Z98CHqpsKhzZgQf
-RlTiw6R04fo1yFItHDngU2HTUBYaPQ3fgzxg8F+qQSy3fuUFGxjw1VuzjbE0/wDK2jfbmXHWjIrO
-s5yLrp8g7czcW0OwRBLhI6rJFKYRudkj+ef1YxAjvKIaByCh5VErdSk/IS1PtBhs4dKDYc9ZRD63
-Qk2dzXKvCUqUc2EA4pFE3dLCdfmXEFWzut0zn1LLagopW22WjsPwKEVUIeTmxQHDHHLni0x8ilxp
-mT8g4uMHcShAHZHOXmxWPvL6Q4weMBrWq7GCItIECWi2B1Ltw4PCe9qYd/E8Pc5awtM9kLoRK/qd
-ncjlzOI/BDh4cIRG6g25X0S6xcpeuzpeLmSpddvefVe22o8syYXz7uKprmA7ivJmfx/ZmUhkkmuk
-TnofFbBkxF799T3eMgqko6DKbmm4gwU8e/fyDNyNtOwz+EPTqdrc9prflwf7GkaW2aL6zoJVHqHh
-1UpC4B5kG/rAyCyozx0ahNOP8c0zpaThjzd/SDAfXXjMQOd3pE9DfuuFyuMyYxpTEWt0OifNQDKe
-PW+YaZYQZe4vXqj4H1AR8WcRbHgf72hejpjDqWTPyc6RFZg1x418ZTCz4wLJimCM2twtK1XvXnHs
-6S1fbqzOObgrce8rSUQ145AW4zG6V7aQSxd0cSPd9z5ZPc3l5E9SHJdVle7DGiSKcl3VeCbrs7nd
-1BRbijc+JBCOs9NGrGv7WLkYhYQZqnYFgApGPPw8KL//VE/aaShTQgUMt6W/chjoBee12QpSQ3R6
-OET7GfYQEmA23NAY0NABK17ROzK7d8lyutwd8BU/SRWFBYO6tYhLS1UMYLnT1QuhdOoWCb2UvCUR
-4A2NVVaWJBg/V4ssO2Y1GX0wXaPDU5qh+X4zrcM6pvX2y0xtX26obm+f2xmuw06WV0m959QI8qCl
-06LNe1A68TKMh4/c95szkBNXxq4D+heuB8n9tYhNph1w7OPAX3GnYoibiU1Q2GWIU9VzZpu4Kpu0
-oxQlWS00WAEAaaL0HxnUcOzP5tzuaZ6xMDmtIc19a/j0zU+wWF/JYTANgz6NcX5WhWdGU7xRGC7S
-6eyZMFzT7fXrp1MHcCVwRLZ//hYtrXAHMXuC7TWDvTv8l4GV23q9Dt9lkgJbx3iT4zGsEhjaWoof
-O0pgot54+j/7KQHQQN27PJtTOEJYmpGGZuijTmgbq/K6qOKUb3wPTwm706EmMB6JlqC1zRjQnTKt
-ySnowNjAm0Qj33XNrH3SS7h6ug+LuBRNbf5uS+BVsJMKe4/BMQZkx4Lr8HHrW6Q6PW2j1QOYzhCE
-rZT5MuVt73OG15jnX0UX3fMiFjKs0fVBs8zo0mJp/P8agjzA2fhZ2w/VlqFLtfBHXVveK4CT4Vb2
-B+Y/AXvqli9BbO7CAGiAbI1tKaBpy40aXKZLzkO6vHHf/s0ts2b7Bu32QdCx2RJlyI4ONq7g88Li
-doVS3S5pzQtVpM9b2TXX2Fxd/MkIzb1jtuF34i7MmY/pPu1LGjK6MEtJizF4CEZ4DhVRRWJEg0m5
-mh/VSDoA6kQdYxyZ6/REOA17OQZazQGESFCXn1xkpGAfAEFLAC6ZCis6NT31ROsZxYWCzkbhfMaX
-QCVtuQvScdP/Rs3yPSInX4HkISJv6AkBgKqJSXxEdg0YHLKC/AkTlknIsYXxU8MQXMsW68AARTvD
-7t+SDeh1Lnk7RFngDm5H2zcBmrnlLxe9D5pmVfzxn1qc7CZDnA/KncHnVsXkQ/5tZrT+xVT2Kwmo
-yzha1sp/3r9pni7tLm490xxBCirvDf5vyc8wU91KWbYPOGKYcq9/JPff66t4DLC/HvyEW2wn8h3o
-T14VGqxfIW5A/FtL7d8txhRhST+T2XTHa/jgchFZ7SHykMB/j9eGZpyuCsKmuVwrrKMsth15b15m
-LVXOzBe1U6Rdty/abdYyEoJTCsba0V2umsEWfTMqOFbkN17quabFkeOvN95G+fwgh3ed+hRsjGrL
-GbzSNQ+3xtADA509XfYUufHoSyfumJiL07SQ7Rsx9iB7vgDGVq4dv/wiWUeUXpPc0Kwp1jXe6mgb
-WvX8dkN05bpEMxrTJ8MyPfIUp28U4u3IeKffL0R+S81u5l/DsMh6e+TfZIybXxXtYOEWhTlzuQsY
-rEbiytl5cHZu2Y/MtgaQlePy0TxvY8wDeDVo07dL1cuBQbJd8NFMt915YpOTdk1815M2syMvMIen
-kd2+fnOb68bVzb72e/EuknQp+8icu4AKHzghPupQSG4lKAL6Qy7MmmiPFjew8/hQ5TfNNVmWavgz
-MVUW29Z0izuI38MbEK4dyYs+v10wunLL5WZwfKl4Fh6t+FJLow0hNiQPxsb5EJCKP9ITwFjX41BW
-I2l7ySL4/d+6CR2SvRUOVJaFk+388psdMbtYjGXKiacopthlra1KY277zkA2SkfQDgarsHf+9UI1
-b/+p0NHG/shdubp1tT7n/Xt9V7XU0iQo8unbp+/NLDVgLd9IHcv7cPo3QQkxzvcKB9PnGSkzEIML
-IQqvUeWOYPNhLs0YpoVmsvQAt1a0gOq9x6hLYSHNsszry/6JEwuVO0NP4tepM8FHMfCws+p4mHjR
-1SH/055KAl3c21DR/wrfmxoJ+sL3Jek5tHUbMDOPXcB7M9l/3pkzuISh1300qITml80MscnmYamq
-RqGo96D18dKx4onqtAgWhsVSxn2jrjLFaMzkRC5g82xVudB2egAXqPjiXs+U8gDoeYBr4h+OSH5S
-923rON8FcF+2Vtval4K4aM3ew1PyCKlaAPduZfYoUKLkdIaox7fTvpkOWTyMPTt60uSJo9IBCQnS
-UOI8BIkwUqV3ffPM4Tds3c3sOX62H2CBPCjK1OM9ucZCOH7MQYjuJVNbWnr76M9yU2cm7koFn2xz
-EKXgl/pDB3NQOn8DvMWKpifd9HLmnDAdW8RfJkVcN+gakyTCG9Scwb7Xd8AmZFXW3AEgDlBTkFRC
-7f795x8dmGYVRsju9TUbHmePhGHE33vftJLFdk3DHIMyA29b9kWH6q5OJvhZFy49hB8cLCJ6w61l
-4bhxomTDVlyvM7aLPOU5NdPFA0lQQJgMRgworPpKR1IjdnGqTodEVJULWGDLHZQ+iZYEVpGSTfFA
-dQiuYuOsWekPRlFoqpKHa4LoKlD1aPGN+UjvFmR20zMEY7n6GPKBURaVaqziHfAIu3YJngqCTItt
-mAGEWwAwJW0ntAZwkviTgMP1FVAd7ATu5tGAFa6TCwbzeVxtyv3bMb3HbOdF70FDX598waz9jmEF
-ZsvltqJ5qBYRG1SLAQ7wPXZqE0o9uHwrRuxU34U1p0NPVkEs/sUXdtSYAw1bs3aqJ/UOZZhGfyQ5
-2VaZcCStLlRI5kNtHAkLnaQlHjLfnS6p7yg8ziXcmovtbzJD7a36m4V3xMSM63bALQd47rGxJyaX
-f54pPvT/BvruyFnGs4GHSoVBVauSC9aElbQEyKyBmoOka7EBLYUNcSz0/vR4O7E28tGfHuAzJW2J
-jhbj7IAYyAbn1n1FpKL4/TsBf6jILGzIw6MY2oItdqxWs/t6zkpTJiwONj2pBRC7sskuvuthxWd0
-4ORY3FVcZ0ODeN4Ueb6Ihm+hEvp6z62Ig5DFy4OoJivfaoQWCDhlmRHBT3hFnJKqRXL8SNy89SCD
-OVA+NPqL/LbQKYbAs6tx2zlSayKXjSUxSvIwU7pmShhv8EeTkzUcdnq0kDylXQdKxpVj7LZ+sQ3a
-ZCXij/oQ3E7JtrGtVdrgqDkxKfyNOgsPTbg8FgbaOxNlvdpH6i8RAMX02Pr8G071ihFqz2OFKvt2
-hk2/mGtvQmR/9cbnBNz9IVUogd4LqSt07mRIeRqpxhwxd+ggQzuOACVG1L+l6D/ZGFgktp9tIQIx
-XHd4InCjM+vYVYTrfbyoLDE5hNA7TT9ZVziFRb9Ibfz+MmPHM32bkvktiBWabW==
+function admin_text()
+{
+    extract($GLOBALS);
+    switch ($text) {
+        case $key['panel_admin']:
+        case $key_admin['back_admin']:
+        case '/panel':
+        case '/start':
+            admin_data(['step' => 'none', 'data' => 'none']);
+            user_set_step('admin');
+            sm_admin(['start_panel'], ['home', $access]);
+            break;
+        case $key_admin['stats']:
+            $number_user = number_format($db->count('users_information')) ?: 0;
+            $number_order = number_format($db->count('orders')) ?: 0;
+            $ba = ($db->sum('users_information', 'balance') > 0) ? $db->sum('users_information', 'balance') : 0;
+            $users_balance = number_format($ba) ?: 0;
+            sm_admin(['stats', $number_user, $number_order, $users_balance], ['more_stats', 0]);
+            break;
+        case $key_admin['status']:
+            check_allow('status');
+            sm_admin(['status'], ['status', $section_status['main'], $section_status]);
+            break;
+        case $key_admin['sendall']:
+            check_allow('sendall');
+            admin_step('sendall');
+            $sendstep = $db->has('jobs', ['step[!]' => "none"]);
+            ($sendstep) ? sm_admin(['sendall_1', 1], ['send_panel']) : sm_admin(['sendall_1', 0], ['send_panel']);
+            break;
+        case $key_admin['userinfo']:
+            check_allow('userinfo');
+            admin_step('userinfo');
+            sm_admin(['userinfo_1'], ['back_panel_all']);
+            break;
+        case $key_admin['settings']:
+            check_allow('settings');
+            admin_step('settings');
+            sm_admin(['settings_1'], ['settings', in_array($fid, admins)]);
+            break;
+        case $key_admin['apis']:
+            check_allow('apis');
+            admin_step('apis');
+            sm_admin(['apis_1'], ['api_panel']);
+            break;
+        case $key_admin['products']:
+            check_allow('products');
+            admin_step('products');
+            sm_admin(['products_1'], ['products_panel']);
+            break;
+        case $key_admin['payments']:
+            check_allow('payments');
+            admin_step('payments');
+            sm_admin(['payments_1'], ['payment_key']);
+            break;
+        case $key_admin['channels']:
+            check_allow('channels');
+            admin_step('channels');
+            sm_admin(['channels_1'], ['channel_key']);
+            break;
+        case $key_admin['referral']:
+            check_allow('referral');
+            admin_step('referral');
+            sm_admin(['referral_1'], ['referral_key']);
+            break;
+        case $key_admin['text']:
+            check_allow('text');
+            admin_step('text');
+            sm_admin(['text_1'], ['text_key']);
+            break;
+        case '/last_cron':
+        case '/cron':
+            $cron = jdate('Y/m/d , H:i', $settings['last_cron_send']);
+            $cron_done = jdate('Y/m/d , H:i', $settings['last_cron_orders']);
+            sm_admin(['last_cron', $cron, $cron_done]);
+            break;
+        case '/cron_link':
+            $se = 'https://' . $domin . '/send.php';
+            $se2 = 'https://' . $domin . '/orders.php';
+            sm_admin(['cron_link', $se, $se2]);
+            break;
+        case '/access':
+            sm_admin(['access_tx'], ['show_access_admin', $access, $fid, true]);
+            break;
+        case $key_admin['back_user']:
+            handleStart('start');
+            break;
+        default:
+            sm_admin(['error_text_admin_home'], ['home', $access]);
+            break;
+    }
+}

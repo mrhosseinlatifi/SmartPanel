@@ -912,7 +912,7 @@ trait main_admin_text
                     $confirm = "محصول دستی میباشد";
                 }
                 $product['name'] = json_decode($product['name']);
-                $product['price'] = nformat($product['price']);
+                $product['price'] = $product['price'];
 
                 $category_by = getCategoryHierarchy($product['category_id']);
 
