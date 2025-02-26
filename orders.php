@@ -34,7 +34,10 @@ if (!get_option('cron_order_lock', 1)) {
 			$ids = [];
 			if ($ord_multi_check) {
 				foreach ($ord_multi_check as $co) {
-					$ids[] = $co['code_api'];
+					$now = (time() - $order['date']) / 86400;
+					if ($now <= 15) {
+						$ids[] = $co['code_api'];
+					}
 				}
 				$res_api = $api->status_multi($api_multi, $ids);
 				if ($res_api['result']) {
@@ -57,8 +60,8 @@ if (!get_option('cron_order_lock', 1)) {
 								break;
 							case 'canceled':
 							case 'refunded':
-								$usResult = $db->get('users_information','*',['user_id' => $user_id]);
-            					$old_balance = $usResult['balance'];
+								$usResult = $db->get('users_information', '*', ['user_id' => $user_id]);
+								$old_balance = $usResult['balance'];
 								$new_balance = $old_balance + $fd['price'];
 								insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $fd['price'], 'back');
 
@@ -67,8 +70,8 @@ if (!get_option('cron_order_lock', 1)) {
 								sm_user(['order_cancel', $fd, $show_channel], null, $user_id);
 								break;
 							case 'partial':
-								$usResult = $db->get('users_information','*',['user_id' => $user_id]);
-            					$old_balance = $usResult['balance'];
+								$usResult = $db->get('users_information', '*', ['user_id' => $user_id]);
+								$old_balance = $usResult['balance'];
 								$new_balance = $old_balance + $fd['price'];
 								insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $fd['price'], 'back');
 
@@ -95,50 +98,55 @@ if (!get_option('cron_order_lock', 1)) {
 		$orders_singel_check = $db->select('orders', '*', ['api[!]' => $s, 'OR' => ['status' => ['pending', 'in progress']], 'LIMIT' => get_option('limit', 100), 'code_api[!]' => 0]);
 		if ($orders_singel_check) {
 			foreach ($orders_singel_check as $order) {
-				$api_info = $db->get('apis', '*', ['name' => $order['api']]);
-				if ($api_info) {
-					$result_order = $api->status($api_info, $order['code_api']);
-					if ($result_order['result']) {
-						$user_id = $order['user_id'];
-						switch ($result_order['data']['status']) {
-							case 'pending':
-								# code...
-								break;
-							case 'in progress':
-								if ($order['status'] == 'pending') {
-									$db->update('orders', ['status' => 'in progress'], ['id' => $order['id']]);
-									sm_user(['order_go', $order, $show_channel], null, $user_id);
-								}
-								break;
-							case 'completed':
-								$db->update('orders', ['status' => 'completed'], ['id' => $order['id']]);
-								sm_user(['order_confirmation', $order, $show_channel], null, $user_id);
-								break;
-							case 'canceled':
-							case 'refunded':
-								$usResult = $db->get('users_information','*',['user_id' => $user_id]);
-            					$old_balance = $usResult['balance'];
-								$new_balance = $old_balance + $order['price'];
-								insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], 'back');
+				$now = (time() - $order['date']) / 86400;
+				if ($now >= 15) {
+					$db->update('orders', ['status' => 'unknow'], ['id' => $order['id']]);
+				} else {
+					$api_info = $db->get('apis', '*', ['name' => $order['api']]);
+					if ($api_info) {
+						$result_order = $api->status($api_info, $order['code_api']);
+						if ($result_order['result']) {
+							$user_id = $order['user_id'];
+							switch ($result_order['data']['status']) {
+								case 'pending':
+									# code...
+									break;
+								case 'in progress':
+									if ($order['status'] == 'pending') {
+										$db->update('orders', ['status' => 'in progress'], ['id' => $order['id']]);
+										sm_user(['order_go', $order, $show_channel], null, $user_id);
+									}
+									break;
+								case 'completed':
+									$db->update('orders', ['status' => 'completed'], ['id' => $order['id']]);
+									sm_user(['order_confirmation', $order, $show_channel], null, $user_id);
+									break;
+								case 'canceled':
+								case 'refunded':
+									$usResult = $db->get('users_information', '*', ['user_id' => $user_id]);
+									$old_balance = $usResult['balance'];
+									$new_balance = $old_balance + $order['price'];
+									insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], 'back');
 
-								$db->update('orders', ['status' => 'canceled'], ['id' => $order['id']]);
-								$db->update('users_information', ['balance[+]' => $order['price'], 'amount_spent[-]' => $order['price']], ['user_id' => $user_id]);
-								sm_user(['order_cancel', $order, $show_channel], null, $user_id);
-								break;
-							case 'partial':
-								$usResult = $db->get('users_information','*',['user_id' => $user_id]);
-            					$old_balance = $usResult['balance'];
-								$new_balance = $old_balance + $order['price'];
-								insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], 'back');
+									$db->update('orders', ['status' => 'canceled'], ['id' => $order['id']]);
+									$db->update('users_information', ['balance[+]' => $order['price'], 'amount_spent[-]' => $order['price']], ['user_id' => $user_id]);
+									sm_user(['order_cancel', $order, $show_channel], null, $user_id);
+									break;
+								case 'partial':
+									$usResult = $db->get('users_information', '*', ['user_id' => $user_id]);
+									$old_balance = $usResult['balance'];
+									$new_balance = $old_balance + $order['price'];
+									insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], 'back');
 
-								$back = (($result_order['data']['remains'] * $order['price']) / $order['count']);
-								$db->update('orders', ['status' => 'partial'], ['id' => $order['id']]);
-								$db->update('users_information', ['balance[+]' => $back, 'amount_spent[-]' => $back], ['user_id' => $user_id]);
-								sm_user(['order_partial', $order, $back, $show_channel], null, $user_id);
-								break;
-							default:
-								# code...
-								break;
+									$back = (($result_order['data']['remains'] * $order['price']) / $order['count']);
+									$db->update('orders', ['status' => 'partial'], ['id' => $order['id']]);
+									$db->update('users_information', ['balance[+]' => $back, 'amount_spent[-]' => $back], ['user_id' => $user_id]);
+									sm_user(['order_partial', $order, $back, $show_channel], null, $user_id);
+									break;
+								default:
+									# code...
+									break;
+							}
 						}
 					}
 				}
@@ -160,7 +168,7 @@ if (!get_option('cron_order_lock', 1)) {
 			if ($add_info['result']) {
 				$db->update('orders', ['code_api' => $add_info['order']], ['id' => $order['id']]);
 			} else {
-				$usResult = $db->get('users_information','*',['user_id' => $user_id]);
+				$usResult = $db->get('users_information', '*', ['user_id' => $user_id]);
 				$old_balance = $usResult['balance'];
 				$new_balance = $old_balance + $order['price'];
 				insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], 'back');
@@ -175,9 +183,9 @@ if (!get_option('cron_order_lock', 1)) {
 
 	update_option('cron_order_lock', 0);
 	update_option('last_cron_orders', time());
-} else{
-    echo 'Lock';
-    $now = time();
+} else {
+	echo 'Lock';
+	$now = time();
 	$last = get_option('last_cron_orders', time()) + 120;
 	if ($now >= $last) {
 		update_option('cron_order_lock', 0);
