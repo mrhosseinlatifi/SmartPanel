@@ -12,8 +12,8 @@ class api
 				$b = number_format($result['data']['balance']) . ' ' . strtoupper($result['data']['currency']) ?: 'مشکل در دریافت';
 				return ['result' => true, 'balance' => $b];
 			} else {
-				error_log('error balance : ' . json_encode($result));
-				return ['result' => false, 'balance' => 0];
+				error_log('error balance : ' . $result['data']['error'].' - api : '. $api['name']);
+				return ['result' => false, 'balance' => 'Error'];
 			}
 		}
 	}
@@ -33,7 +33,7 @@ class api
 			if ($result['result']) {
 				return ['result' => true, 'data' => $result['data']];
 			} else {
-				error_log('error status : ' . json_encode($result));
+				error_log('error status : ' . $result['data']['error'].' - id : '. $id.' - api : '. $api['name']);
 				return ['result' => false, 'error' => $result['data']['error']];
 			}
 		}
@@ -53,7 +53,7 @@ class api
 			if ($result['result']) {
 				return ['result' => true, 'data' => $result['data']];
 			} else {
-				error_log('error status multi : ' . json_encode($result));
+				error_log('error status multi : ' . $result['data']['error'].' - id : '. $id.' - api : '. $api['name']);
 				return ['result' => false, 'error' => $result['data']['error']];
 			}
 		}
@@ -74,7 +74,7 @@ class api
 			if ($result['result']) {
 				return ['result' => true, 'order' => $result['data']['order']];
 			} else {
-				error_log('error add order : ' . json_encode($result));
+				error_log('error add order : ' . $result['data']['error'].' - service : '. $service.' - api : '. $api['name']);
 				return ['result' => false, 'error' => $result['data']['error']];
 			}
 		}
