@@ -19,6 +19,9 @@ if (!get_option('cron_order_lock', 1)) {
 	$api = new api();
 	$media = new media;
 	$bot = new hkbot(Token);
+	$getBotInfo = $bot->bot('getMe');
+	$numberId = $getBotInfo['result']['id'];
+	$idbot = $getBotInfo['result']['username'];
 	define('DIFF_TIME', get_diff_time());
 
 	$result_multi_apis = $db->select('apis', '*', ['multi' => 1, 'smart_panel' => 1]);
