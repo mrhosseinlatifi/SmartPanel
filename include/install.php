@@ -121,7 +121,8 @@ function table($db)
             'DEFAULT 0',
         ],
         'ids' => [
-            'TEXT',
+            'VARCHAR(8192)',
+            'NOT NULL',
             "DEFAULT '[]'",
         ],
     ], [
