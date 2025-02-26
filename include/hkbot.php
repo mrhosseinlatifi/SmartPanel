@@ -17,7 +17,6 @@ class hkbot
 		if (isset($response['ok']) && $response['ok'] == 1) {
 			return $response;
 		} else {
-			error_log("Bot Class Error : " . $response['description'] . "\n" . json_encode($data));
 			return ['ok' => false, 'desc' => $response['description']];
 		}
 	}
