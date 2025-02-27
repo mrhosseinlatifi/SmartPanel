@@ -427,6 +427,8 @@ trait keyboard_admin
                     'move_balance' => 'انتقال موجودی',
                     'online_payment' => 'پرداخت انلاین',
                     'authentication' => 'ارسال شماره ها به کانال',
+                    'gift_code' => 'کد تخفیف',
+                    'gift_charge' => 'کد شارژ'
                 ];
 
                 foreach ($result as $name => $status) {

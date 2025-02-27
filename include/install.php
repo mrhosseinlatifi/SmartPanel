@@ -583,7 +583,7 @@ function first_data($db, $admin)
         'section_status' => [
             'main' => array_fill_keys(['bot', 'buy', 'payment', 'member', 'free', 'support'], 0),
             'free' => array_fill_keys(['number', 'sms', 'gift_payment', 'gift_referral', 'gift_start', 'withdraw_balance', 'change_gift_balance'], 0),
-            'payment' => array_fill_keys(['number', 'sms', 'offline_payment', 'verify_card', 'move_balance', 'online_payment', 'authentication'], 0),
+            'payment' => array_fill_keys(['number', 'sms', 'offline_payment', 'verify_card', 'move_balance', 'online_payment', 'authentication','gift_code','gift_charge'], 0),
             'buy' => ['order_msg' => 0]
         ]
     ];

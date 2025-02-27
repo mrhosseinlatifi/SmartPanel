@@ -344,8 +344,9 @@ trait user_keyboard
                 foreach ($result as $pa) {
                     $t[] = [['text' => $this->text('payment_key', [$amount, $pa['name']]), 'url' => "https://" . $domin . "/payment/index.php?file=" . $pa['file'] . "&code=" . $code . "&action=get"]];
                 }
-                $t[] = [['text' => $key['gift_code'], 'callback_data' => "gift_code_" . $code]];
-
+                if($section_status['payment']['gift_code']){
+                    $t[] = [['text' => $key['gift_code'], 'callback_data' => "gift_code_" . $code]];
+                }
                 $t = ['inline_keyboard' => $t];
                 break;
             case 'payment':
@@ -359,7 +360,9 @@ trait user_keyboard
                 if ($status['payment']['move_balance']) {
                     $t[] = [['text' => $key['move_balance']]];
                 }
-                $t[] = [['text' => $key['charge_code']]];
+                if($section_status['payment']['gift_charge']){
+                    $t[] = [['text' => $key['charge_code']]];
+                }
                 $t = row_chunk($t, [2]);
                 $t[] = [['text' => $key['back']]];
                 $t = ['keyboard' => $t];
