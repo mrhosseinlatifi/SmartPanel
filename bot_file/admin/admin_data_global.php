@@ -1,339 +1,352 @@
-<?php //00507
-// 14.0 82
-if(!extension_loaded('ionCube Loader')){$__oc=strtolower(substr(php_uname(),0,3));$__ln='ioncube_loader_'.$__oc.'_'.substr(phpversion(),0,3).(($__oc=='win')?'.dll':'.so');if(function_exists('dl')){@dl($__ln);}if(function_exists('_il_exec')){return _il_exec();}$__ln='/ioncube/'.$__ln;$__oid=$__id=realpath(ini_get('extension_dir'));$__here=dirname(__FILE__);if(strlen($__id)>1&&$__id[1]==':'){$__id=str_replace('\\','/',substr($__id,2));$__here=str_replace('\\','/',substr($__here,2));}$__rd=str_repeat('/..',substr_count($__id,'/')).$__here.'/';$__i=strlen($__rd);while($__i--){if($__rd[$__i]=='/'){$__lp=substr($__rd,0,$__i).$__ln;if(file_exists($__oid.$__lp)){$__ln=$__lp;break;}}}if(function_exists('dl')){@dl($__ln);}}else{die('The file '.__FILE__." is corrupted.\n");}if(function_exists('_il_exec')){return _il_exec();}echo("Site error: the ".(php_sapi_name()=='cli'?'ionCube':'<a href="http://www.ioncube.com">ionCube</a>')." PHP Loader needs to be installed. This is a widely used PHP extension for running ionCube protected PHP code, website security and malware blocking.\n\nPlease visit ".(php_sapi_name()=='cli'?'get-loader.ioncube.com':'<a href="http://get-loader.ioncube.com">get-loader.ioncube.com</a>')." for install assistance.\n\n");exit(199);
+<?php
 
-?>
-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
+function admin_data_global()
+{
+    extract($GLOBALS);
+
+    switch ($data) {
+        case  'backadmin':
+        case  'admin_back':
+            $bot->delete_msg($fid, $message_id);
+            admin_data(['step' => 'none', 'data' => 'none']);
+            user_set_step('admin');
+            sm_admin(['start_panel'], ['home', $access]);
+            break;
+        case 'close_panel':
+            $bot->delete_msg($fid, $message_id);
+            break;
+        case 'fyk':
+            alert_admin(['none']);
+            break;
+        case text_starts_with($data, 'adminorderch_'):
+            $str = str_replace('adminorderch_', '', $data);
+            $ex = explode('-', $str);
+            $type = $ex['0'];
+            $code = $ex['1'];
+            $show_channel = get_option('channel_main', 0);
+            $order = $db->get('orders', '*', ['id' => $code]);
+            if (!$order) {
+                alert_admin(['not_found_order', $code]);
+                break;
+            }
+            $user_id = $order['user_id'];
+            $usResult = $db->get('users_information', '*', ['user_id' => $user_id]);
+            $old_balance = $usResult['balance'];
+
+            switch ($type) {
+                case 'go':
+                    check_allow('ch_order', 'sub');
+                    if ($order['api'] == 'noapi') {
+                        if ($order['status'] == 'pending') {
+                            $db->update('orders', ['status' => 'in progress'], ['id' => $order['id']]);
+                            sm_user(['order_go', $order, $show_channel], null, $user_id);
+                            edk_channel('channel_order_noapi', ['order_noapi', $code, 'inprogress']);
+                        } elseif ($order['status'] == 'in progress') {
+                            edk_channel('channel_order_noapi', ['order_noapi', $code, 'inprogress']);
+                        }
+                    }
+                    break;
+                case 'check':
+                    alert_admin(['status_order', $order]);
+                    break;
+                case 'confirm':
+                    check_allow('ch_order', 'sub');
+                    if ($order['api'] != 'noapi') {
+                        $db->update('orders', ['status' => 'pending'], ['id' => $order['id']]);
+                        alert_admin(['confirm_order', $order]);
+                        edk_channel('channel_order_noapi', ['order_api', $code, 'confirm']);
+                    }
+                    break;
+                case 'cancel':
+                    check_allow('ch_order', 'sub');
+                    if ($order['api'] == 'noapi') {
+                        if ($order['status'] == 'pending' || $order['status'] == 'in progress') {
+                            $db->update('orders', ['status' => 'canceled'], ['id' => $order['id']]);
+                            $db->update('users_information', ['balance[+]' => $order['price'], 'amount_spent[-]' => $order['price']], ['user_id' => $user_id]);
+                            sm_user(['order_cancel', $order, $show_channel], null, $user_id);
+                            alert_admin(['cancel_order', $order]);
+                            edk_channel('channel_order_noapi', ['order_noapi', $code, 'cancel']);
+
+                            $new_balance = $old_balance + $order['price'];
+                            insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], 'back');
+                        }
+                    } else {
+
+                        if ($order['code_api'] == 0) {
+                            $db->update('orders', ['status' => 'canceled'], ['id' => $order['id']]);
+                            $db->update('users_information', ['balance[+]' => $order['price'], 'amount_spent[-]' => $order['price']], ['user_id' => $user_id]);
+                            sm_user(['order_cancel', $order, $show_channel], null, $user_id);
+                            alert_admin(['cancel_order', $order]);
+                            edk_channel('channel_order_noapi', ['order_noapi', $code, 'cancel']);
+                            $new_balance = $old_balance + $order['price'];
+                            insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], 'back');
+                        } else {
+                            alert_admin(['cant_cancel_order', $order]);
+                        }
+                    }
+                    break;
+                case 'completed':
+                    check_allow('ch_order', 'sub');
+                    if ($order['status'] == 'in progress') {
+                        $db->update('orders', ['status' => 'completed'], ['id' => $order['id']]);
+                        sm_user(['order_confirmation', $fd, $show_channel], null, $user_id);
+                        edk_channel('channel_order_noapi', ['order_noapi', $code, 'completed']);
+                    }
+                    break;
+                default:
+                    # code...
+                    break;
+            }
+            // update_api_ok_1
+            break;
+        case text_starts_with($data, 'admintiket_'):
+            check_allow('support', 'sub');
+            $str = str_replace('admintiket_', '', $data);
+            $ex = explode('_', $str);
+            $type = $ex['0'];
+            $user_id = $ex['1'];
+            if ($tc == 'channel') {
+                if (isset($message['chat']['username'])) {
+                    $uid = $message['chat']['username'];
+                } else {
+                    $uid = $cid;
+                }
+                $link = 'https://t.me/' . $uid . '/' . $message_id;
+            }
+            switch ($type) {
+                case 'answer':
+                    user_set_step('admin');
+                    $mm = sm_admin(['send_answer', $link], ['back_panel_all'])['result']['message_id'];
+                    admin_data(['step' => 'send_answer_1', 'data[JSON]' => ['id' => $user_id, 'chat' => $cid, 'msgid' => $message_id, 'remsg' => $mm]]);
+                    user_set_data(['ticket[-]' => 1], $user_id);
+                    edk_admin(['support', 1, $user_id], $message_id, $cid);
+                    break;
+                case 'again':
+                    user_set_step('admin');
+                    $mm = sm_admin(['send_answer', $link], ['back_panel_all'])['result']['message_id'];
+                    admin_data(['step' => 'send_answer_1', 'data[JSON]' => ['id' => $user_id, 'chat' => $cid, 'msgid' => $message_id, 'remsg' => $mm]]);
+                    user_set_data(['ticket[-]' => 1], $user_id);
+                    break;
+                case 'rad':
+                    user_set_data(['ticket[-]' => 1], $user_id);
+                    edk_admin(['support', 2, $user_id], $message_id, $cid);
+                    break;
+                case 'info':
+                    $result = $db->get('users_information', '*', ['user_id' => $user_id]);
+                    $id = $result['user_id'];
+                    $name = $bot->getChatMember($id);
+                    sm_admin(['userinfo_2', $result, $name], ['userinfo_data', $id]);
+                    break;
+                default:
+                    # code...
+                    break;
+            }
+            alert_admin(['none']);
+            break;
+        case text_starts_with($data, 'adminupuser_'):
+            check_allow('userinfo');
+            $id = str_replace('adminupuser_', '', $data);
+            $name = $bot->getChatMember($id);
+            $res = $db->get('users_information', '*', ['user_id' => $id]);
+            edt_admin(['userinfo_2', $res, $name, 1], ['userinfo_data', $id]);
+            break;
+        case text_starts_with($data, 'adminorder_'):
+            // User Orders Logs
+            $str = str_replace('adminorder_', '', $data);
+            $ex = explode('_', $str);
+            $id = $ex[1];
+            $page = 10;
+            $now = $ex[0];
+            $nex = $now + $page;
+            $bef = $now - $page;
+            $result = null;
+            $c = 0;
+            $result = $db->select('orders', '*', ['user_id' => $id, 'ORDER' => ['id' => 'DESC'], 'LIMIT' => [$now, $page]]);
+            $c = $db->count('orders', ['user_id' => $id]) ?? 0;
+            edt_admin(['userinfo_orders', $result, $id, $nex, $page, $c, $db, $api], ['userinfo_data_page', 'adminorder', $c, $id, $nex, $bef]);
+            alert_admin(['none']);
+            break;
+        case text_starts_with($data, 'adminpayment_'):
+            // User Payment History
+            $str = str_replace('adminpayment_', '', $data);
+            $ex = explode('_', $str);
+            $id = $ex[1];
+            $page = 10;
+            $now = $ex[0];
+            $nex = $now + $page;
+            $bef = $now - $page;
+            $result = null;
+            $c = 0;
+            $result = $db->select('transactions', '*', ['user_id' => $id, 'ORDER' => ['id' => 'DESC'], 'LIMIT' => [$now, $page], 'type' => 'payment']);
+            $c = $db->count('transactions', ['id' => $id, 'type[!]' => 'log']) ?? 0;
+            edt_admin(['userinfo_payments', $result, $id, $nex, $page, $c], ['userinfo_data_page', 'adminpayment', $c, $id, $nex, $bef]);
+            alert_admin(['none']);
+            break;
+        case text_starts_with($data, 'admintrans_'):
+            // Users Log Balance
+            $str = str_replace('admintrans_', '', $data);
+            $ex = explode('_', $str);
+            $id = $ex[1];
+            $page = 10;
+            $now = $ex[0];
+            $nex = $now + $page;
+            $bef = $now - $page;
+            $result = null;
+            $c = 0;
+            $find = ['log', 'gift', 'gift_payout', 'gift_move', 'managment', 'move_balance', 'orders', 'orders_back'];
+            $result = $db->select('transactions', '*', ['user_id' => $id, 'ORDER' => ['id' => 'DESC'], 'LIMIT' => [$now, $page], 'type' => $find]);
+            $c = $db->count('transactions', ['user_id' => $id, 'type' => $find]);
+            edt_admin(['userinfo_trs', $result, $id, $nex, $page, $c], ['userinfo_data_page', 'admintrans', $c, $id, $nex, $bef]);
+            alert_admin(['none']);
+            break;
+        case text_starts_with($data, 'verifycard-'):
+            check_allow('card', 'sub');
+            $str = str_replace('verifycard-', '', $data);
+            $ex = explode('-', $str);
+            $type = $ex['0'];
+            $user_id = $ex['1'];
+            $result = $db->get('users_information', '*', ['user_id' => $user_id]);
+            switch ($type) {
+                case 'ok':
+                    if ($tc == 'channel') {
+                        if (isset($message['chat']['username'])) {
+                            $uid = $message['chat']['username'];
+                        } else {
+                            $uid = $cid;
+                        }
+                        $link = 'https://t.me/' . $uid . '/' . $message_id;
+                    }
+                    user_set_step('admin');
+                    $mm = sm_admin(['set_user_card', $link], ['back_panel_all'])['result']['message_id'];
+                    admin_data(['step' => 'set_user_card', 'data[JSON]' => ['id' => $user_id, 'chat' => $cid, 'msgid' => $message_id, 'remsg' => $mm]]);
+                    edk_admin(['verify_keys', 1], $message_id, $cid);
+                    alert_admin(['none']);
+                    break;
+                case 'nok':
+                    if ($result['payment_card'] == 'wait') {
+                        user_set_data(['payment_card' => 0], $user_id);
+                        sm_to_user(['reject_card'], null, $user_id);
+                        edk_admin(['verify_keys', 2], $message_id, $cid);
+                    }
+                    alert_admin(['none']);
+                    break;
+                case 'info':
+
+                    $id = $result['user_id'];
+                    $name = $bot->getChatMember($id);
+                    sm_admin(['userinfo_2', $result, $name], ['userinfo_data', $id]);
+                    alert_admin(['sended']);
+                    break;
+                default:
+                    # code...
+                    break;
+            }
+            break;
+        case text_starts_with($data, 'payout_'):
+            check_allow('payout', 'sub');
+            $str = str_replace('payout_', '', $data);
+            $ex = explode('_', $str);
+            $type = $ex['0'];
+            $code = $ex['1'];
+            $payout = $db->get('transactions', '*', ['id' => $code]);
+            switch ($type) {
+                case 'ok':
+                    $db->update('transactions', ['status' => 1], ['id' => $code]);
+                    edk_channel('channel_gift_transaction', ['gift_payouts', 1]);
+                    sm_to_user(['ok_payout'], null, $payout['user_id']);
+                    alert_admin(['none']);
+                    break;
+                case 'nok':
+                    $db->update('transactions', ['status' => 0], ['id' => $code]);
+                    $db->update('users_information', ["gift[+]" => $payout['amount']], ['user_id' => $payout['user_id']]);
+                    edk_channel('channel_gift_transaction', ['gift_payouts', 2]);
+                    sm_to_user(['cancel_payout'], null, $payout['user_id']);
+                    alert_admin(['none']);
+                    break;
+                default:
+                    # code...
+                    break;
+            }
+            break;
+        case 'statistics':
+            $number_user = number_format($db->count('users_information')) ?: 0;
+            $today1 = date('Y/m/d');
+            $today = strtotime("now");
+            $tom = strtotime($today1 . "+1 day");
+            $yes = strtotime($today1 . "-1 day");
+            $yes2 = strtotime($today1 . "-2 day");
+            $today_member = number_format($db->count('users_information', 'user_id', ['join_date[<>]' => [$yes, $today]])) ?: 0;
+            $yesterdate_member = number_format($db->count('users_information', 'user_id', ['join_date[<>]' => [$yes2, $yes]])) ?: 0;
+            $number_user_block = number_format($db->count('users_information', ['block' => 1])) ?: 0;
+            $number_order = number_format($db->count('orders')) ?: 0;
+            $order_cheack_api = number_format($db->count('orders', ['api[!]' => 'noapi', 'status' => 'pending'])) ?: 0;
+            $order_cheack_no_api = number_format($db->count('orders', ['api' => 'noapi', 'status' => 'pending'])) ?: 0;
+            $number_payment = number_format($db->count('transactions', ['status' => ['OK', 100]])) ?: 0;
+            $number_payment_creted = number_format($db->count('transactions')) ?: 0;
+
+            $ba1 = ($db->sum('users_information', 'balance') > 0) ? $db->sum('users_information', 'balance') : 0;
+            $users_balance = number_format($ba1) ?: 0;
+
+            $ba2 = ($db->sum('users_information', 'gift') > 0) ? $db->sum('users_information', 'gift') : 0;
+            $users_gift_balance = number_format($ba2) ?: 0;
+
+            $ba3 = ($db->sum('transactions', 'amount', ['status' => 1]) > 0) ? $db->sum('transactions', 'amount', ['status' => 1]) : 0;
+            $amount_paid = number_format($ba3) ?: 0;
+
+            $cron = $settings['last_cron_send'];
+            $cron_done = $settings['last_cron_orders'];
+            edt_admin([
+                'more_stats',
+                $number_user,
+                $today_member,
+                $yesterdate_member,
+                $number_user_block,
+                $number_order,
+                $order_cheack_api,
+                $order_cheack_no_api,
+                $number_payment,
+                $number_payment_creted,
+                $users_balance,
+                $users_gift_balance,
+                $amount_paid,
+                $cron,
+                $cron_done,
+                $settings['version']
+            ], ['more_stats', 1]);
+            break;
+        case text_starts_with($data, 'adminopen_section_'):
+            check_allow('status');
+            $str = str_replace('adminopen_section_', '', $data);
+            $result = $section_status[$str];
+            edk_admin(['sub_off', $result, $str]);
+            break;
+        case text_starts_with($data, 'adminsection_status_'):
+            check_allow('status');
+            $str = str_replace('adminsection_status_', '', $data);
+            $ex = explode('-', $str);
+            if ($section_status[$ex[0]][$ex[1]] == 1) {
+                $section_status[$ex[0]][$ex[1]] = 0;
+                update_option('section_status', json_encode($section_status));
+                alert_admin(['offline_status']);
+            } else {
+                $section_status[$ex[0]][$ex[1]] = 1;
+                update_option('section_status', json_encode($section_status));
+                alert_admin(['online_status']);
+            }
+            $res = $section_status[$ex[0]];
+            if ($ex[0] == 'main') {
+                edk_admin(['status', $section_status['main'], $section_status]);
+            } else {
+                edk_admin(['sub_off', $res, $ex[0]]);
+            }
+            break;
+        case 'adminupsection_status':
+            check_allow('status');
+            edt_admin(['status'], ['status', $section_status['main'], $section_status]);
+            alert_admin(['update_status']);
+            break;
+        default:
+            # code...
+            break;
+    }
+}
