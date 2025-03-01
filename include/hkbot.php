@@ -12,7 +12,7 @@ class hkbot
 
 	public function bot($method, $data = null)
 	{
-		$url = $this->url.'/'.$method;
+		$url = $this->url . '/' . $method;
 		$response = $this->sendRequest($url, $data);
 		if (isset($response['ok']) && $response['ok'] == 1) {
 			return $response;
@@ -34,7 +34,7 @@ class hkbot
 		return $this->bot('sendMessage', $data);
 	}
 
-	public function sp($chatId, $file_id,$text, $replyMarkup = null)
+	public function sp($chatId, $file_id, $text, $replyMarkup = null)
 	{
 		$replyMarkup = isset($replyMarkup) ? json_encode($replyMarkup) : null;
 		$data = array(
@@ -99,7 +99,7 @@ class hkbot
 		);
 		$result = $this->bot('getChatMember', $data)['result'];
 		$result['user']['first_name'] = str_replace(['>', '/', '<'], '', $result['user']['first_name']);
-		if(isset($result['user']['last_name'])){
+		if (isset($result['user']['last_name'])) {
 			$result['user']['last_name'] = str_replace(['>', '/', '<'], '', $result['user']['last_name']);
 		}
 		return $result;
@@ -120,7 +120,11 @@ class hkbot
 				'user_id' => $chatId
 			]);
 		}
-		$status = $result['result']['status'];
+		if (isset($result['result']['status'])) {
+			$status = $result['result']['status'];
+		} else {
+			$status = 'left';
+		}
 		return $status;
 	}
 	/**
@@ -139,15 +143,13 @@ class hkbot
 		$response = curl_exec($connection);
 		$error = curl_error($connection);
 		curl_close($connection);
-		
+
 		if ($error) {
 			error_log("Bot Class Curl Error : " . $error);
-			return false; 
+			return false;
 		} else {
 			$decodedResponse = json_decode($response, true);
 			return $decodedResponse;
 		}
 	}
-
-
 }

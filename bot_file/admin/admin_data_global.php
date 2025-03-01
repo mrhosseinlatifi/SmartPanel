@@ -279,7 +279,7 @@ function admin_data_global()
             $yesterdate_member = number_format($db->count('users_information', 'user_id', ['join_date[<>]' => [$yes2, $yes]])) ?: 0;
             $number_user_block = number_format($db->count('users_information', ['block' => 1])) ?: 0;
             $number_order = number_format($db->count('orders')) ?: 0;
-            $order_cheack_api = number_format($db->count('orders', ['api[!]' => 'noapi', 'status' => 'pending'])) ?: 0;
+            $order_cheack_api = number_format($db->count('orders', ['api[!]' => 'noapi', 'status' => ['pending','in progress']])) ?: 0;
             $order_cheack_no_api = number_format($db->count('orders', ['api' => 'noapi', 'status' => 'pending'])) ?: 0;
             $number_payment = number_format($db->count('transactions', ['status' => ['OK', 100]])) ?: 0;
             $number_payment_creted = number_format($db->count('transactions')) ?: 0;
