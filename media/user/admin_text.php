@@ -354,11 +354,11 @@ $tt
                 $user = $data['2'];
                 $fid = $user['user_id'];
                 $name = type_text($name, 'm', $fid);
-                $new = $user['balance'];
                 $number = $user['number'];
                 $payment = $data['3'];
                 $tracking_code = $payment['tracking_code'];
                 $amount = $payment['amount'];
+                $new = $user['balance'] + $amount;
                 $ip = json_decode($payment['data'], true)['ip'];
                 $card = $data['4'];
                 $t = "#تراکنش جدید  $getway

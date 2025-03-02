@@ -16,7 +16,6 @@ function user_text()
 
                                         processReferral($referral_id, $fid);
                                         handleStart('start');
-                                        
                                     } else {
                                         $db->insert('users_information', ['user_id' => $fid, 'step' => 'oknum', 'referral_id' => $referral_id . 'off', 'join_date' => time()]);
                                         sm_user(['ok_commission', $settings['gift_payment'], $referral_id, $fid], null, $referral_id);
@@ -162,6 +161,9 @@ function user_text()
                 } else {
                     sm_user(['error_text_key'], ['home']);
                 }
+                break;
+            case $key['test']:
+                $bot->sm($fid, 'test');
                 break;
             default:
                 sm_user(['error_text_key'], ['home']);

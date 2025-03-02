@@ -42,7 +42,7 @@ if (isset($_GET['file'])) {
                 $step = $payment['status'];
                 $date = $payment['date'];
                 $name = $bot->getChatMember($fid)['user']['first_name'];
-                $decode_data = json_decode($payment['data'],true);
+                $decode_data = json_decode($payment['data'], true);
 
                 if ($date <= time() + 3600) {
 
@@ -69,16 +69,15 @@ if (isset($_GET['file'])) {
                 $step = $payment['status'];
                 $date = $payment['date'];
                 $name = $bot->getChatMember($fid)['user']['first_name'];
-                $decode_data = json_decode($payment['data'],true);
+                $decode_data = json_decode($payment['data'], true);
 
                 if ($date <= time() + 3600) {
-
                   if (!$user['block']) {
                     $type = 'back';
                     $result_ok = false;
+                    $result_ipn = false;
                     if ($payment['getway'] == $result_payment['file']) {
                       include ROOTPATH . '/payment/' . $result_payment['file'] . '.php';
-
                       if ($result_ok) {
                         // up ref
                         if ($user["referral_id"] > 0 && !text_contains($user["referral_id"], 'off') && $section_status['main']['free'] && $section_status['free']['gift_payment']) {
@@ -124,11 +123,13 @@ if (isset($_GET['file'])) {
                         // link
                         header('Location: https://' . $domin . '/payment/show.php?OK&code=' . $tracking_code . '&idbot=' . $idbot);
                       } else {
-                        $db->update('transactions', ['status' => 0], ['id' => $code]);
+                        if (!$result_ipn) {
+                          $db->update('transactions', ['status' => 0], ['id' => $code]);
 
-                        $bot->sm($fid, $media->text('cancel_payment', $result_payment['file']));
-                        $base_url = 'https://' . $domin . '/payment/show.php?NOK&idbot=' . $idbot . '&msg=' . $media->text('error', $paymentEn);
-                        redirect($base_url);
+                          $bot->sm($fid, $media->text('cancel_payment', $result_payment['file']));
+                          $base_url = 'https://' . $domin . '/payment/show.php?NOK&idbot=' . $idbot . '&msg=' . $media->text('error', $paymentEn);
+                          redirect($base_url);
+                        }
                       }
                     } else {
                       echo 1;
