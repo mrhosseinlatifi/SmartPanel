@@ -47,7 +47,7 @@ function admin_data_global()
                     }
                     break;
                 case 'check':
-                    alert_admin(['status_order', $order]);
+                    alert_admin(['status_order', $order],true);
                     break;
                 case 'confirm':
                     check_allow('ch_order', 'sub');
@@ -68,18 +68,19 @@ function admin_data_global()
                             edk_channel('channel_order_noapi', ['order_noapi', $code, 'cancel']);
 
                             $new_balance = $old_balance + $order['price'];
-                            insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], 'back');
+                            insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], $order['id']);
                         }
                     } else {
-
                         if ($order['code_api'] == 0) {
-                            $db->update('orders', ['status' => 'canceled'], ['id' => $order['id']]);
-                            $db->update('users_information', ['balance[+]' => $order['price'], 'amount_spent[-]' => $order['price']], ['user_id' => $user_id]);
-                            sm_user(['order_cancel', $order, $show_channel], null, $user_id);
-                            alert_admin(['cancel_order', $order]);
-                            edk_channel('channel_order_noapi', ['order_noapi', $code, 'cancel']);
-                            $new_balance = $old_balance + $order['price'];
-                            insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], 'back');
+                            if($order['status'] != 'canceled'){
+                                $db->update('orders', ['status' => 'canceled'], ['id' => $order['id']]);
+                                $db->update('users_information', ['balance[+]' => $order['price'], 'amount_spent[-]' => $order['price']], ['user_id' => $user_id]);
+                                sm_user(['order_cancel', $order, $show_channel], null, $user_id);
+                                alert_admin(['cancel_order', $order]);
+                                edk_channel('channel_order_noapi', ['order_noapi', $code, 'cancel']);
+                                $new_balance = $old_balance + $order['price'];
+                                insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], $order['id']);
+                            }
                         } else {
                             alert_admin(['cant_cancel_order', $order]);
                         }
@@ -89,7 +90,7 @@ function admin_data_global()
                     check_allow('ch_order', 'sub');
                     if ($order['status'] == 'in progress') {
                         $db->update('orders', ['status' => 'completed'], ['id' => $order['id']]);
-                        sm_user(['order_confirmation', $fd, $show_channel], null, $user_id);
+                        sm_user(['order_confirmation', $order, $show_channel], null, $user_id);
                         edk_channel('channel_order_noapi', ['order_noapi', $code, 'completed']);
                     }
                     break;
@@ -290,7 +291,7 @@ function admin_data_global()
             $ba2 = ($db->sum('users_information', 'gift') > 0) ? $db->sum('users_information', 'gift') : 0;
             $users_gift_balance = number_format($ba2) ?: 0;
 
-            $ba3 = ($db->sum('transactions', 'amount', ['status' => 1]) > 0) ? $db->sum('transactions', 'amount', ['status' => 1]) : 0;
+            $ba3 = ($db->sum('transactions', 'amount', ['status' => 1,'type'=>'payment']) > 0) ? $db->sum('transactions', 'amount', ['status' => 1,'type'=>'payment']) : 0;
             $amount_paid = number_format($ba3) ?: 0;
 
             $cron = $settings['last_cron_send'];

@@ -3,7 +3,7 @@ define('maindir', __DIR__);
 require maindir . "/config.php";
 
 //-----------------------------------//
-require ROOTPATH . "/bot_file/function/function.php";
+require ROOTPATH . "/bot_file/function/function_tel.php";
 require ROOTPATH . "/include/db.php";
 require ROOTPATH . "/include/hkbot.php";
 require ROOTPATH . "/include/jdf.php";
@@ -187,6 +187,7 @@ if (!get_option('cron_order_lock', 1)) {
 					$db->update('orders', ['status' => 'error', 'extra_data[JSON]' => $decode_data], ['id' => $order['id']]);
 					$db->update('users_information', ['balance[+]' => $order['price'], 'amount_spent[-]' => $order['price']], ['user_id' => $user_id]);
 					sm_user(['order_cancel', $order, $show_channel], null, $user_id);
+					sm_channel('channel_errors',['order_add_error', $decode_data['error']]);
 				}
 			}
 		}

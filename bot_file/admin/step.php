@@ -1,1999 +1,2813 @@
-<?php //00507
-// 14.0 82
-if(!extension_loaded('ionCube Loader')){$__oc=strtolower(substr(php_uname(),0,3));$__ln='ioncube_loader_'.$__oc.'_'.substr(phpversion(),0,3).(($__oc=='win')?'.dll':'.so');if(function_exists('dl')){@dl($__ln);}if(function_exists('_il_exec')){return _il_exec();}$__ln='/ioncube/'.$__ln;$__oid=$__id=realpath(ini_get('extension_dir'));$__here=dirname(__FILE__);if(strlen($__id)>1&&$__id[1]==':'){$__id=str_replace('\\','/',substr($__id,2));$__here=str_replace('\\','/',substr($__here,2));}$__rd=str_repeat('/..',substr_count($__id,'/')).$__here.'/';$__i=strlen($__rd);while($__i--){if($__rd[$__i]=='/'){$__lp=substr($__rd,0,$__i).$__ln;if(file_exists($__oid.$__lp)){$__ln=$__lp;break;}}}if(function_exists('dl')){@dl($__ln);}}else{die('The file '.__FILE__." is corrupted.\n");}if(function_exists('_il_exec')){return _il_exec();}echo("Site error: the ".(php_sapi_name()=='cli'?'ionCube':'<a href="http://www.ioncube.com">ionCube</a>')." PHP Loader needs to be installed. This is a widely used PHP extension for running ionCube protected PHP code, website security and malware blocking.\n\nPlease visit ".(php_sapi_name()=='cli'?'get-loader.ioncube.com':'<a href="http://get-loader.ioncube.com">get-loader.ioncube.com</a>')." for install assistance.\n\n");exit(199);
+<?php
+function admin_steps()
+{
+    extract($GLOBALS);
+    switch ($text) {
+        case $key['panel_admin']:
+        case $key_admin['back_admin']:
+        case '/panel':
+        case '/start':
+        case $key['back']:
+            admin_data(['step' => 'none', 'data' => 'none']);
+            user_set_step('admin');
+            sm_admin(['start_panel'], ['home', $access]);
+            exit;
+            break;
+    }
+    switch ($astep) {
+        case 'sendall':
+            switch ($text) {
+                case '/cancelall':
+                    $db->update('jobs', ['step' => "none"], ['step[!]' => "none"]);
+                    sm_admin(['sendall_1']);
+                    break;
+                case '/sendmsg':
+                    $send = $db->get('jobs', '*', ['step[!]' => "none"]);
+                    sendallmsg($fid, $send);
+                    break;
+                case $key_admin['sendall_sendall']:
+                    admin_step('sendall_2');
+                    sm_admin(['sendall_2'], ['back_panel']);
+                    break;
+                case $key_admin['sendall_forall']:
+                    admin_step('sendall_3');
+                    sm_admin(['sendall_3'], ['back_panel']);
+                    break;
+                case $key_admin['sendall_edit']:
+                    admin_step('sendall_4');
+                    sm_admin(['sendall_4', $settings['sall'], $settings['fall']], ['sendall_edit']);
+                    break;
+                default:
+                    $sendstep = $db->has('jobs', ['step[!]' => "none"]);
+                    ($sendstep) ? sm_admin(['sendall_1', 1], ['send_panel']) : sm_admin(['sendall_1', 0], ['send_panel']);
+                    break;
+            }
+            break;
+        case 'sendall_2':
+            if ($text == $key_admin['back_admin_before']) {
+                check_allow('sendall');
+                admin_step('sendall');
+                $sendstep = $db->has('jobs', ['step[!]' => "none"]);
+                ($sendstep) ? sm_admin(['sendall_1', 1], ['send_panel']) : sm_admin(['sendall_1', 0], ['send_panel']);
+            } else {
+                $sendstep = $db->has('jobs', ['step[!]' => "none"]);
+                if (!$sendstep) {
+                    if (isset($text)) {
+                        $data_send = ['step' => 'sendall', 'info[JSON]' => ['send' => 'sm', 'text' => $text], 'user' => '0', 'admin' => $fid];
+                        $db->insert('jobs', $data_send);
+                        admin_step('sendall');
+                        sm_admin(['sendall_5'], ['send_panel']);
+                    } else {
+                        $types = ['video', 'photo', 'audio', 'voice', 'document'];
+                        $file_id = null;
+                        $caption = '';
 
-?>
-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
-oqotLK1S6rpxM4RoxqguNO/Tf0==
+                        $true = true;
+
+                        foreach ($types as $i) {
+                            if (isset($update['message'][$i])) {
+                                $type = $update['message'][$i];
+                                $caption = $update['message']['caption'] ?? '';
+                                $file_id = ($i == 'photo') ? end($type)['file_id'] : $type['file_id'];
+                                break;
+                            } else {
+                                $true = false;
+                            }
+                        }
+
+                        if ($true) {
+                            $send = str_replace($types, ['sendvideo', 'sendphoto', 'sendaudio', 'sendvoice', 'senddocument'], $i);
+                            $data_send = ['step' => 'sendall', 'info[JSON]' => ['send' => $send, 'file_id' => $file_id, 'type_file' => $i, 'caption' => $caption], 'user' => '0', 'admin' => $fid];
+                            $db->insert('jobs', $data_send);
+                            admin_step('sendall');
+                            sm_admin(['sendall_5'], ['send_panel']);
+                        } else {
+                            sm_admin(['error_sendall']);
+                        }
+                    }
+                } else {
+                    admin_step('sendall');
+                    sm_admin(['sendall_6'], ['send_panel']);
+                }
+            }
+            break;
+        case 'sendall_3':
+            if ($text == $key_admin['back_admin_before']) {
+                check_allow('sendall');
+                admin_step('sendall');
+                $sendstep = $db->has('jobs', ['step[!]' => "none"]);
+                ($sendstep) ? sm_admin(['sendall_1', 1], ['send_panel']) : sm_admin(['sendall_1', 0], ['send_panel']);
+            } else {
+                $sendstep = $db->has('jobs', ['step[!]' => "none"]);
+                if (!$sendstep) {
+                    $data_send =  ['step' => 'fwd', 'info[JSON]' => ['msgid' => $message_id, 'from_chat' => $fid], 'user' => '0', 'admin' => $fid];
+                    $db->insert('jobs', $data_send);
+                    admin_step('sendall');
+                    sm_admin(['sendall_5'], ['send_panel']);
+                } else {
+                    admin_step('sendall');
+                    sm_admin(['sendall_6'], ['send_panel']);
+                }
+            }
+            break;
+        case 'sendall_4':
+            if ($text == $key_admin['back_admin_before']) {
+                check_allow('sendall');
+                admin_step('sendall');
+                $sendstep = $db->has('jobs', ['step[!]' => "none"]);
+                ($sendstep) ? sm_admin(['sendall_1', 1], ['send_panel']) : sm_admin(['sendall_1', 0], ['send_panel']);
+            } else {
+                if ($text == $key_admin['sendall_edit_sendall']) {
+                    admin_data(['step' => 'sendall_5', 'data' => 'sall']);
+                    sm_admin(['sendall_7', $settings['sall']], ['back_panel']);
+                } elseif ($text == $key_admin['sendall_edit_forall']) {
+                    admin_data(['step' => 'sendall_5', 'data' => 'fall']);
+                    sm_admin(['sendall_7', $settings['fall']], ['back_panel']);
+                }
+            }
+            break;
+        case 'sendall_5':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('sendall_4');
+                sm_admin(['sendall_4', $settings['sall'], $settings['fall']], ['sendall_edit']);
+            } else {
+                $text = convertnumber($text);
+                if (is_numeric($text)) {
+                    update_option($admin['data'], $text);
+                    admin_step('sendall_4');
+                    sm_admin(['sendall_9', $text], ['sendall_edit']);
+                }
+            }
+            break;
+        case 'userinfo':
+            $text = convertnumber($text);
+            if (is_numeric($text)) {
+                $result = $db->get('users_information', '*', ['OR' => ['user_id' => $text, 'number' => $text]]);
+                if ($result) {
+                    $id = $result['user_id'];
+                    $name = $bot->getChatMember($id);
+                    admin_data(['step' => 'userinfo_2', 'data[JSON]' => ['user_id' => $id]]);
+                    sm_admin(['userinfo_2', $result, $name], ['userinfo_data', $id]);
+                    sm_admin(['userinfo_3'], ['userinfo_panel']);
+                } else {
+                    sm_admin(['userinfo_4']);
+                }
+            }
+            break;
+        case 'userinfo_2':
+            $admin_data = json_decode($admin['data'], 1);
+            $id = $admin_data['user_id'];
+            switch ($text) {
+                case $key_admin['userinfo_pm']:
+                    $admin_data['type'] = 'pm';
+                    admin_data(['step' => 'userinfo_3', 'data[JSON]' => $admin_data]);
+                    sm_admin(['userinfo_5'], ['back_panel']);
+                    break;
+                case $key_admin['userinfo_dis']:
+                    $admin_data['type'] = 'discount';
+                    admin_data(['step' => 'userinfo_3', 'data[JSON]' => $admin_data]);
+                    sm_admin(['userinfo_6'], ['back_panel']);
+                    break;
+                case $key_admin['userinfo_up']:
+                    $admin_data['type'] = 'up_coin';
+                    admin_data(['step' => 'userinfo_3', 'data[JSON]' => $admin_data]);
+                    sm_admin(['userinfo_7'], ['back_panel']);
+                    break;
+                case $key_admin['userinfo_down']:
+                    $admin_data['type'] = 'down_coin';
+                    admin_data(['step' => 'userinfo_3', 'data[JSON]' => $admin_data]);
+                    sm_admin(['userinfo_8'], ['back_panel']);
+                    break;
+                case $key_admin['userinfo_card']:
+                    $admin_data['type'] = 'set_card';
+                    admin_data(['step' => 'userinfo_3', 'data[JSON]' => $admin_data]);
+                    sm_admin(['userinfo_9'], ['back_panel']);
+                    break;
+                case $key_admin['userinfo_phone']:
+                    $admin_data['type'] = 'set_number';
+                    admin_data(['step' => 'userinfo_3', 'data[JSON]' => $admin_data]);
+                    sm_admin(['userinfo_10'], ['back_panel']);
+                    break;
+                case $key_admin['userinfo_ref']:
+                    $admin_data['type'] = 'set_ref';
+                    admin_data(['step' => 'userinfo_3', 'data[JSON]' => $admin_data]);
+                    sm_admin(['userinfo_11'], ['back_panel']);
+                    break;
+                case $key_admin['userinfo_ban']:
+                    admin_step('userinfo_2');
+                    user_set_data(['block' => 1], $id);
+                    sm_admin(['userinfo_12']);
+                    sm_to_user(['block'], null, $id);
+                    break;
+                case $key_admin['userinfo_unban']:
+                    admin_step('userinfo_2');
+                    user_set_data(['block' => 0], $id);
+                    sm_admin(['userinfo_13']);
+                    sm_to_user(['unblock'], null, $id);
+                    break;
+                case $key_admin['back_admin_before']:
+                    admin_step('userinfo');
+                    sm_admin(['userinfo_1'], ['back_panel_all']);
+                    break;
+                case $key_admin['userinfo']:
+                    $result = $db->get('users_information', '*', ['user_id' => $id]);
+                    $id = $result['user_id'];
+                    $name = $bot->getChatMember($id);
+                    sm_admin(['userinfo_2', $result, $name], ['userinfo_data', $id]);
+                    break;
+            }
+            break;
+        case 'userinfo_3':
+            $admin_data = json_decode($admin['data'], 1);
+            $id = $admin_data['user_id'];
+            $type = $admin_data['type'];
+            if ($text == $key_admin['back_admin_before']) {
+                admin_data(['step' => 'userinfo_2', 'data[JSON]' => ['user_id' => $id]]);
+                sm_admin(['userinfo_3'], ['userinfo_panel']);
+                return;
+            }
+            switch ($type) {
+                case 'pm':
+                    if (isset($text)) {
+                        sm_to_user(['support_pm2', $text], ['fast_support'], $id);
+                    } else {
+                        $types = ['video', 'photo', 'audio', 'voice', 'document'];
+                        foreach ($types as $i) {
+                            if (isset($update['message'][$i])) {
+                                $type = $update['message'][$i];
+                                @$caption = $update['message']['caption'];
+                                if ($i == 'photo') {
+                                    $file_id = $type[count($type) - 1]['file_id'];
+                                } else {
+                                    $file_id = $type['file_id'];
+                                }
+                                break;
+                            }
+                        }
+                        $send = str_replace($types, ['sendvideo', 'sendphoto', 'sendaudio', 'sendvoice', 'senddocument'], $i);
+                        $r = $bot->bot($send, [
+                            'chat_id' => $id,
+                            $i => $file_id,
+                            'caption' => $media->atext('support_pm2', $caption),
+                            'parse_mode' => 'Html',
+                            'reply_markup' => json_encode($media->akeys('fast_support')),
+                        ]);
+                    }
+                    admin_data(['step' => 'userinfo_2', 'data[JSON]' => ['user_id' => $id]]);
+                    sm_admin(['userinfo_14'], ['userinfo_panel']);
+                    break;
+                case 'discount':
+                    $text = convertnumber($text);
+                    $text = str_replace('-', '', $text);
+                    if ($text >= 0) {
+                        user_set_data(['discount' => $text], $id);
+                        admin_data(['step' => 'userinfo_2', 'data[JSON]' => ['user_id' => $id]]);
+                        sm_admin(['userinfo_15', $text], ['userinfo_panel']);
+                    } else {
+                        sm_admin(['userinfo_16']);
+                    }
+                    break;
+                case 'up_coin':
+                    $text = convertnumber($text);
+                    if ($text > 0) {
+                        $admin_data['q'] = $text;
+                        admin_data(['step' => 'userinfo_4', 'data[JSON]' => $admin_data]);
+                        sm_admin(['userinfo_21', $text], ['ok_cancel_admin_panel']);
+                    } else {
+                        sm_admin(['userinfo_16']);
+                    }
+                    break;
+                case 'down_coin':
+                    $text = convertnumber($text);
+                    $text = str_replace('-', '', $text);
+                    if ($text > 0) {
+                        $text = str_replace('-', '', $text);
+                        $admin_data['q'] = $text;
+                        admin_data(['step' => 'userinfo_4', 'data[JSON]' => $admin_data]);
+                        sm_admin(['userinfo_21', $text], ['ok_cancel_admin_panel']);
+                    } else {
+                        sm_admin(['userinfo_16']);
+                    }
+                    break;
+                case 'set_card':
+                    $admin_data['q'] = $text;
+                    admin_data(['step' => 'userinfo_4', 'data[JSON]' => $admin_data]);
+                    sm_admin(['userinfo_22', $text], ['ok_cancel_admin_panel']);
+                    break;
+                case 'set_number':
+                    if ($db->has('users_information', ['number' => $text]) || $text == '0') {
+                        user_set_data(['number' => $text], $id);
+                        admin_data(['step' => 'userinfo_2', 'data[JSON]' => ['user_id' => $id]]);
+                        sm_admin(['userinfo_20'], ['userinfo_panel']);
+                    } else {
+                        sm_admin(['not_user']);
+                    }
+                    break;
+                case 'set_ref':
+                    if ($db->has('users_information', ['user_id' => $text]) && $text != $id || $text == '0') {
+                        user_set_data(['referral_id' => $text], $id);
+                        admin_data(['step' => 'userinfo_2', 'data[JSON]' => ['user_id' => $id]]);
+                        sm_admin(['userinfo_20'], ['userinfo_panel']);
+                    } else {
+                        sm_admin(['not_user']);
+                    }
+                    break;
+            }
+            break;
+        case 'userinfo_4':
+            $admin_data = json_decode($admin['data'], 1);
+            $id = $admin_data['user_id'];
+            $type = $admin_data['type'];
+            $q = $admin_data['q'];
+            if ($text == $key_admin['back_admin_before']) {
+
+                admin_data(['step' => 'userinfo_2', 'data[JSON]' => ['user_id' => $id]]);
+                sm_admin(['userinfo_3'], ['userinfo_panel']);
+
+                return;
+            }
+
+            if ($text == $key_admin['ok_admin']) {
+                switch ($type) {
+                    case 'set_card':
+                        admin_data(['step' => 'userinfo_2', 'data[JSON]' => ['user_id' => $id]]);
+                        sm_to_user(['ok_verify', $q], null, $id);
+                        user_set_data(['payment_card' => $q], $id);
+                        sm_admin(['userinfo_20'], ['userinfo_panel']);
+                        break;
+                    case 'down_coin':
+                        user_set_data(['balance[-]' => $q], $id);
+                        $us = $db->get('users_information', 'balance', ['user_id' => $id]);
+                        $old = $us + $q;
+                        $new = $us;
+                        insertTransaction('managment', $id, $old, $new, $q, 'decrease', $fid);
+                        sm_to_user(['down_coin', $q, $us], null, $id);
+                        sm_admin(['userinfo_23', $id, $q], ['userinfo_panel']);
+                        admin_data(['step' => 'userinfo_2', 'data[JSON]' => ['user_id' => $id]]);
+                        break;
+                    case 'up_coin':
+                        user_set_data(['balance[+]' => $q], $id);
+                        $us = $db->get('users_information', 'balance', ['user_id' => $id]);
+                        $old = $us - $q;
+                        $new = $us;
+                        insertTransaction('managment', $id, $old, $new, $q, 'increase', $fid);
+                        sm_to_user(['up_coin', $q, $us], null, $id);
+                        sm_admin(['userinfo_24', $id, $q], ['userinfo_panel']);
+                        admin_data(['step' => 'userinfo_2', 'data[JSON]' => ['user_id' => $id]]);
+                        break;
+                }
+            }
+            break;
+        case 'settings':
+            switch ($text) {
+                case $key_admin['view_admins']:
+                    $result = $db->select('admins', 'user_id');
+                    $ids = [];
+                    foreach ($result as $row) {
+                        $name = $bot->getChatMember($row)['user']['first_name'];
+                        $ids[$row] = $name;
+                    }
+                    $has_admin = in_array($fid, admins);
+                    sm_admin(['list_admin', $ids, $has_admin], null);
+                    break;
+                case $key_admin['sms']:
+                    admin_data(['step' => 'settings_edit', 'data' => 'sms_panel']);
+                    sm_admin(['sms_panel_1'], ['sms_panel']);
+                    break;
+                case $key_admin['tikket']:
+                    admin_data(['step' => 'settings_edit', 'data' => 'chtiket']);
+                    sm_admin(['chtiket_1', $settings['ticket']], ['back_panel']);
+                    break;
+                case $key_admin['float_number']:
+                    admin_data(['step' => 'settings_edit', 'data' => 'chnumber']);
+                    sm_admin(['chnumber_1', $settings['number_float']], ['back_panel']);
+                    break;
+                case $key_admin['edit_spam']:
+                    admin_data(['step' => 'settings_edit', 'data' => 'chspam']);
+                    sm_admin(['chspam_1'], ['spam_panel']);
+                    break;
+                case $key_admin['add_admin']:
+                    if (in_array($fid, admins)) {
+                        admin_data(['step' => 'settings_edit', 'data' => 'addadmin']);
+                        sm_admin(['admin_1'], ['back_panel']);
+                    }
+                    break;
+                case $key_admin['del_admin']:
+                    if (in_array($fid, admins)) {
+                        admin_data(['step' => 'settings_edit', 'data' => 'deladmin']);
+                        sm_admin(['admin_1'], ['back_panel']);
+                    }
+                    break;
+                case text_starts_with($text, '/ac_'):
+                    $str = str_replace('/ac_', '', $text);
+                    if ($str != $fid and $str != admins[0]) {
+                        $user_status = json_decode($db->get('admins', 'access', ['user_id' => $str]), 1);
+
+                        sm_admin(['access_admin'], ['show_access_admin', $user_status, $str]);
+                    } else {
+                        sm_admin(['not_access']);
+                    }
+                    break;
+                case $key_admin['DIFF_TIME']:
+                    admin_data(['step' => 'settings_edit', 'data' => 'DIFF_TIME']);
+                    sm_admin(['DIFF_TIME_1', $settings['DIFF_TIME']], ['back_panel']);
+                    break;
+                case $key_admin['usd_rate']:
+                    admin_data(['step' => 'settings_edit', 'data' => 'usd_rate']);
+                    sm_admin(['usd_rate_1', $settings['usd_rate']], ['back_panel']);
+                    break;
+                case $key_admin['settings']:
+                case $key_admin['back_to_settings']:
+                    check_allow('settings');
+                    admin_step('settings');
+                    sm_admin(['settings_1'], ['settings', in_array($fid, admins)]);
+                    break;
+            }
+            break;
+        case 'settings_edit':
+            if ($text == $key_admin['back_admin_before']) {
+                check_allow('settings');
+                admin_step('settings');
+                sm_admin(['settings_1'], ['settings', in_array($fid, admins)]);
+            } else {
+                switch ($admin['data']) {
+                    case 'sms_panel':
+                        switch ($text) {
+                            case $key_admin['sms_panel_1']:
+                                $value_data = get_option('from_number');
+                                admin_data(['step' => 'settings_edit_1', 'data' => 'from_number']);
+                                sm_admin(['from_number', $value_data], ['back_panel']);
+                                break;
+                            case $key_admin['sms_panel_2']:
+                                $value_data = get_option('pas_sms');
+                                admin_data(['step' => 'settings_edit_1', 'data' => 'pas_sms']);
+                                sm_admin(['pas_sms', $value_data], ['back_panel']);
+                                break;
+                            case $key_admin['sms_panel_3']:
+                                $value_data = get_option('user_sms');
+                                admin_data(['step' => 'settings_edit_1', 'data' => 'user_sms']);
+                                sm_admin(['user_sms', $value_data], ['back_panel']);
+                                break;
+                            case $key_admin['sms_panel_4']:
+                                $value_data = get_option('ptid_ref');
+                                admin_data(['step' => 'settings_edit_1', 'data' => 'ptid_ref']);
+                                sm_admin(['ptid_ref', $value_data], ['back_panel']);
+                                break;
+                            case $key_admin['sms_panel_5']:
+                                $value_data = get_option('ptid_payment');
+                                admin_data(['step' => 'settings_edit_1', 'data' => 'ptid_payment']);
+                                sm_admin(['ptid_payment', $value_data], ['back_panel']);
+                                break;
+                        }
+                        break;
+                    case 'chspam':
+                        switch ($text) {
+                            case $key_admin['time_slow_spam']:
+                                $value_data = get_option('s_spam');
+                                admin_data(['step' => 'settings_edit_1', 'data' => 's_spam']);
+                                sm_admin(['s_spam', $value_data], ['back_panel']);
+                                break;
+                            case $key_admin['time_spam']:
+                                $value_data = get_option('s_block');
+                                admin_data(['step' => 'settings_edit_1', 'data' => 's_block']);
+                                sm_admin(['s_spam', $value_data], ['back_panel']);
+                                break;
+                        }
+                        break;
+                    case 'chnumber':
+                        if (is_numeric($text)) {
+                            admin_step('settings');
+                            update_option('number_float', $text);
+                            sm_admin(['ok_settings_edit', $text], ['settings', in_array($fid, admins)]);
+                        } else {
+                            sm_admin(['send_int']);
+                        }
+                        break;
+                    case 'DIFF_TIME':
+                        if (is_numeric($text)) {
+                            admin_step('settings');
+                            update_option('DIFF_TIME', $text);
+                            sm_admin(['ok_settings_edit', $text], ['settings', in_array($fid, admins)]);
+                        } else {
+                            sm_admin(['send_int']);
+                        }
+                        break;
+                    case 'usd_rate':
+                        if (is_numeric($text)) {
+                            admin_step('settings');
+                            update_option('usd_rate', $text);
+                            sm_admin(['ok_settings_edit', $text], ['settings', in_array($fid, admins)]);
+                        } else {
+                            sm_admin(['send_int']);
+                        }
+                        break;
+                    case 'chtiket':
+                        if (is_numeric($text)) {
+                            admin_step('settings');
+                            update_option('ticket', $text);
+                            sm_admin(['ok_settings_edit', $text], ['settings', in_array($fid, admins)]);
+                        } else {
+                            sm_admin(['send_int']);
+                        }
+                        break;
+                    case 'addadmin':
+                        if (is_numeric($text)) {
+                            if (!$db->has('admins', ['user_id' => $text])) {
+                                $user_status = [
+                                    "main" => [
+                                        "status" => 1,
+                                        "sendall" => 0,
+                                        "userinfo" => 0,
+                                        "settings" => 0,
+                                        "apis" => 0,
+                                        "products" => 0,
+                                        "payments" => 0,
+                                        "channels" => 0,
+                                        "referral" => 0,
+                                        "text" => 0
+                                    ],
+                                    "sub" => [
+                                        "ch_order" => 0,
+                                        "support" => 0,
+                                        "card" => 0,
+                                        "payout" => 0,
+                                    ]
+                                ];
+
+                                $db->insert('admins', [
+                                    'user_id' => $text,
+                                    'access[JSON]' => $user_status
+
+                                ]);
+
+                                admin_step('settings');
+                                sm_admin(['add_admin', $text], ['settings', in_array($fid, admins)]);
+                                sm_admin(['access_admin'], ['show_access_admin', $user_status, $text]);
+                                sm_admin(['add_admin_ok'], null, $text);
+                            } else {
+                                sm_admin(['has_admin']);
+                            }
+                        } else {
+                            sm_admin(['send_int']);
+                        }
+                        break;
+                    case 'deladmin':
+                        if (is_numeric($text)) {
+                            if ($db->has('admins', ['user_id' => $text])) {
+                                $db->delete('admins', ['user_id' => $text]);
+                                admin_step('settings');
+                                sm_admin(['delete_admin', $text], ['settings', in_array($fid, admins)]);
+                                sm_admin(['delete_admin_ok'], null, $text);
+                            } else {
+                                sm_admin(['hasn_admin']);
+                            }
+                        }
+                        break;
+                }
+            }
+            break;
+        case 'settings_edit_1':
+            if ($text == $key_admin['back_admin_before']) {
+                switch ($admin['data']) {
+                    case 'ptid_ref':
+                    case 'ptid_payment':
+                    case 'user_sms':
+                    case 'pas_sms':
+                    case 'from_number':
+                        admin_data(['step' => 'settings_edit', 'data' => 'sms_panel']);
+                        sm_admin(['sms_panel_1'], ['sms_panel']);
+                        break;
+                    case 's_spam':
+                    case 's_block':
+
+                        admin_data(['step' => 'settings_edit', 'data' => 'chspam']);
+                        sm_admin(['chspam_1'], ['spam_panel']);
+
+                        break;
+                    default:
+                        check_allow('settings');
+                        admin_step('settings');
+                        sm_admin(['settings_1'], ['settings', in_array($fid, admins)]);
+                        break;
+                }
+            } else {
+                switch ($admin['data']) {
+                    case 'ptid_ref':
+                    case 'ptid_payment':
+                    case 'user_sms':
+                    case 'pas_sms':
+                    case 'from_number':
+                        admin_step('settings');
+                        update_option($admin['data'], $text);
+                        sm_admin(['ok_settings_edit', $text], ['settings', in_array($fid, admins)]);
+                        break;
+                    case 's_spam':
+                    case 's_block':
+                        if (is_numeric($text)) {
+                            admin_step('settings');
+                            update_option($admin['data'], $text);
+                            sm_admin(['ok_settings_edit', $text], ['settings', in_array($fid, admins)]);
+                        }
+                }
+            }
+            break;
+        case 'apis':
+            switch ($text) {
+                case $key_admin['edit_api_setting']:
+                    admin_step('edit_api_setting');
+                    sm_admin(['edit_api_setting_1', $settings['limit'], $settings['limit_multi']], ['edit_api_setting']);
+                    break;
+                case $key_admin['edit_api']:
+                    $result = $db->select('apis', 'name');
+                    if ($result) {
+                        admin_step('edit_api');
+                        sm_admin(['edit_api'], ['edit_api', $result]);
+                    } else {
+                        sm_admin(['not_found_api']);
+                    }
+                    break;
+                case $key_admin['add_api']:
+                    admin_step('add_api');
+                    sm_admin(['add_api_1'], ['back_panel']);
+                    break;
+                case $key_admin['status_api']:
+                    $result = $db->select('apis', '*', ['LIMIT' => 95]);
+                    if ($result) {
+                        sm_admin(['status_api'], ['status_api', $result]);
+                    } else {
+                        sm_admin(['not_found_api']);
+                    }
+                    break;
+                case $key_admin['balance_api']:
+                    $result = $db->select('apis', '*');
+                    if ($result) {
+                        sm_admin(['balance_api'], ['balance_api', $result]);
+                    } else {
+                        sm_admin(['not_found_api']);
+                    }
+                    break;
+            }
+            break;
+        case 'add_api':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('apis');
+                sm_admin(['apis_1'], ['api_panel']);
+            } else {
+                if (preg_match("/^[a-zA-Z0-9$-\/:-?@{-~!\"^_`\[\]]+$/", $text)) {
+                    if (!$db->has('apis', ['name' => $text])) {
+                        if ($text !== 'noapi') {
+                            if (strlen($text) <= 130) {
+                                $admin_data['name'] = $text;
+                                admin_data(['step' => "add_api_1", 'data[JSON]' => $admin_data]);
+                                sm_admin(['add_api_2'], ['type_api_panel']);
+                            } else {
+                                sm_admin(['add_api_error_1']);
+                            }
+                        } else {
+                            sm_admin(['add_api_error_2']);
+                        }
+                    } else {
+                        sm_admin(['add_api_error_3']);
+                    }
+                } else {
+                    sm_admin(['add_api_error_4']);
+                }
+            }
+            break;
+        case 'add_api_1':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('add_api');
+                sm_admin(['add_api_1'], ['back_panel']);
+            } else {
+                $admin_data = json_decode($admin['data'], 1);
+                $smart = str_replace([$key_admin['api_type_yes'], $key_admin['api_type_no']], [1, 0], $text);
+                $admin_data['smart'] = $smart;
+                admin_data(['step' => "add_api_2", 'data[JSON]' => $admin_data]);
+                sm_admin(['add_api_3'], ['back_panel']);
+            }
+            break;
+        case 'add_api_2':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_data(['step' => "add_api_1"]);
+                sm_admin(['add_api_2'], ['type_api_panel']);
+            } else {
+                $admin_data = json_decode($admin['data'], 1);
+                $admin_data['api_url'] = $text;
+                admin_data(['step' => "add_api_3", 'data[JSON]' => $admin_data]);
+                sm_admin(['add_api_4'], ['back_panel']);
+            }
+            break;
+        case 'add_api_3':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_data(['step' => "add_api_2"]);
+                sm_admin(['add_api_3'], ['back_panel']);
+            } else {
+                $admin_data = json_decode($admin['data'], 1);
+                if ($admin_data['smart'] == 1) {
+                    $array = ['smart_panel' => 1, 'name' => $admin_data['name'], 'api_url' => $admin_data['api_url'], 'api_key' => $text];
+                    $moj = $api->balance($array);
+                    if ($moj['result']) {
+                        $db->insert('apis', ['smart_panel' => 1, 'name' => js($admin_data['name']), 'api_url' => $admin_data['api_url'], 'api_key' => $text]);
+                        admin_step('apis');
+                        sm_admin(['ok_add_api'], ['api_panel']);
+                    } else {
+                        admin_step('apis');
+                        sm_admin(['error_add_api'], ['api_panel']);
+                    }
+                } elseif ($admin_data['smart'] == 0) {
+                    $array = ['smart_panel' => 0, 'name' => $admin_data['name'], 'api_url' => $admin_data['api_url'], 'api_key' => $text];
+                    $moj = $api->balance($array);
+                    if ($moj['result']) {
+                        $db->insert('apis', ['smart_panel' => 0, 'name' => js($admin_data['name']), 'api_url' => $admin_data['api_url'], 'api_key' => $text]);
+                        admin_step('apis');
+                        sm_admin(['ok_add_api'], ['api_panel']);
+                    } else {
+                        admin_step('apis');
+                        sm_admin(['error_add_api'], ['api_panel']);
+                    }
+                }
+            }
+            break;
+        case 'edit_api':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('apis');
+                sm_admin(['apis_1'], ['api_panel']);
+            } else {
+                $text_en = js($text);
+                $info_api = $db->get('apis', '*', ['name' => $text_en]);
+                if ($info_api) {
+
+                    admin_data(['step' => "edit_api_2", 'data[JSON]' => ['id' => $info_api['id']]]);
+                    sm_admin(['edit_api_info', $info_api, 0], ['edit_api_update', $info_api['id']]);
+                    sm_admin(['edit_api_1'], ['edit_api_panel']);
+                } else {
+                    sm_admin(['not_found_api']);
+                }
+            }
+            break;
+        case 'edit_api_2':
+            $admin_data = json_decode($admin['data'], 1);
+            switch ($text) {
+                case $key_admin['back_admin_before']:
+                    $result = $db->select('apis', 'name');
+                    if ($result) {
+                        admin_step('edit_api');
+                        sm_admin(['edit_api'], ['edit_api', $result]);
+                    } else {
+                        sm_admin(['not_found_api']);
+                    }
+                    break;
+                case $key_admin['api_name']:
+                    $admin_data['type'] = 'name';
+                    admin_data(['step' => "edit_api_3", 'data[JSON]' => $admin_data]);
+                    sm_admin(['new_name_api_name'], ['back_panel']);
+                    break;
+                case $key_admin['api_url']:
+                    $admin_data['type'] = 'url';
+                    admin_data(['step' => "edit_api_3", 'data[JSON]' => $admin_data]);
+                    sm_admin(['new_url_api_name'], ['back_panel']);
+
+                    break;
+                case $key_admin['api_key']:
+                    $admin_data['type'] = 'key';
+                    admin_data(['step' => "edit_api_3", 'data[JSON]' => $admin_data]);
+                    sm_admin(['new_key_api_name'], ['back_panel']);
+
+                    break;
+                case $key_admin['api_delete']:
+                    $admin_data['type'] = 'delete';
+                    admin_data(['step' => "edit_api_3", 'data[JSON]' => $admin_data]);
+                    sm_admin(['delete_api_1'], ['ok_admin_panel']);
+
+                    break;
+            }
+            break;
+        case 'edit_api_3':
+            $admin_data = json_decode($admin['data'], 1);
+            if ($text == $key_admin['back_admin_before']) {
+                $info_api = $db->get('apis', '*', ['id' => $admin_data['id']]);
+                admin_data(['step' => "edit_api_2", 'data[JSON]' => ['id' => $info_api['id']]]);
+                sm_admin(['edit_api_1'], ['edit_api_panel']);
+            } else {
+                $type = $admin_data['type'];
+                switch ($type) {
+                    case 'name':
+                        if (preg_match("/^[a-zA-Z0-9$-\/:-?@{-~!\"^_`\[\] ]+$/", $text)) {
+                            $text_en = js($text);
+                            if (!$db->has('apis', ['name' => $text_en])) {
+                                if ($text !== 'noapi') {
+                                    if (strlen($text) <= 130) {
+                                        $info_api = $db->get('apis', '*', ['id' => $admin_data['id']]);
+                                        $db->update('products', ['api' => $text_en], ['api' => $info_api['name']]);
+                                        $db->update('orders', ['api' => $text_en], ['api' => $info_api['name']]);
+                                        $db->update('apis', ['name' => $text, 'name' => $text_en], ['id' => $admin_data['id']]);
+                                        admin_data(['step' => "edit_api_2", 'data[JSON]' => ['id' => $info_api['id']]]);
+                                        sm_admin(['edit_api_ok'], ['edit_api_panel']);
+                                    } else {
+                                        sm_admin(['add_api_error_1']);
+                                    }
+                                } else {
+                                    sm_admin(['add_api_error_2']);
+                                }
+                            } else {
+                                sm_admin(['add_api_error_3']);
+                            }
+                        } else {
+                            sm_admin(['add_api_error_4']);
+                        }
+                        break;
+                    case 'url':
+                        if (preg_match("/^[a-zA-Z0-9$-\/:-?@{-~!\"^_`\[\] ]+$/", $text)) {
+
+                            $info_api = $db->get('apis', '*', ['id' => $admin_data['id']]);
+                            if ($text != $info_api['api_url']) {
+                                $info_api['api_url'] = $text;
+                                $m = $api->balance($info_api);
+                                if ($m['result']) {
+                                    $db->update('apis', ['api_url' => $text], ['id' => $admin_data['id']]);
+                                    admin_data(['step' => "edit_api_2", 'data[JSON]' => ['id' => $info_api['id']]]);
+                                    sm_admin(['edit_api_ok'], ['edit_api_panel']);
+                                } else {
+                                    sm_admin(['edit_api_error_1']);
+                                }
+                            } else {
+                                sm_admin(['edit_api_error_2']);
+                            }
+                        } else {
+                            sm_admin(['add_api_error_4']);
+                        }
+                        break;
+                    case 'key':
+                        if (preg_match("/^[a-zA-Z0-9$-\/:-?@{-~!\"^_`\[\] ]+$/", $text)) {
+
+                            $info_api = $db->get('apis', '*', ['id' => $admin_data['id']]);
+                            if ($text != $info_api['api_key']) {
+                                $info_api['api_key'] = $text;
+                                $m = $api->balance($info_api);
+                                if ($m['result']) {
+                                    $db->update('apis', ['api_key' => $text], ['id' => $admin_data['id']]);
+                                    admin_data(['step' => "edit_api_2", 'data[JSON]' => ['id' => $info_api['id']]]);
+                                    sm_admin(['edit_api_ok'], ['edit_api_panel']);
+                                } else {
+                                    sm_admin(['edit_api_error_3']);
+                                }
+                            } else {
+                                sm_admin(['edit_api_error_4']);
+                            }
+                        } else {
+                            sm_admin(['add_api_error_4']);
+                        }
+                        break;
+                    case 'delete':
+                        if ($text == $key_admin['ok_admin']) {
+                            $info_api = $db->get('apis', '*', ['id' => $admin_data['id']]);
+                            if (!$db->has('orders', ['api' => $info_api['name'], 'status' => ['pending', 'in progress']])) {
+                                if ($db->has('products', ['api' => $info_api['name']])) {
+                                    $db->delete('apis', ['id' => $admin_data['id']]);
+                                    $admin_data['api_name'] = $info_api['name'];
+                                    $admin_data['type_del'] = 'product';
+                                    admin_data(['step' => "edit_api_4", 'data[JSON]' => $admin_data]);
+                                    sm_admin(['delete_api_2'], ['edit_api_delete_1']);
+                                } else {
+                                    $db->delete('apis', ['id' => $admin_data['id']]);
+                                    admin_step('apis');
+                                    sm_admin(['delete_api_ok'], ['api_panel']);
+                                }
+                            } else {
+                                $admin_data['api_name'] = $info_api['name'];
+                                $admin_data['type_del'] = 'orders';
+                                admin_data(['step' => "edit_api_4", 'data[JSON]' => $admin_data]);
+                                sm_admin(['delete_api_3'], ['edit_api_delete_2']);
+                            }
+                        }
+                        break;
+                }
+            }
+            break;
+        case 'edit_api_4':
+            $admin_data = json_decode($admin['data'], 1);
+            $type = $admin_data['type'];
+            switch ($type) {
+                case 'delete':
+                    $type_delete = $admin_data['type_del'];
+                    switch ($type_delete) {
+                        case 'orders':
+                            if (in_array($text, array_values($key_admin['api_delete_option']))) {
+                                $str = array_search($text, $key_admin['api_delete_option']);
+                                switch ($str) {
+                                    case 'nothing':
+                                        # code...
+                                        break;
+                                    case 'delete':
+                                        $db->delete('orders', ['api' => $admin_data['api_name']]);
+                                        break;
+                                    case 'completed':
+                                        $db->update('orders', ['status' => 'completed'], ['api' => $admin_data['api_name']]);
+                                        break;
+                                    case 'unknow':
+                                        $db->update('orders', ['status' => 'unknow'], ['api' => $admin_data['api_name']]);
+                                        break;
+                                }
+
+                                if ($db->has('products', ['api' => $admin_data['api_name']])) {
+                                    $db->delete('apis', ['id' => $admin_data['id']]);
+                                    $admin_data['type_del'] = 'product';
+                                    admin_data(['step' => "edit_api_4", 'data[JSON]' => $admin_data]);
+                                    sm_admin(['delete_api_4'], ['edit_api_delete_1']);
+                                } else {
+                                    $db->delete('apis', ['id' => $admin_data['id']]);
+                                    admin_step('apis');
+                                    sm_admin(['delete_api_ok'], ['api_panel']);
+                                }
+                            }
+                            break;
+                        case 'product':
+                            if (in_array($text, array_values($key_admin['api_delete_option']))) {
+                                $str = array_search($text, $key_admin['api_delete_option']);
+                                switch ($str) {
+                                    case 'delete':
+                                        $db->delete('products', ['api' => $admin_data['api_name']]);
+                                        break;
+                                    case 'off':
+                                        $db->update('products', ['status' => 0], ['api' => $admin_data['api_name']]);
+                                        break;
+                                    case 'nothing':
+                                        # code...
+                                        break;
+                                }
+                                admin_step('apis');
+                                sm_admin(['delete_api_ok_prodcut'], ['api_panel']);
+                            }
+                            break;
+                    }
+                    break;
+            }
+            break;
+        case 'edit_api_setting':
+            switch ($text) {
+                case $key_admin['back_admin_before']:
+                    admin_step('apis');
+                    sm_admin(['apis_1'], ['api_panel']);
+                    break;
+                case $key_admin['limit']:
+                    admin_data(['step' => 'edit_api_setting_2', 'data' => 'limit']);
+                    sm_admin(['edit_api_setting_2', $text], ['back_panel']);
+                    break;
+                case $key_admin['limit_multi']:
+                    admin_data(['step' => 'edit_api_setting_2', 'data' => 'limit_multi']);
+                    sm_admin(['edit_api_setting_2', $text], ['back_panel']);
+                    break;
+            }
+            break;
+        case 'edit_api_setting_2':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('edit_api_setting');
+                sm_admin(['edit_api_setting_1', $settings['limit'], $settings['limit_multi']], ['edit_api_setting']);
+            } else {
+                if (is_numeric($text) and $text > 0) {
+                    if ($admin['data'] == 'limit') {
+                        if ($text <= 300) {
+                            $settings['limit'] = $text;
+                            update_option('limit', $text);
+                        }
+                    } elseif ($admin['data'] == 'limit_multi') {
+                        if ($text <= 100) {
+                            $settings['limit_multi'] = $text;
+                            update_option('limit_multi', $text);
+                        }
+                    }
+                    admin_step('edit_api_setting');
+                    sm_admin(['edit_api_setting_ok', $settings['limit'], $settings['limit_multi']], ['edit_api_setting']);
+                }
+            }
+
+            break;
+        case 'payments':
+            switch ($text) {
+                case $key_admin['payment_status']:
+                    $result = $db->select('payment_gateways', '*');
+                    if ($result) {
+                        sm_admin(['payment_status'], ['payments_status', $result]);
+                    } else {
+                        sm_admin(['not_payment']);
+                    }
+                    break;
+                case $key_admin['payment_edit']:
+                    $result = $db->select('payment_gateways', 'name');
+                    if ($result) {
+                        admin_step('edit_payment');
+                        sm_admin(['edit_payment'], ['edit_payment', $result]);
+                    } else {
+                        sm_admin(['not_payment']);
+                    }
+                    break;
+                case $key_admin['payment_add']:
+                    admin_step('add_payment');
+                    sm_admin(['add_payment_1'], ['back_panel']);
+                    break;
+                case $key_admin['payment_discount']:
+                    admin_step('payment_discount');
+                    sm_admin(['payment_discount'], ['payment_discount']);
+                    break;
+                case $key_admin['payment_edit_setting']:
+                    admin_step('payment_edit_setting');
+                    sm_admin(['payment_edit_setting'], ['payment_option']);
+                    break;
+            }
+            break;
+        case 'add_payment':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('payments');
+                sm_admin(['payments_1'], ['payment_key']);
+            } else {
+                if (!$db->has('payment_gateways', ['name' => $text])) {
+                    if (strlen($text) <= 130) {
+                        admin_data(['step' => 'add_payment_2', 'data[JSON]' => ['name' => $text]]);
+                        $result = array_diff(scandir(ROOTPATH . '/payment'), ['.', '..', 'index.php', 'error_log', '.htaccess', 'show.php']);
+                        sm_admin(['add_payment_2'], ['payment_file', $result, $db]);
+                    } else {
+                        sm_admin(['error_add_payment_1']);
+                    }
+                } else {
+                    sm_admin(['error_add_payment_2', $text]);
+                }
+            }
+            break;
+        case 'add_payment_2':
+            $admin_data = json_decode($admin['data'], true);
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('add_payment');
+                sm_admin(['add_payment_1'], ['back_panel']);
+            } else {
+                if (!$db->has('payment_gateways', ['file' => $text])) {
+                    $admin_data['file'] = $text;
+                    admin_data(['step' => 'add_payment_3', 'data[JSON]' => $admin_data]);
+                    sm_admin(['add_payment_3'], ['back_panel']);
+                } else {
+                    sm_admin(['error_add_payment_3', $text]);
+                }
+            }
+            break;
+        case 'add_payment_3':
+            $admin_data = json_decode($admin['data'], true);
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('add_payment_2');
+                $result = array_diff(scandir(ROOTPATH . '/payment'), ['.', '..', 'index.php', 'error_log', '.htaccess']);
+                sm_admin(['add_payment_2'], ['payment_file', $result, $db]);
+            } else {
+                $insert_data = ['name' => $admin_data['name'], 'file' => $admin_data['file'], 'code' => $text];
+                $db->insert('payment_gateways', $insert_data);
+                $result = $db->id();
+                if ($result) {
+                    admin_step('payments');
+                    sm_admin(['add_payment_ok'], ['payment_key']);
+                } else {
+                    sm_admin(['error_add_payment_4']);
+                }
+            }
+            break;
+        case 'edit_payment':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('payments');
+                sm_admin(['payments_1'], ['payment_key']);
+            } else {
+                $info_payment = $db->get('payment_gateways', '*', ['name' => $text]);
+                if ($info_payment) {
+                    admin_data(['step' => "edit_payment_2", 'data[JSON]' => ['id' => $info_payment['id']]]);
+                    sm_admin(['edit_payment_1', $info_payment], ['payment_edit_key']);
+                } else {
+                    sm_admin(['error_edit_payment_1', $text]);
+                }
+            }
+            break;
+        case 'edit_payment_2':
+            if ($text == $key_admin['back_admin_before']) {
+                $result = $db->select('payment_gateways', 'name');
+                if ($result) {
+                    admin_step('edit_payment');
+                    sm_admin(['edit_payment'], ['edit_payment', $result]);
+                } else {
+                    sm_admin(['not_payment']);
+                }
+            } else {
+                $admin_data = json_decode($admin['data'], true);
+                switch ($text) {
+                    case $key_admin['payment_edit_1']:
+                        # Name
+                        $admin_data['type'] = 'name';
+                        admin_data(['step' => "edit_payment_3", 'data[JSON]' => $admin_data]);
+                        sm_admin(['edit_payment_2'], ['back_panel']);
+                        break;
+                    case $key_admin['payment_edit_2']:
+                        # Merchent
+                        $admin_data['type'] = 'code';
+                        admin_data(['step' => "edit_payment_3", 'data[JSON]' => $admin_data]);
+                        sm_admin(['edit_payment_3'], ['back_panel']);
+                        break;
+                    case $key_admin['payment_edit_3']:
+                        # Delete
+                        $admin_data['type'] = 'delete';
+                        admin_data(['step' => "edit_payment_3", 'data[JSON]' => $admin_data]);
+                        sm_admin(['edit_payment_4'], ['ok_cancel_admin_panel']);
+                        break;
+                }
+            }
+            break;
+        case 'edit_payment_3':
+            $admin_data = json_decode($admin['data'], true);
+            if ($text == $key_admin['back_admin_before']) {
+                $info_payment = $db->get('payment_gateways', '*', ['id' => $admin_data['id']]);
+                if ($info_payment) {
+                    admin_data(['step' => "edit_payment_2", 'data[JSON]' => ['id' => $info_payment['id']]]);
+                    sm_admin(['edit_payment_1', $info_payment], ['payment_edit_key']);
+                }
+            } else {
+                switch ($admin_data['type']) {
+                    case 'name':
+
+                        if (!$db->has('payment_gateways', ['name' => $text])) {
+                            if (strlen($text) <= 130) {
+
+                                $db->update('payment_gateways', ['name' => $text], ['id' => $admin_data['id']]);
+                                admin_data(['step' => "edit_payment_2", 'data[JSON]' => ['id' => $admin_data['id']]]);
+                                sm_admin(['ok_payment_edit'], ['payment_edit_key']);
+                            } else {
+                                sm_admin(['error_edit_payment_2']);
+                            }
+                        } else {
+                            sm_admin(['error_edit_payment_3']);
+                        }
+                        break;
+                    case 'code':
+                        $db->update('payment_gateways', ['code' => $text], ['id' => $admin_data['id']]);
+                        admin_data(['step' => "edit_payment_2", 'data[JSON]' => ['id' => $admin_data['id']]]);
+                        sm_admin(['ok_payment_edit'], ['payment_edit_key']);
+                        break;
+                    case 'delete':
+                        if ($text == $key_admin['ok_admin']) {
+                            $db->delete('payment_gateways', ['id' => $admin_data['id']]);
+                            admin_step('payments');
+                            sm_admin(['ok_payment_delete'], ['payment_key']);
+                        }
+                        break;
+                }
+            }
+            break;
+        case 'payment_edit_setting':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('payments');
+                sm_admin(['payments_1'], ['payment_key']);
+            } else {
+                if (in_array($text, array_values($key_admin['payment_option']))) {
+                    $str = array_search($text, $key_admin['payment_option']);
+                    admin_data(['step' => 'payment_edit_setting_2', 'data[JSON]' => ['type' => $str]]);
+                    sm_admin(['payment_edit_setting_2', $settings[$str]], ['back_panel']);
+                }
+            }
+            break;
+        case 'payment_discount':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('payments');
+                sm_admin(['payments_1'], ['payment_key']);
+            } else {
+                switch ($text) {
+                    case $key_admin['add_code_discount']:
+                        admin_step('cr_code');
+                        sm_admin(['cr_code_1'], ['back_panel']);
+                        break;
+                    case $key_admin['edit_code_discount']:
+                        $result = $db->select('gift_code', 'code', ['LIMIT' => 90, 'ORDER' => ['id' => 'ASC'], 'status' => 1]);
+                        if ($result) {
+                            admin_step('edit_code');
+                            sm_admin(['edit_code_1'], ['edit_code', $result]);
+                        } else {
+                            sm_admin(['edit_code_error_1']);
+                        }
+                        break;
+                }
+            }
+            break;
+        case 'cr_code':
+            if (preg_match("/^[a-zA-Z0-9$-\/:-?@{-~!\"^_`\[\]]+$/", $text)) {
+                if ($db->has('gift_code', ['code' => $text, 'status' => 1])) {
+                    sm_admin(['edit_code_error_2']);
+                } else {
+                    admin_data(['step' => 'cr_code_2', 'data[JSON]' => ['code' => trim($text)]]);
+                    sm_admin(['cr_code_2'], ['select_type_code']);
+                }
+            } else {
+                sm_admin(['edit_code_error_3']);
+            }
+            break;
+        case 'cr_code_2':
+            $admin_data = json_decode($admin['data'], 1);
+            switch ($text) {
+                case $key_admin['percent_code']:
+                    $admin_data['type'] = 'percent';
+                    admin_data(['step' => 'cr_code_3', 'data[JSON]' => $admin_data]);
+                    sm_admin(['cr_code_3'], ['back_panel']);
+                    break;
+                case $key_admin['once_code']:
+                    $admin_data['type'] = 'fix';
+                    admin_data(['step' => 'cr_code_3', 'data[JSON]' => $admin_data]);
+                    sm_admin(['cr_code_4'], ['back_panel']);
+                    break;
+            }
+            break;
+        case 'cr_code_3':
+            $admin_data = json_decode($admin['data'], 1);
+            $ex = explode("\n", $text);
+            $c = count($ex);
+            $type = $admin_data['type'];
+            switch ($type) {
+                case 'percent':
+                    if ($c == 3) {
+                        $type = 'percent';
+                        $amount = $ex[0];
+                        $max = $ex[1];
+                        $count = $ex[2];
+                        if (is_numeric($amount) and is_numeric($max) and is_numeric($count)) {
+                            if ($amount > 0 and $max > 0 and $count > 0) {
+                                $db->insert('gift_code', ['code' => $admin_data['code'], 'type' => $type, 'count' => $count, 'amount[JSON]' => ['amount' => $amount, 'max' => $max], 'status' => 1, 'ids[JSON]' => []]);
+                                if ($db->id()) {
+                                    admin_step('payments');
+                                    sm_admin(['ok_add_discount_code'], ['payment_key']);
+                                }
+                            } else {
+                                sm_admin(['edit_code_error_4']);
+                            }
+                        } else {
+                            sm_admin(['edit_code_error_5']);
+                        }
+                    } else {
+                        sm_admin(['edit_code_error_6']);
+                    }
+                    break;
+                case 'fix':
+                    if ($c == 2) {
+                        $type = 'fix';
+                        $amount = $ex[0];
+                        $max = $amount;
+                        $count = $ex[1];
+                        if (is_numeric($amount) and is_numeric($max) and is_numeric($count)) {
+                            if ($amount > 0 and $max > 0 and $count > 0) {
+                                $db->insert('gift_code', ['code' => $admin_data['code'], 'type' => $type, 'count' => $count, 'amount[JSON]' => ['amount' => $amount, 'max' => $max], 'status' => 1, 'ids[JSON]' => []]);
+                                if ($db->id()) {
+                                    admin_step('payments');
+                                    sm_admin(['ok_add_discount_code'], ['payment_key']);
+                                }
+                            } else {
+                                sm_admin(['edit_code_error_7']);
+                            }
+                        } else {
+                            sm_admin(['edit_code_error_8']);
+                        }
+                    } else {
+                        sm_admin(['edit_code_error_9']);
+                    }
+                    break;
+            }
+            break;
+        case 'edit_code':
+            $result = $db->get('gift_code', '*', ['code' => $text, 'status' => 1]);
+            if ($result) {
+                admin_data(['step' => "edit_code_2", 'data[JSON]' => ['id' => $result['id']]]);
+                sm_admin(['edit_code_2', $result], ['edit_code_panel']);
+            } else {
+                sm_admin(['edit_code_error_10']);
+            }
+            break;
+        case 'edit_code_2':
+            $admin_data = json_decode($admin['data'], 1);
+            if ($text == $key_admin['back_admin_before']) {
+                $result = $db->select('gift_code', 'code', ['LIMIT' => 90, 'ORDER' => ['id' => 'ASC'], 'status' => 1]);
+                if ($result) {
+                    admin_step('edit_code');
+                    sm_admin(['edit_code_1'], ['edit_code', $result]);
+                } else {
+                    sm_admin(['edit_code_error_1']);
+                }
+            } else {
+                if (in_array($text, array_values($key_admin['edit_discount_panel']))) {
+                    $str = array_search($text, $key_admin['edit_discount_panel']);
+                    $result = $db->get('gift_code', '*', ['id' => $admin_data['id']]);
+                    switch ($str) {
+                        case 'delete_code':
+                            $admin_data['type'] = $str;
+                            admin_data(['step' => "edit_code_3", 'data[JSON]' => $admin_data]);
+                            sm_admin(['edit_code_3'], ['ok_admin_panel']);
+                            break;
+                        case 'max_discount':
+                            if ($result['type'] == 'percent') {
+                                $admin_data['type'] = $str;
+                                admin_data(['step' => "edit_code_3", 'data[JSON]' => $admin_data]);
+                                sm_admin(['edit_code_4'], ['back_panel']);
+                            } elseif ($result['type'] == 'fix') {
+                                // error
+                                sm_admin(['cant_edit_code']);
+                            }
+                            break;
+                        case 'amount_code':
+                        case 'count_code':
+                            $admin_data['type'] = $str;
+                            admin_data(['step' => "edit_code_3", 'data[JSON]' => $admin_data]);
+                            sm_admin(['edit_code_4'], ['back_panel']);
+                            break;
+                    }
+                }
+            }
+            break;
+        case 'edit_code_3':
+            $admin_data = json_decode($admin['data'], 1);
+            $result = $db->get('gift_code', '*', ['id' => $admin_data['id'], 'status' => 1]);
+            if ($text == $key_admin['back_admin_before']) {
+                if ($result) {
+                    admin_data(['step' => "edit_code_2", 'data[JSON]' => ['id' => $result['id']]]);
+                    sm_admin(['edit_code_2', $result], ['edit_code_panel']);
+                } else {
+                    sm_admin(['edit_code_error_10']);
+                }
+            } else {
+                $type = $admin_data['type'];
+                switch ($type) {
+                    case 'delete_code':
+                        if ($text == $key_admin['ok_admin']) {
+                            $db->delete('gift_code', ['id' => $admin_data['id']]);
+                            admin_step('payments');
+                            sm_admin(['ok_edit_code'], ['payment_key']);
+                        }
+                        break;
+                    case 'max_discount':
+                        $result['max_amount'] = $text;
+                        $db->update('gift_code', ['max_amount' => $text], ['id' => $admin_data['id']]);
+                        admin_data(['step' => "edit_code_2", 'data[JSON]' => ['id' => $result['id']]]);
+                        sm_admin(['edit_code_2', $result], ['edit_code_panel']);
+                        break;
+                    case 'amount_code':
+                        $result['amount'] = $text;
+                        $db->update('gift_code', ['amount' => $text], ['id' => $admin_data['id']]);
+                        admin_data(['step' => "edit_code_2", 'data[JSON]' => ['id' => $result['id']]]);
+                        sm_admin(['edit_code_2', $result], ['edit_code_panel']);
+                        break;
+                    case 'count_code':
+                        $result['count'] = $text;
+                        $db->update('gift_code', ['count' => $text], ['id' => $admin_data['id']]);
+                        admin_data(['step' => "edit_code_2", 'data[JSON]' => ['id' => $result['id']]]);
+                        sm_admin(['edit_code_2', $result], ['edit_code_panel']);
+                        break;
+                }
+            }
+            break;
+        case 'payment_edit_setting_2':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('payment_edit_setting');
+                sm_admin(['payment_edit_setting'], ['payment_option']);
+            } else {
+                $admin_data = json_decode($admin['data'], true);
+                if (is_numeric($text) && $text > 0) {
+                    update_option($admin_data['type'], $text);
+                    admin_step('payment_edit_setting');
+                    sm_admin(['ok_payment_edit_setting'], ['payment_option']);
+                }
+            }
+            break;
+        case 'channels':
+            if (in_array($text, array_values($key_admin['channels_key']))) {
+                $str = array_search($text, $key_admin['channels_key']);
+                admin_data(['step' => 'ch_channel_2', 'data[JSON]' => ['en' => $str, 'fa' => $text]]);
+                $channel = get_option($str, 0);
+                if ($channel != 0) {
+                    if ($str == 'channel_main' or $str == 'channel_lock') {
+                        $tx = '@' . $channel;
+                        $g = $bot->bot('GetChat', ['chat_id' => $tx]);
+                        if ($g['result']['type'] == 'channel') {
+                            $name = $g['result']['title'];
+                        } else {
+                            $name = null;
+                        }
+                    } else {
+
+                        $tx = $channel;
+                        $g = $bot->bot('GetChat', ['chat_id' => $channel]);
+                        if ($g['result']['type'] == 'channel') {
+                            $name = $g['result']['title'];
+                        } else {
+                            $name = null;
+                        }
+                    }
+                } else {
+                    $tx = $media_admin->atext('error_channel_1');
+                    $name = null;
+                }
+                sm_admin(['channel_edit_1', $text, $tx, $name], ['back_panel']);
+            } else {
+                sm_admin(['error_channel_2']);
+            }
+            break;
+        case 'ch_channel_2':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('channels');
+                sm_admin(['channels_1'], ['channel_key']);
+            } else {
+                $admin_data = json_decode($admin['data'], 1);
+                if ($admin_data['en'] == 'channel_main' or $admin_data['en'] == 'channel_lock') {
+                    if (isset($forward_from_chat) and $for_type == 'channel') {
+                        @$check = $bot->check_join($numberId, $for_id);
+                        if ($check == 'administrator') {
+                            update_option($admin_data['en'], $for_user_name);
+                            admin_step('channels');
+                            sm_admin(['ok_edit_channel', '@' . $for_user_name, $admin_data['fa']], ['channel_key']);
+                        } else {
+                            sm_admin(['error_channel_3']);
+                        }
+                    } else {
+                        sm_admin(['error_channel_4']);
+                    }
+                } else {
+                    if (isset($forward_from_chat) and $for_type == 'channel') {
+                        @$check = $bot->check_join($numberId, $for_id);
+                        if ($check == 'administrator') {
+                            update_option($admin_data['en'], $for_id);
+                            admin_step('channels');
+                            sm_admin(['ok_edit_channel', $for_id, $admin_data['fa']], ['channel_key']);
+                        } else {
+                            sm_admin(['error_channel_3']);
+                        }
+                    } elseif (is_numeric($text)) {
+                        update_option($admin_data['en'], $text);
+                        admin_step('channels');
+                        sm_admin(['ok_edit_channel', $text, $admin_data['fa']], ['channel_key']);
+                    } else {
+                        sm_admin(['error_channel_4']);
+                    }
+                }
+            }
+            break;
+        case 'text':
+            if (in_array($text, array_values($key_admin['text_key']))) {
+                $str = array_search($text, $key_admin['text_key']);
+                admin_data(['step' => 'edit_text', 'data[JSON]' => ['en' => $str, 'fa' => $text]]);
+                $tx = get_option($str, 0);
+                sm_admin(['edit_text_1', $tx], ['back_panel']);
+            } else {
+                sm_admin(['error_text_1']);
+            }
+            break;
+        case 'edit_text':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('text');
+                sm_admin(['text_1'], ['text_key']);
+            } else {
+                $admin_data = json_decode($admin['data'], 1);
+                update_option($admin_data['en'], $text);
+                admin_step('text');
+                sm_admin(['ok_edit_text', $text, $admin_data['fa']], ['text_key']);
+            }
+            # code...
+            break;
+        case 'referral':
+            if (in_array($text, array_values($key_admin['referral_key']))) {
+                $str = array_search($text, $key_admin['referral_key']);
+                admin_data(['step' => 'edit_referral', 'data[JSON]' => ['en' => $str, 'fa' => $text]]);
+
+                switch ($str) {
+                    case 'baner_tx':
+                        $tx = get_option($str, 0);
+                        sm_admin(['edit_gift_1', $tx], ['back_panel']);
+                        break;
+                    case 'baner_photo':
+                        $bot->bot('sendphoto', [
+                            'chat_id' => $fid,
+                            'photo' => new CURLFile(ROOTPATH . "/baner.jpg"),
+                        ]);
+                        sm_admin(['edit_gift_2'], ['back_panel']);
+                        break;
+                    case 'gift_referral':
+                    case 'gift_payment':
+                    case 'gift_start':
+                    case 'min_payment_gift':
+                    case 'min_move_gift':
+                        $tx = get_option($str, 0);
+                        sm_admin(['edit_gift_3', $tx], ['back_panel']);
+                        break;
+                }
+            } else {
+                sm_admin(['error_referral_1']);
+            }
+            break;
+        case 'edit_referral':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('referral');
+                sm_admin(['referral_1'], ['referral_key']);
+            } else {
+                $admin_data = json_decode($admin['data'], 1);
+                $type = $admin_data['en'];
+                switch ($type) {
+                    case 'baner_tx':
+                        update_option($admin_data['en'], $text);
+                        admin_step('referral');
+                        sm_admin(['ok_edit_gift'], ['referral_key']);
+                        break;
+                    case 'baner_photo':
+                        if (isset($update['message']['photo'])) {
+                            $photo = $update['message']['photo'];
+                            $file = end($photo)['file_id'];
+                            $get = $bot->bot('getfile', ['file_id' => $file]);
+                            if ($get['ok']) {
+                                $patch = $get['result']['file_path'];
+                                @unlink('baner.jpg');
+                                file_put_contents(ROOTPATH . '/baner.jpg', curl_get('https://api.telegram.org/file/bot' . Token . '/' . $patch));
+                                admin_step('referral');
+                                sm_admin(['ok_edit_gift'], ['referral_key']);
+                            }
+                        }
+                        break;
+                    case 'gift_referral':
+                    case 'gift_payment':
+                    case 'gift_start':
+                    case 'min_payment_gift':
+                    case 'min_move_gift':
+                        if (is_numeric($text) and $text >= 0) {
+                            update_option($admin_data['en'], $text);
+                            admin_step('referral');
+                            sm_admin(['ok_edit_gift'], ['referral_key']);
+                        }
+                        break;
+                }
+            }
+            break;
+        case 'products':
+            switch ($text) {
+                case $key_admin['add_product']:
+                    admin_step('add_product');
+                    sm_admin(['add_product_1'], ['type_add_product']);
+                    break;
+                case $key_admin['edit_product']:
+                    $result = get_category(['offset' => 0, 'status' => 1], null);
+                    if ($result) {
+                        $c = $db->count('categories', ['category_id' => null]);
+                        $admin_data = ['offset_main' => 0];
+                        admin_data(['step' => 'edit_1', 'data[JSON]' => $admin_data]);
+                        sm_admin(['edit_shop_1'], ['category_select_panel', $result, $c, null, 0]);
+                    } else {
+                        sm_admin(['edit_shop_error_1']);
+                    }
+
+                    break;
+                case $key_admin['delete_product']:
+                    admin_step('delete_all');
+                    sm_admin(['type_of_delete'], ['type_of_delete']);
+                    break;
+                case $key_admin['update_product']:
+
+                    $result = $db->select('apis', 'name', ['smart_panel' => 1]);
+                    if ($result) {
+                        admin_step('update_api_1');
+                        sm_admin(['update_api_1'], ['api_select_panel', $result, false]);
+                    } else {
+                        sm_admin(['update_api_error_1']);
+                    }
+                    break;
+                case $key_admin['status_product']:
+                    $result = get_category(['inline', 'offset' => 0, 'status' => 1], null);
+                    if ($result) {
+                        $c = $db->count('categories', ['category_id' => null]);
+                        sm_admin(['product_status'], ['category_status', $result, $c, 0, 0]);
+                    } else {
+                        sm_admin(['product_status_error_1']);
+                    }
+
+                    break;
+                case $key_admin['display_product']:
+                    admin_step('display_product');
+                    sm_admin(['display_product'], ['display_prodcuts']);
+                    break;
+            }
+            break;
+        case 'display_product_1':
+            $admin_data = json_decode($admin['data'], true);
+            $type = $admin_data['type'];
+            switch ($type) {
+                case 'row_product':
+                    $explode = explode('-', $text);
+                    if (count($explode) > 0) {
+                        $category = json_decode($settings['display_products'], true);
+                        $category['row'] = $explode;
+                        update_option('display_products', js($category));
+                        admin_step('display_product');
+                        $bot->delete_msg($fid, $message_id);
+                        edt_admin(['display_product'], ['display_prodcuts', true], $admin_data['msgid']);
+                    }
+                    break;
+                case 'row_under':
+                    $explode = explode('-', $text);
+                    if (count($explode) > 0) {
+                        $category = json_decode($settings['display_sub_category'], true);
+                        $category['row'] = $explode;
+                        update_option('display_sub_category', js($category));
+                        admin_step('display_product');
+                        $bot->delete_msg($fid, $message_id);
+                        edt_admin(['display_product'], ['display_prodcuts', true], $admin_data['msgid']);
+                    }
+                    break;
+                case 'row_category':
+                    $explode = explode('-', $text);
+                    if (count($explode) > 0) {
+                        $category = json_decode($settings['display_category'], true);
+                        $category['row'] = $explode;
+                        update_option('display_category', js($category));
+                        admin_step('display_product');
+                        $bot->delete_msg($fid, $message_id);
+                        edt_admin(['display_product'], ['display_prodcuts', true], $admin_data['msgid']);
+                    }
+                    break;
+                case 'page_product':
+                    if (is_numeric($text) && $text >= 1) {
+                        $category = json_decode($settings['display_products'], true);
+                        $category['page'] = $text;
+                        update_option('display_products', js($category));
+                        admin_step('display_product');
+                        $bot->delete_msg($fid, $message_id);
+                        edt_admin(['display_product'], ['display_prodcuts', true], $admin_data['msgid']);
+                    }
+                    break;
+                case 'page_under':
+                    if (is_numeric($text) && $text >= 1) {
+                        $category = json_decode($settings['display_sub_category'], true);
+                        $category['page'] = $text;
+                        update_option('display_sub_category', js($category));
+                        admin_step('display_product');
+                        $bot->delete_msg($fid, $message_id);
+                        edt_admin(['display_product'], ['display_prodcuts', true], $admin_data['msgid']);
+                    }
+                    break;
+                case 'page_category':
+                    if (is_numeric($text) && $text >= 1) {
+                        $category = json_decode($settings['display_category'], true);
+                        $category['page'] = $text;
+                        update_option('display_category', js($category));
+                        admin_step('display_product');
+                        $bot->delete_msg($fid, $message_id);
+                        edt_admin(['display_product'], ['display_prodcuts', true], $admin_data['msgid']);
+                    }
+                    break;
+            }
+            break;
+        case 'add_product':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('products');
+                sm_admin(['products_1'], ['products_panel']);
+            } else {
+                if (in_array($text, array_values($key_admin['product_type']))) {
+                    $str = array_search($text, $key_admin['product_type']);
+                    switch ($str) {
+                        case 'category':
+                            $admin_data = ['type' => $str];
+                            sm_admin(['category_add_1'], ['back_panel']);
+                            break;
+                        case 'sub_category':
+                            $result = get_category(['offset' => 0, 'status' => 1], 0);
+                            if ($result) {
+                                $admin_data = ['offset' => 0, 'type' => $str];
+                                $c = $db->count('categories', 'id', ['category_id' => null]);
+                                sm_admin(['sub_category_add_1'], ['category_select_panel', $result, $c, null, 0]);
+                            } else {
+
+                                sm_admin(['edit_shop_error_2']);
+                            }
+                            break;
+                        case 'product':
+                            $result = get_category(['offset' => 0, 'status' => 1], 0);
+                            if ($result) {
+                                $admin_data = ['offset_main' => 0, 'type' => $str];
+                                $c = $db->count('categories', 'id', ['category_id' => null]);
+                                sm_admin(['product_add_1'], ['category_select_panel', $result, $c, null, 0]);
+                            } else {
+                                sm_admin(['edit_shop_error_2']);
+                            }
+                            break;
+                    }
+                    admin_data(['step' => 'add_product_2', 'data[JSON]' => $admin_data]);
+                }
+            }
+            break;
+        case 'add_product_2':
+            $admin_data = json_decode($admin['data'], true);
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('add_product');
+                sm_admin(['add_product_1'], ['type_add_product']);
+            } else {
+                $text = removeWhiteSpace($text);
+                $text_en = js($text);
+                switch ($admin_data['type']) {
+                    case 'category':
+
+                        if (!$db->has('categories', ['name' => $text_en])) {
+                            $ordering = (int) $db->max('categories', 'ordering', ['category_id' => null]);
+                            $ordering += 1;
+                            $in_data = [
+                                'name' => $text_en,
+                                'category_id' => null,
+                                'status' => 1,
+                                'ordering' => $ordering,
+                            ];
+                            $db->insert('categories', $in_data);
+                            admin_data(['step' => 'add_product_2', 'data[JSON]' => ['type' => $admin_data['type']]]);
+                            sm_admin(['category_add_2'], ['back_panel']);
+                        } else {
+                            sm_admin(['category_add_error_1']);
+                        }
+                        break;
+                    case 'sub_category':
+                        if ($text == $key_admin['next_page'] or $text == $key_admin['prev_page']) {
+
+                            $displaySettings = json_decode($settings['display_category'], true);
+                            $now = $admin_data['offset'];
+
+                            if ($text == $key_admin['next_page']) {
+                                $str = $now + $displaySettings['page'];
+                            } else {
+                                $str = $now - $displaySettings['page'];
+                            }
+
+                            $result = get_category(['offset' => $str, 'status' => 1], 0);
+                            if ($result) {
+                                $c = $db->count('categories', 'id', ['category_id' => null]);
+                                $admin_data['offset'] = $str;
+                                admin_data(['step' => 'add_product_2', 'data[JSON]' => $admin_data]);
+                                sm_admin(['sub_category_add_1'], ['category_select_panel', $result, $c, null, $str]);
+                            } else {
+                                sm_admin(['category_add_error_2']);
+                            }
+                        } else {
+                            $get = $db->get('categories', 'id', ['name' => js($text)]);
+                            if ($get) {
+                                if ($db->has('products', ['category_id' => $get])) {
+                                    sm_admin(['category_add_error_3']);
+                                } else {
+                                    $admin_data['category_id'] = $get;
+                                    admin_data(['step' => 'add_product_3', 'data[JSON]' => $admin_data]);
+                                    sm_admin(['sub_category_add_2'], ['back_panel']);
+                                }
+                            } else {
+                                sm_admin(['category_add_error_4']);
+                            }
+                        }
+                        break;
+                    case 'product':
+                        if ($text == $key_admin['next_page'] or $text == $key_admin['prev_page']) {
+
+                            $displaySettings = json_decode($settings['display_category'], true);
+                            $now = $admin_data['offset_main'];
+
+                            if ($text == $key_admin['next_page']) {
+                                $str = $now + $displaySettings['page'];
+                            } else {
+                                $str = $now - $displaySettings['page'];
+                            }
+
+                            $result = get_category(['offset' => $str, 'status' => 1], 0);
+                            if ($result) {
+                                $c = $db->count('categories', 'id', ['category_id' => null]);
+                                $admin_data['offset_main'] = $str;
+                                admin_data(['step' => 'add_product_2', 'data[JSON]' => $admin_data]);
+                                sm_admin(['product_add_1'], ['category_select_panel', $result, $c, null, $str]);
+                            } else {
+                                sm_admin(['category_add_error_5']);
+                            }
+                        } else {
+                            $get = $db->get('categories', 'id', ['name' => js($text)]);
+                            if ($get) {
+                                $result = get_category(['offset' => 0, 'status' => 1], $get);
+                                if ($result) {
+                                    $c = $db->count('categories', 'id', ['category_id' => $get]);
+                                    $admin_data['category_id'] = $get;
+                                    $admin_data['offset_under'] = 0;
+                                    admin_data(['step' => 'add_product_3', 'data[JSON]' => $admin_data]);
+                                    sm_admin(['product_add_2'], ['category_select_panel', $result, $c, $get, 0]);
+                                } else {
+                                    // Not Have Under Category
+                                    $admin_data['category_id'] = $get;
+                                    $result = $db->select('apis', 'name', ['LIMIT' => 95]);
+                                    sm_admin(['product_add_3'], ['product_add_api', $result]);
+                                    admin_data(['step' => 'add_product_4', 'data[JSON]' => $admin_data]);
+                                }
+                            } else {
+                                sm_admin(['category_add_error_4']);
+                            }
+                        }
+
+                        break;
+                }
+            }
+            break;
+        case 'add_product_3':
+            $admin_data = json_decode($admin['data'], true);
+            if ($text == $key_admin['back_admin_before']) {
+                switch ($admin_data['type']) {
+                    case 'sub_category':
+                        $str = $admin_data['offset'];
+                        $result = get_category(['offset' => $str, 'status' => 1], 0);
+                        if ($result) {
+                            $c = $db->count('categories', 'id', ['category_id' => null]);
+                            $admin_data['offset'] = $str;
+                            admin_data(['step' => 'add_product_2', 'data[JSON]' => $admin_data]);
+                            sm_admin(['sub_category_add_1'], ['category_select_panel', $result, $c, null, $str]);
+                        } else {
+                            sm_admin(['category_add_error_2']);
+                        }
+                        break;
+                    case 'product':
+
+                        break;
+                }
+            } else {
+                $text = removeWhiteSpace($text);
+                $text_en = js($text);
+                switch ($admin_data['type']) {
+                    case 'sub_category':
+                        if (!$db->has('categories', ['name' => $text_en, 'category_id' => $admin_data['category_id']])) {
+                            $ordering = (int) $db->max('categories', 'ordering', ['category_id' => $admin_data['category_id']]);
+                            $ordering += 1;
+                            $in_data = [
+                                'name' => $text_en,
+                                'category_id' => $admin_data['category_id'],
+                                'status' => 1,
+                                'ordering' => $ordering,
+                            ];
+                            $db->insert('categories', $in_data);
+                            admin_data(['step' => 'add_product_3']);
+                            sm_admin(['sub_category_add_3'], ['back_panel']);
+                        } else {
+                            sm_admin(['category_add_error_1']);
+                        }
+                        break;
+                    case 'product':
+                        $get = $db->get('categories', 'id', ['name' => js($text)]);
+                        if ($get) {
+
+                            $admin_data['category_id'] = $get;
+
+                            $result = $db->select('apis', 'name', ['LIMIT' => 95]);
+                            admin_data(['step' => 'add_product_4', 'data[JSON]' => $admin_data]);
+                            sm_admin(['product_add_3'], ['product_add_api', $result]);
+                        } else {
+                            sm_admin(['category_add_error_4']);
+                        }
+                        break;
+                }
+            }
+            break;
+        case 'add_product_4':
+            $admin_data = json_decode($admin['data'], true);
+            switch ($admin_data['type']) {
+                case 'product':
+                    if ($text == $key_admin['no_api']) {
+                        $admin_data['api'] = 0;
+                        admin_data(['step' => 'add_product_5', 'data[JSON]' => $admin_data]);
+                        sm_admin(['product_add_4', 0], ['back_panel']);
+                    } else {
+                        $result_api = $db->get('apis', '*', ['name' => js($text)]);
+                        if ($result_api) {
+                            if ($result_api['smart_panel']) {
+                                $admin_data['api'] = $result_api['id'];
+                                admin_data(['step' => 'add_product_5', 'data[JSON]' => $admin_data]);
+                                sm_admin(['product_add_4', 1], ['back_panel']);
+                            } else {
+                                $admin_data['api'] = $result_api['id'];
+                                admin_data(['step' => 'add_product_5', 'data[JSON]' => $admin_data]);
+                                sm_admin(['product_add_4', 2], ['back_panel']);
+                            }
+                        } else {
+                            sm_admin(['product_add_bot_key']);
+                        }
+                    }
+                    break;
+            }
+            break;
+        case 'add_product_5':
+            $admin_data = json_decode($admin['data'], true);
+            $explode = explode("\n", $text);
+            if ($admin_data['api'] == 0) {
+                if (count($explode) == 4) {
+                    $name_product = removeWhiteSpace($explode[0]);
+                    $name_en = json_encode($name_product);
+                    $price = trim($explode[1]);
+                    $min = trim($explode[2]);
+                    $max = trim($explode[3]);
+                    if (mb_strlen($name_product) <= 130) {
+                        if (is_numeric($price) and is_numeric($min) and is_numeric($max) and $min > 0 and $max > 0) {
+                            $btn = $db->get('categories', '*', ['id' => $admin_data['category_id']]);
+                            if (!$db->has('products', ['name' => $name_en, 'category_id' => $btn['id']])) {
+                                $ordering = (int) $db->max('products', 'ordering', ['category_id' => $btn['id']]);
+                                $ordering += 1;
+                                $db->insert('products', [
+                                    'name' => $name_en,
+                                    'price' => $price,
+                                    'min' => $min,
+                                    'max' => $max,
+                                    'info' => null,
+                                    'api' => 'noapi',
+                                    'service' => 0,
+                                    'category_id' => $btn['id'],
+                                    'ordering' => $ordering,
+                                ]);
+                                $insert = $db->id();
+                                if ($insert) {
+                                    $admin_data['id'] = $insert;
+                                    admin_data(['step' => 'add_product_6', 'data[JSON]' => $admin_data]);
+                                    sm_admin(['product_add_5', $btn['id'], $name_product, $price, $min, $max], ['skip_back_panel', 0]);
+                                } else {
+                                    sm_admin(['product_add_error_1']);
+                                }
+                            } else {
+                                sm_admin(['product_add_error_2']);
+                            }
+                        } else {
+                            sm_admin(['product_add_error_3']);
+                        }
+                    } else {
+                        sm_admin(['product_add_error_4']);
+                    }
+                } else {
+                    sm_admin(['product_add_error_5']);
+                }
+            } else {
+                $result_api = $db->get('apis', '*', ['id' => $admin_data['api']]);
+                if ($result_api) {
+                    if ($result_api['smart_panel']) {
+                        /** Smart Panel */
+                        if (count($explode) >= 2 and count($explode) <= 5) {
+                            $id = trim($explode['0']);
+                            $price = trim($explode['1']);
+
+                            $result_service = $api->services($result_api);
+                            if ($result_service['result']) {
+                                foreach ($result_service['data'] as $service) {
+                                    if ($service['service'] == $id) {
+                                        $info_product = $service;
+                                        break;
+                                    }
+                                }
+                                if (isset($explode['2'])) {
+                                    $name_product = $explode['2'];
+                                } else {
+                                    $name_product = $info_product['name'];
+                                }
+                                if (strlen($name_product) <= 130) {
+
+                                    if (isset($explode['3']) && isset($explode['4'])) {
+                                        $min = $explode['3'];
+                                        $max = $explode['4'];
+                                    } else {
+                                        $min = $info_product['min'];
+                                        $max = $info_product['max'];
+                                    }
+                                    if ($min && $max) {
+                                        if (is_numeric($price) and $min > 0 and $max > 0) {
+                                            $btn = $db->get('categories', '*', ['id' => $admin_data['category_id']]);
+                                            $name_en = js($name_product);
+                                            if (!$db->has('products', ['name' => $name_en, 'category_id' => $btn['id']])) {
+                                                $ordering = (int) $db->max('products', 'ordering', ['category_id' => $btn['id']]);
+                                                $ordering += 1;
+                                                $db->insert('products', [
+                                                    'name' => $name_en,
+                                                    'price' => $price,
+                                                    'min' => $min,
+                                                    'max' => $max,
+                                                    'info' => null,
+                                                    'api' => $result_api['name'],
+                                                    'service' => $id,
+                                                    'category_id' => $btn['id'],
+                                                    'ordering' => $ordering,
+                                                ]);
+                                                $insert = $db->id();
+                                                if ($insert) {
+                                                    $admin_data['id'] = $insert;
+                                                    admin_data(['step' => 'add_product_6', 'data[JSON]' => $admin_data]);
+                                                    sm_admin(['product_add_5', $btn['id'], $name_product, $price, $min, $max], ['skip_back_panel', 1]);
+                                                } else {
+                                                    sm_admin(['product_add_error_1']);
+                                                }
+                                            } else {
+                                                sm_admin(['product_add_error_2']);
+                                            }
+                                        } else {
+                                            sm_admin(['product_add_error_3']);
+                                        }
+                                    } else {
+                                        sm_admin(['product_add_error_6']);
+                                    }
+                                } else {
+                                    sm_admin(['product_add_error_4']);
+                                }
+                            } else {
+                                sm_admin(['product_add_error_7']);
+                            }
+                        } else {
+                            sm_admin(['product_add_error_8']);
+                        }
+                    } else {
+                        /** Not Smart Panel */
+                        if (count($explode) == 5) {
+                            $name_product = removeWhiteSpace($explode[0]);
+                            $name_en = js($name_product);
+                            $price = trim($explode[2]);
+                            $id = trim($explode[1]);
+                            $min = trim($explode[3]);
+                            $max = trim($explode[4]);
+                            if (strlen($name_product) <= 130) {
+                                $btn = $db->get('categories', '*', ['id' => $admin_data['category_id']]);
+                                if (!$db->has('products', ['name' => $name_en, 'category_id' => $btn['id']])) {
+
+                                    if (is_numeric($price) and is_numeric($min) and is_numeric($max) and $min > 0 and $max > 0) {
+
+                                        $ordering = (int) $db->max('products', 'ordering', ['category_id' => $btn['id']]);
+                                        $ordering += 1;
+
+                                        $db->insert('products', [
+                                            'name' => $name_en,
+                                            'price' => $price,
+                                            'min' => $min,
+                                            'max' => $max,
+                                            'info' => null,
+                                            'api' => $result_api['name'],
+                                            'service' => $id,
+                                            'category_id' => $btn['id'],
+                                            'ordering' => $ordering,
+                                        ]);
+
+                                        $insert = $db->id();
+                                        if ($insert) {
+                                            $admin_data['id'] = $insert;
+                                            admin_data(['step' => 'add_product_6', 'data[JSON]' => $admin_data]);
+                                            sm_admin(['product_add_5', $btn['id'], $name_product, $price, $min, $max], ['skip_back_panel', 0]);
+                                        } else {
+                                            sm_admin(['product_add_error_1']);
+                                        }
+                                    } else {
+                                        sm_admin(['product_add_error_3']);
+                                    }
+                                } else {
+                                    sm_admin(['product_add_error_2']);
+                                }
+                            } else {
+                                sm_admin(['product_add_error_4']);
+                            }
+                        }
+                    }
+                } else {
+                    sm_admin(['product_add_error_9']);
+                }
+            }
+
+            break;
+        case 'add_product_6':
+            $admin_data = json_decode($admin['data'], true);
+
+            if ($text == $key_admin['skip_add_info']) {
+
+                $result = $db->select('apis', 'name', ['LIMIT' => 95]);
+
+                admin_data(['step' => 'add_product_4', 'data[JSON]' => $admin_data]);
+                sm_admin(['product_add_repeat'], ['product_add_api', $result]);
+            } elseif ($text == $key_admin['api_add_info']) {
+
+                $result_api = $db->get('apis', '*', ['id' => $admin_data['api']]);
+                if ($result_api) {
+                    if ($result_api['smart_panel']) {
+                        $result_service = $api->services($result_api);
+                        if ($result_service['result']) {
+                            $id = $db->get('products', 'service', ['id' => $admin_data['id']]);
+                            foreach ($result_service['data'] as $service) {
+                                if ($service['service'] == $id) {
+                                    $info_product = $service;
+                                    break;
+                                }
+                            }
+                            $desc = removeWhiteSpace($info_product['desc']);
+                            $db->update('products', ['info' => $desc], ['id' => $admin_data['id']]);
+
+                            $result = $db->select('apis', 'name', ['LIMIT' => 95]);
+                            admin_data(['step' => 'add_product_4', 'data[JSON]' => $admin_data]);
+
+                            sm_admin(['product_add_repeat_2', $desc], ['product_add_api', $result]);
+                        } else {
+                            sm_admin(['product_add_error_7']);
+                        }
+                    } else {
+                        sm_admin(['product_add_error_10']);
+                    }
+                } else {
+                    sm_admin(['product_add_error_9']);
+                }
+            } else {
+
+                $text = removeWhiteSpace($text);
+                $db->update('products', ['info' => $text], ['id' => $admin_data['id']]);
+                admin_data(['step' => 'add_product_4', 'data[JSON]' => $admin_data]);
+
+                sm_admin(['product_add_repeat_2', $desc], ['product_add_api', $result]);
+            }
+            break;
+        case 'edit_1':
+            $admin_data = json_decode($admin['data'], true);
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('products');
+                sm_admin(['products_1'], ['products_panel']);
+            } else {
+                if ($text == $key_admin['next_page'] or $text == $key_admin['prev_page']) {
+
+                    $displaySettings = json_decode($settings['display_category'], true);
+                    $now = $admin_data['offset_main'];
+
+                    if ($text == $key_admin['next_page']) {
+                        $str = $now + $displaySettings['page'];
+                    } else {
+                        $str = $now - $displaySettings['page'];
+                    }
+
+                    $result = get_category(['offset' => $str, 'status' => 1], null);
+                    if ($result) {
+                        $c = $db->count('categories', 'id', ['category_id' => null]);
+                        $admin_data['offset_main'] = $str;
+                        admin_data(['step' => 'edit_1', 'data[JSON]' => $admin_data]);
+
+                        sm_admin(['edit_shop_1'], ['category_select_panel', $result, $c, null, $str]);
+                    } else {
+                        sm_admin(['edit_shop_error_2']);
+                    }
+                } else {
+                    $result_categorys = $db->get('categories', '*', ['name' => js($text)]);
+                    if ($result_categorys) {
+                        sm_admin(['edit_category', $text], ['edit_category', 0, $result_categorys['id']]);
+
+                        if ($db->has('categories', ['category_id' => $result_categorys['id']])) {
+                            // under menu first
+                            $result = get_category(['offset' => 0, 'status' => 1], $result_categorys['id']);
+                            if ($result) {
+                                $admin_data['offset_under'] = 0;
+                                $admin_data['main_id'] = $result_categorys['id'];
+                                $c = $db->count('categories', ['category_id' => $result_categorys['id']]);
+                                admin_data(['step' => 'edit_2', 'data[JSON]' => $admin_data]);
+                                sm_admin(['edit_shop_2'], ['category_select_panel', $result, $c, $result_categorys['id'], 0]);
+                            } else {
+                                // not category
+                                sm_admin(['edit_shop_error_1']);
+                            }
+                        } else {
+                            // product menu first type main
+                            $result = get_products(['offset' => 0, 'status' => 1], $result_categorys['id']);
+                            if ($result) {
+                                $admin_data['offset_product'] = 0;
+                                $admin_data['category'] = $result_categorys['id'];
+                                $c = $db->count('products', ['category_id' => $result_categorys['id']]);
+
+                                admin_data(['step' => 'edit_3', 'data[JSON]' => $admin_data]);
+
+                                sm_admin(['edit_shop_3'], ['product_select_panel', $result, $c, $result_categorys['id'], 0]);
+                            } else {
+                                // not category
+                                sm_admin(['edit_shop_error_0']);
+                            }
+                        }
+                    } else {
+                        sm_admin(['product_add_bot_key']);
+                    }
+                }
+            }
+            break;
+        case 'edit_2':
+            $admin_data = json_decode($admin['data'], true);
+            if ($text == $key_admin['back_admin_before']) {
+                $result = get_category(['offset' => $admin_data['offset_main'], 'status' => 1], null);
+                if ($result) {
+                    $c = $db->count('categories', 'id', ['category_id' => null]);
+                    admin_data(['step' => 'edit_1']);
+
+                    sm_admin(['edit_shop_1'], ['category_select_panel', $result, $c, null, $admin_data['offset_main']]);
+                } else {
+                    sm_admin(['edit_shop_error_2']);
+                }
+            } else {
+                if ($text == $key_admin['next_page'] or $text == $key_admin['prev_page']) {
+
+                    $displaySettings = json_decode($settings['display_sub_category'], true);
+                    $now = $admin_data['offset_under'];
+
+                    if ($text == $key_admin['next_page']) {
+                        $str = $now + $displaySettings['page'];
+                    } else {
+                        $str = $now - $displaySettings['page'];
+                    }
+
+                    $result = get_category(['offset' => $str, 'status' => 1], $admin_data['main_id']);
+                    if ($result) {
+                        $c = $db->count('categories', 'id', ['category_id' => $admin_data['main_id']]);
+                        $admin_data['offset_under'] = $str;
+                        admin_data(['step' => 'edit_2', 'data[JSON]' => $admin_data]);
+
+                        sm_admin(['edit_shop_2'], ['category_select_panel', $result, $c, $admin_data['main_id'], $str]);
+                    } else {
+                        sm_admin(['edit_shop_error_2']);
+                    }
+                } else {
+                    $result_categorys = $db->get('categories', '*', ['name' => js($text), "category_id" => $admin_data['main_id']]);
+                    if ($result_categorys) {
+                        sm_admin(['edit_category', $text], ['edit_category', 0, $result_categorys['id']]);
+
+                        $result = get_products(['offset' => 0, 'status'], $result_categorys['id']);
+                        if ($result) {
+                            $admin_data['offset_product'] = 0;
+                            $admin_data['category'] = $result_categorys['id'];
+                            $c = $db->count('products', ['category_id' => $result_categorys['id']]);
+                            admin_data(['step' => 'edit_3', 'data[JSON]' => $admin_data]);
+
+                            sm_admin(['edit_shop_3'], ['product_select_panel', $result, $c, $result_categorys['id'], 0]);
+                        } else {
+                            // not category
+                            sm_admin(['edit_shop_error_3']);
+                        }
+                    } else {
+                        sm_admin(['product_add_bot_key']);
+                    }
+                }
+            }
+            break;
+        case 'edit_3':
+            $admin_data = json_decode($admin['data'], true);
+            if ($text == $key_admin['back_admin_before']) {
+                $result_categorys = $db->get('categories', '*', ['id' => $admin_data['category']]);
+                if ($result_categorys) {
+                    if ($result_categorys['category_id'] == null) {
+
+                        $result = get_category(['offset' => $admin_data['offset_main'], 'status' => 1], null);
+                        if ($result) {
+                            $c = $db->count('categories', 'id', ['category_id' => null]);
+                            admin_data(['step' => 'edit_1']);
+
+                            sm_admin(['edit_shop_1'], ['category_select_panel', $result, $c, null, $admin_data['offset_main']]);
+                        } else {
+                            sm_admin(['edit_shop_error_2']);
+                        }
+                    } else {
+                        $result = get_category(['offset' => $admin_data['offset_under'], 'status' => 1], $result_categorys['category_id']);
+                        if ($result) {
+                            $c = $db->count('categories', 'id', ['category_id' => $result_categorys['category_id']]);
+                            admin_data(['step' => 'edit_2']);
+
+                            sm_admin(['edit_shop_2'], ['category_select_panel', $result, $c, $result_categorys['category_id'], $admin_data['offset_under']]);
+                        } else {
+                            sm_admin(['edit_shop_error_2']);
+                        }
+                    }
+                } else {
+                    sm_admin(['product_add_bot_key']);
+                }
+            } else {
+                if ($text == $key_admin['next_page'] or $text == $key_admin['prev_page']) {
+
+                    $displaySettings = json_decode($settings['display_sub_category'], true);
+                    $now = $admin_data['offset_product'];
+
+                    if ($text == $key_admin['next_page']) {
+                        $str = $now + $displaySettings['page'];
+                    } else {
+                        $str = $now - $displaySettings['page'];
+                    }
+
+                    $result = get_products(['offset' => $str, 'status' => 1], $admin_data['category']);
+                    if ($result) {
+                        $admin_data['offset_product'] = $str;
+                        $c = $db->count('products', ['category_id' => $admin_data['category']]);
+                        admin_data(['step' => 'edit_3', 'data[JSON]' => $admin_data]);
+
+                        sm_admin(['edit_shop_3'], ['product_select_panel', $result, $c, $admin_data['category'], $str]);
+                    } else {
+                        // not category
+                        sm_admin(['edit_shop_error_3']);
+                    }
+                } else {
+
+                    $result_product = $db->get('products', '*', ['category_id' => $admin_data['category'], 'name' => js($text)]);
+
+                    if ($result_product) {
+                        sm_admin(['edit_product', $text], ['edit_category', 1, $result_product['id']]);
+                    } else {
+                        sm_admin(['product_add_bot_key']);
+                    }
+                }
+            }
+            break;
+        case 'edit_info':
+            $admin_data = json_decode($admin['data'], true);
+            if ($text == $key_admin['back_admin_before']) {
+                $result = get_category(['offset' => 0, 'status' => 1], null);
+                if ($result) {
+                    $c = $db->count('categories', ['category_id' => null]);
+                    $admin_data = ['offset_main' => 0];
+                    admin_data(['step' => 'edit_1', 'data[JSON]' => $admin_data]);
+                    sm_admin(['edit_shop_1'], ['category_select_panel', $result, $c, null, 0]);
+                } else {
+                    // not category
+                    sm_admin(['edit_shop_error_1']);
+                }
+            } else {
+                $type = $admin_data['type'];
+
+                switch ($text) {
+                    case $key_admin['product_edit_option']['name']:
+                        $admin_data['type_edit'] = 'name';
+                        admin_data(['step' => 'edit_info_2', 'data[JSON]' => $admin_data]);
+                        sm_admin(['edit_info', 'name', 0], ['back_panel']);
+                        break;
+
+                    case $key_admin['product_edit_option']['ordering']:
+                        if ($type == 'product') {
+                            $r  = $db->get('products', '*', ['id' => $admin_data['id']]);
+                            $m  = (int) $db->min('products', 'ordering', ['category_id' => $r['category_id']]);
+                            $m2 = (int) $db->max('products', 'ordering', ['category_id' => $r['category_id']]);
+                        } else {
+                            $r = $db->get('categories', '*', ['id' => $admin_data['id']]);
+                            if ($r['category_id'] == null) {
+                                $m = (int) $db->min('categories', 'ordering', ['category_id' => null]);
+                                $m2 = (int) $db->max('categories', 'ordering', ['category_id' => null]);
+                            } else {
+                                $m  = (int) $db->min('categories', 'ordering', ['category_id' => $r['category_id']]);
+                                $m2 = (int) $db->max('categories', 'ordering', ['category_id' => $r['category_id']]);
+                            }
+                        }
+
+                        $admin_data['type_edit'] = 'ordering';
+                        admin_data(['step' => 'edit_info_2', 'data[JSON]' => $admin_data]);
+
+                        sm_admin(['edit_info', 'ordering', $m, $m2], ['back_panel']);
+                        break;
+
+                    case $key_admin['product_edit_option']['delete']:
+                        $admin_data['type_edit'] = 'delete';
+                        admin_data(['step' => 'edit_info_2', 'data[JSON]' => $admin_data]);
+                        sm_admin(['edit_info', 'delete', 0], ['ok_admin_panel']);
+                        break;
+
+                    default:
+                        if ($type == 'product') {
+                            switch ($text) {
+                                case $key_admin['product_edit_option']['price']:
+                                    $admin_data['type_edit'] = 'price';
+                                    admin_data(['step' => 'edit_info_2', 'data[JSON]' => $admin_data]);
+                                    sm_admin(['edit_info', 'price', 0], ['back_panel']);
+                                    break;
+                                case $key_admin['product_edit_option']['min']:
+                                    $admin_data['type_edit'] = 'min';
+                                    admin_data(['step' => 'edit_info_2', 'data[JSON]' => $admin_data]);
+                                    sm_admin(['edit_info', 'min', 0], ['back_panel']);
+                                    break;
+                                case $key_admin['product_edit_option']['info']:
+                                    $admin_data['type_edit'] = 'info';
+                                    admin_data(['step' => 'edit_info_2', 'data[JSON]' => $admin_data]);
+                                    sm_admin(['edit_info', 'info', 0], ['back_panel']);
+                                    break;
+                                case $key_admin['product_edit_option']['api']:
+                                    $admin_data['type_edit'] = 'api';
+                                    admin_data(['step' => 'edit_info_2', 'data[JSON]' => $admin_data]);
+
+                                    $result = $db->select('apis', 'name', ['LIMIT' => 95]);
+                                    sm_admin(['edit_info', 'api', 0], ['api_select_panel', $result, true]);
+                                    break;
+                                case $key_admin['product_edit_option']['discount']:
+                                    $admin_data['type_edit'] = 'discount';
+                                    admin_data(['step' => 'edit_info_2', 'data[JSON]' => $admin_data]);
+                                    sm_admin(['edit_info', 'discount', 0], ['back_panel']);
+                                    break;
+                                case $key_admin['product_edit_option']['confirm']:
+                                    $admin_data['type_edit'] = 'confirm';
+                                    admin_data(['step' => 'edit_info_2', 'data[JSON]' => $admin_data]);
+                                    sm_admin(['edit_info', 'confirm', 0], ['back_panel']);
+                                    break;
+                            }
+                        }
+                        break;
+                }
+            }
+            break;
+        case 'edit_info_2':
+            $admin_data = json_decode($admin['data'], true);
+            if ($text == $key_admin['back_admin_before']) {
+                $type = $admin_data['type'];
+                $id = $admin_data['id'];
+                switch ($type) {
+                    case 'category':
+                        $result = $db->get('categories', '*', ['id' => $id]);
+                        if ($result['category_id'] == null) {
+                            admin_data(['step' => 'edit_info', 'data[JSON]' => ['type' => 'category', 'id' => $id]]);
+
+                            $un = $db->has('categories', ['category_id' => $result['id']]);
+
+                            sm_admin(['edit_category_info', $result, $un, false], ['update_info', 'category', $result['id']]);
+
+                            sm_admin(['edit_products_panel'], ['edit_products_panel', 'category']);
+                        } else {
+                            admin_data(['step' => 'edit_info', 'data[JSON]' => ['type' => 'under', 'id' => $id]]);
+
+                            sm_admin(['edit_under_info', $result, false], ['update_info', 'under', $result['id']]);
+
+                            sm_admin(['edit_products_panel'], ['edit_products_panel', 'under']);
+                        }
+                        break;
+                    case 'product':
+                        $result = $db->get('products', '*', ['id' => $id]);
+
+                        admin_data(['step' => 'edit_info', 'data[JSON]' => ['type' => 'product', 'id' => $id]]);
+
+                        sm_admin(['edit_product_info', $result, false], ['update_info', 'product', $result['id']]);
+
+                        sm_admin(['edit_products_panel'], ['edit_products_panel', 'product']);
+
+                        break;
+                }
+            } else {
+                $type_edit = $admin_data['type_edit'];
+                $type = $admin_data['type'];
+                $id = $admin_data['id'];
+                $true = false;
+                switch ($type_edit) {
+                    case 'name':
+                        $name_product = removeWhiteSpace($text);
+                        $name_en = js($name_product);
+                        if ($type == 'product') {
+                            if (strlen($name_product) <= 130) {
+                                $product = $db->get('products', '*', ['id' => $id]);
+                                if (!$db->has('products', ['name' => $name_en, 'category_id' => $product['category_id']])) {
+
+                                    $db->update('products', ['name' => $name_en], ['id' => $id]);
+                                    $true = true;
+                                } else {
+                                }
+                            } else {
+                            }
+                        } else {
+                            if (strlen($name_product) <= 130) {
+                                $category = $db->get('categories', '*', ['id' => $id]);
+                                if (!$db->has('categories', ['name' => $name_en, 'category_id' => $category['category_id']])) {
+
+                                    $db->update('categories', ['name' => $name_en], ['id' => $id]);
+                                    $true = true;
+                                } else {
+                                    sm_admin(['error_edit_product_1']);
+                                }
+                            } else {
+                            }
+                        }
+
+                        break;
+                    case 'ordering':
+                        if (is_numeric($text)) {
+                            if ($type == 'product') {
+                                $db->update('products', ['ordering' => $text], ['id' => $id]);
+                            } else {
+                                $db->update('categories', ['ordering' => $text], ['id' => $id]);
+                            }
+                            $true = true;
+                        } else {
+                            sm_admin(['error_edit_product_2']);
+                        }
+                        break;
+                    case 'delete':
+                        if ($text == $key_admin['ok_admin']) {
+                            if ($type == 'product') {
+                                $db->delete('products', ['id' => $id]);
+                                admin_step('products');
+                                sm_admin(['ok_delete_products'], ['products_panel']);
+                            } else {
+                                if ($db->has('categories', ['category_id' => $id])) {
+
+                                    $r2 = $db->select('categories', '*', ['category_id' => $id]);
+                                    foreach ($r2 as $row) {
+                                        $db->delete('products', ['category_id' => $row['id']]);
+                                        $db->delete('categories', ['id' => $row['id']]);
+                                    }
+                                    $db->delete('categories', ['id' => $id]);
+                                } else {
+                                    $db->delete('products', ['category_id' => $id]);
+                                    $db->delete('categories', ['id' => $id]);
+                                }
+                                admin_step('products');
+                                sm_admin(['ok_delete_products'], ['products_panel']);
+                            }
+                        }
+                        break;
+                    case 'price':
+                        if (is_numeric($text) && $text > 0) {
+                            $db->update('products', ['price' => $text], ['id' => $id]);
+                            $true = true;
+                        } else {
+                            sm_admin(['error_edit_product_3']);
+                        }
+                        break;
+                    case 'min':
+                        $ex = explode("\n", $text);
+                        if (count($ex) == 2 and is_numeric($ex[0]) and is_numeric($ex[1])) {
+                            $min = $ex[0];
+                            $max = $ex[1];
+                            if ($min > 0 and $max > 0) {
+                                $db->update('products', ['min' => $min, 'max' => $max], ['id' => $id]);
+                                $true = true;
+                            }
+                        } else {
+                            sm_admin(['error_edit_product_4']);
+                        }
+                        break;
+                    case 'info':
+                        $text = removeWhiteSpace($text);
+                        $db->update('products', ['info' => $text], ['id' => $id]);
+                        $true = true;
+                        break;
+                    case 'api':
+                        if ($db->has('apis', ['name' => js($text)])) {
+                            $db->update('products', ['api' => js($text)], ['id' => $id]);
+                            $true = true;
+                        } else {
+                            sm_admin(['error_edit_product_5']);
+                        }
+                        break;
+                    case 'discount':
+                        if (is_numeric($text) and $text >= 0 and $text <= 100) {
+                            $db->update('products', ['discount' => $text], ['id' => $id]);
+                            $true = true;
+                        } else {
+                            sm_admin(['error_edit_product_6']);
+                        }
+                        break;
+                    case 'confirm':
+                        if (is_numeric($text) and $text >= 0) {
+                            $db->update('products', ['confirm' => $text], ['id' => $id]);
+                            $true = true;
+                        } else {
+                            sm_admin(['error_edit_product_7']);
+                        }
+                        break;
+                }
+
+                if ($true) {
+                    switch ($type) {
+                        case 'category':
+                            $result = $db->get('categories', '*', ['id' => $id]);
+                            if ($result['category_id'] == null) {
+                                admin_data(['step' => 'edit_info', 'data[JSON]' => ['type' => 'category', 'id' => $id]]);
+
+                                $un = $db->has('categories', ['category_id' => $result['id']]);
+
+                                sm_admin(['edit_category_info', $result, $un, false], ['update_info', 'category', $result['id']]);
+
+                                sm_admin(['edit_products_panel'], ['edit_products_panel', 'category']);
+                            } else {
+                                admin_data(['step' => 'edit_info', 'data[JSON]' => ['type' => 'under', 'id' => $id]]);
+
+                                sm_admin(['edit_under_info', $result, false], ['update_info', 'under', $result['id']]);
+
+                                sm_admin(['edit_products_panel'], ['edit_products_panel', 'under']);
+                            }
+                            break;
+                        case 'product':
+                            $result = $db->get('products', '*', ['id' => $id]);
+
+                            admin_data(['step' => 'edit_info', 'data[JSON]' => ['type' => 'product', 'id' => $id]]);
+
+                            sm_admin(['edit_product_info', $result, false], ['update_info', 'product', $result['id']]);
+
+                            sm_admin(['edit_products_panel'], ['edit_products_panel', 'product']);
+
+                            break;
+                    }
+                }
+            }
+            break;
+        case 'update_api_1':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('products');
+                sm_admin(['products_1'], ['products_panel']);
+            } else {
+                $get = $db->get('apis', '*', ['name' => js($text)]);
+                if ($get) {
+                    admin_data(['step' => 'update_api_2', 'data[JSON]' => ['api_id' => $get['id']]]);
+                    $r = sm_admin(['.'], ['back_panel'])['result']['message_id'];
+                    $bot->delete_msg($fid, $r);
+                    sm_admin(['update_api_2'], ['update_api_type_0']);
+                } else {
+                }
+            }
+            break;
+        case 'update_api_2':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('products');
+                sm_admin(['products_1'], ['products_panel']);
+            }
+            break;
+        case 'update_api_41':
+            $admin_data = json_decode($admin['data'], true);
+            $r = $admin_data['msgid2'];
+            switch ($admin_data['type']) {
+                case 'up':
+                    if (is_numeric($text) && $text >= 0) {
+                        $bot->delete_msg($fid, $message_id);
+                        $bot->delete_msg($fid, $r);
+
+                        $p_s = $admin_data['p_s'];
+                        $p_s['up'] = $text;
+
+                        $admin_data['p_s'] = $p_s;
+                        admin_data(['step' => 'update_api_4', 'data[JSON]' => $admin_data]);
+
+                        edk_admin(['update_api_product_settings', $admin_data['update_type'], $p_s], $admin_data['msgid1']);
+                    }
+                    break;
+                case 'round':
+                    if (is_numeric($text)) {
+                        $bot->delete_msg($fid, $message_id);
+                        $bot->delete_msg($fid, $r);
+                        $p_s = $admin_data['p_s'];
+                        $p_s['round'] = $text;
+
+                        $admin_data['p_s'] = $p_s;
+                        admin_data(['step' => 'update_api_4', 'data[JSON]' => $admin_data]);
+
+                        edk_admin(['update_api_product_settings', $admin_data['update_type'], $p_s], $admin_data['msgid1']);
+                    }
+                    break;
+            }
+            break;
+        case 'delete_all':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('products');
+                sm_admin(['products_1'], ['products_panel']);
+            } else {
+                if (in_array($text, array_values($key_admin['product_delete_option']))) {
+                    $str = array_search($text, $key_admin['product_delete_option']);
+                    $admin_data['type'] = $str;
+                    admin_data(['step' => 'delete_all_1', 'data[JSON]' => $admin_data]);
+                    sm_admin(['delete_all_2', $text], ['ok_admin_panel']);
+                }
+            }
+            break;
+        case 'delete_all_1':
+            if ($text == $key_admin['back_admin_before']) {
+            } else {
+                $admin_data = json_decode($admin['data'], true);
+                $type = $admin_data['type'];
+                switch ($type) {
+                    case 'all':
+                        $db->query('TRUNCATE TABLE ' . prefix . 'categories;');
+                        $db->query('TRUNCATE TABLE ' . prefix . 'products;');
+                        break;
+                    case 'prodcuts':
+                        $db->query('TRUNCATE TABLE ' . prefix . 'products;');
+                        break;
+                    case 'products_off':
+                        $db->delete('products', ['status' => 0]);
+                        break;
+                    case 'category_off':
+                        $result = $db->select('categories', '*', ['status' => 0, 'category_id' => null]);
+                        foreach ($result as $row) {
+                            if (!$db->has('categories', ['category_id' => $row['id']])) {
+                                $db->delete('categories', ['id' => $row['id']]);
+                                $db->delete('products', ['category_id' => $row['id']]);
+                            } else {
+                                $r2 = $db->select('categories', '*', ['category_id' => $row['id']]);
+                                foreach ($r2 as $row2) {
+                                    $db->delete('products', ['category_id' => $row2['id']]);
+                                    $db->delete('categories', ['id' => $row2['id']]);
+                                }
+                                $db->delete('categories', ['id' => $row['id']]);
+                            }
+                        }
+                        break;
+                    case 'under_off':
+                        $result = $db->select('categories', '*', ['status' => 0, 'category_id[!]' => null]);
+                        foreach ($result as $row) {
+                            $db->delete('products', ['category_id' => $row['id']]);
+                            $db->delete('categories', ['id' => $row['id']]);
+                        }
+                        break;
+                    case 'category_empty':
+                        $result = $db->select('categories', '*', ['category_id' => null]);
+                        foreach ($result as $row) {
+                            if (!$db->has('categories', ['category_id' => $row['id']])) {
+                                if (!$db->has('products', ['category_id' => $row['id']])) {
+                                    $db->delete('categories', ['id' => $row['id']]);
+                                }
+                            } else {
+                                $r2 = $db->select('categories', '*', ['category_id' => $row['id']]);
+                                foreach ($r2 as $row2) {
+                                    if (!$db->has('products', ['category_id' => $row2['id']])) {
+                                        $db->delete('categories', ['id' => $row2['id']]);
+                                    }
+                                }
+                                if (!$db->has('categories', ['category_id' => $row['id']])) {
+                                    $db->delete('categories', ['id' => $row['id']]);
+                                }
+                            }
+                        }
+                        break;
+                }
+                admin_step('products');
+                sm_admin(['delete_all_3'], ['products_panel']);
+            }
+            break;
+        case 'send_answer_1':
+            $decode = json_decode($admin['data'], true);
+            $id = $decode['id'];
+            $msgid = $decode['msgid'];
+            $chat = $decode['chat'];
+            $delid = $decode['remsg'];
+
+            if (isset($text)) {
+                sm_to_user(['support_pm2', $text], ['fast_support'], $id);
+
+                if ($fid != $chat['id']) {
+                    $bot->bot('sendmessage', [
+                        'chat_id' => $chat,
+                        'text' => $media_admin->atext('send_pm_result', $caption),
+                        'reply_to_message_id' => $msgid,
+                        'parse_mode' => 'Html',
+                        'disable_web_page_preview' => true,
+                    ]);
+                }
+            } else {
+                $types = ['video', 'photo', 'audio', 'voice', 'document'];
+                foreach ($types as $i) {
+                    if (isset($update['message'][$i])) {
+                        $type = $update['message'][$i];
+                        @$caption = $update['message']['caption'];
+                        if ($i == 'photo') {
+                            $file_id = $type[count($type) - 1]['file_id'];
+                        } else {
+                            $file_id = $type['file_id'];
+                        }
+                        break;
+                    }
+                }
+                $send = str_replace($types, ['sendvideo', 'sendphoto', 'sendaudio', 'sendvoice', 'senddocument'], $i);
+                $r = $bot->bot($send, [
+                    'chat_id' => $id,
+                    $i => $file_id,
+                    'caption' => $media->atext('support_pm2', $caption),
+                    'parse_mode' => 'Html',
+                    'reply_markup' => json_encode($media->akeys('fast_support')),
+                ]);
+                if ($fid != $chat['id']) {
+                    $bot->bot($send, [
+                        'chat_id' => $chat,
+                        $i => $file_id,
+                        'caption' => $media_admin->atext('send_pm_result', $caption),
+                        'parse_mode' => 'Html',
+                        'reply_to_message_id' => $msgid,
+                        'reply_markup' => $admin_home
+                    ]);
+                }
+            }
+            $bot->delete_msg($cid, $delid);
+            admin_data(['step' => 'none', 'data' => 'none']);
+            sm_admin(['send_answer_ok'], ['home', $access]);
+            break;
+        case 'set_user_card':
+            $decode = json_decode($admin['data'], true);
+            $id = $decode['id'];
+            $msgid = $decode['msgid'];
+            $chat = $decode['chat'];
+            $delid = $decode['remsg'];
+
+            if (is_numeric($text)) {
+                user_set_data(['payment_card' => $text], $id);
+                sm_to_user(['ok_card'], null, $id);
+                $bot->delete_msg($cid, $delid);
+                admin_data(['step' => 'none', 'data' => 'none']);
+                sm_admin(['set_user_card_ok'], ['home', $access]);
+            } else {
+                sm_admin(['set_user_card_int']);
+            }
+
+            break;
+        case 'value':
+            # code...
+            break;
+        case 'value':
+            # code...
+            break;
+        case 'value':
+            # code...
+            break;
+        case 'value':
+            # code...
+            break;
+        case 'value':
+            # code...
+            break;
+        case 'value':
+            # code...
+            break;
+        default:
+            sm_admin(['error']);
+            break;
+    }
+}

@@ -3,7 +3,7 @@
 require "config.php";
 
 require_once ROOTPATH . "/include/db.php";
-require ROOTPATH . "/bot_file/function/function.php";
+require ROOTPATH . "/bot_file/function/function_tel.php";
 require ROOTPATH . "/include/hkbot.php";
 require ROOTPATH . "/include/jdf.php";
 require_once ROOTPATH . "/media/index.php";
