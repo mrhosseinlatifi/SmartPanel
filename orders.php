@@ -187,7 +187,7 @@ if (!get_option('cron_order_lock', 1)) {
 					$db->update('orders', ['status' => 'error', 'extra_data[JSON]' => $decode_data], ['id' => $order['id']]);
 					$db->update('users_information', ['balance[+]' => $order['price'], 'amount_spent[-]' => $order['price']], ['user_id' => $user_id]);
 					sm_user(['order_cancel', $order, $show_channel], null, $user_id);
-					sm_channel('channel_errors',['order_add_error', $decode_data['error']]);
+					sm_channel('channel_errors', ['order_add_error', $decode_data['error']]);
 				}
 			}
 		}

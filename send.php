@@ -2,11 +2,11 @@
 
 require "config.php";
 
-require_once ROOTPATH . "/include/db.php";
+require ROOTPATH . "/include/db.php";
 require ROOTPATH . "/bot_file/function/function_tel.php";
 require ROOTPATH . "/include/hkbot.php";
 require ROOTPATH . "/include/jdf.php";
-require_once ROOTPATH . "/media/index.php";
+require ROOTPATH . "/media/index.php";
 
 // Fetch job
 $job = $db->get('jobs', '*', ['step[!]' => 'none']);
@@ -17,6 +17,8 @@ if (!$job) {
 }
 // Load settings
 get_settings($settings);
+
+define('DIFF_TIME', $settings['DIFF_TIME']);
 
 if ($job['lock_job']) {
     handleLockedJob($db, $settings, $job);
@@ -38,7 +40,7 @@ switch ($job['step']) {
 
     default:
         echo 'Unknown Step';
-        $db->update('jobs', ['step'=>'none','lock_job' => 0,'last_job'=>time()], ['id' => $jobId]);
+        $db->update('jobs', ['step' => 'none', 'lock_job' => 0, 'last_job' => time()], ['id' => $jobId]);
         break;
 }
 
@@ -53,7 +55,7 @@ function handleLockedJob($db, $settings, $job)
     $last = $settings['last_cron_send'] + 90;
 
     if ($now >= $last) {
-        $db->update('jobs', ['lock_job' => 0,'last_job'=>time()], ['id' => $job['id']]);
+        $db->update('jobs', ['lock_job' => 0, 'last_job' => time()], ['id' => $job['id']]);
     }
 }
 
@@ -128,11 +130,11 @@ function finalizeJob($db, $settings, $job, $usersCount, $increment, $successMess
     $newUserCount = $job['user'] + $increment;
 
     if ($newUserCount >= $usersCount) {
-        $db->update('jobs', ['step' => 'none', 'lock_job' => 0,'last_job'=>time()], ['id' => $job['id']]);
-        
+        $db->update('jobs', ['step' => 'none', 'lock_job' => 0, 'last_job' => time()], ['id' => $job['id']]);
+
         $bot->sm($job["admin"], $successMessage);
     } else {
-        $db->update('jobs', ['user' => $newUserCount, 'lock_job' => 0,'last_job'=>time()], ['id' => $job['id']]);
+        $db->update('jobs', ['user' => $newUserCount, 'lock_job' => 0, 'last_job' => time()], ['id' => $job['id']]);
     }
 
     update_option('last_cron_send', time());
