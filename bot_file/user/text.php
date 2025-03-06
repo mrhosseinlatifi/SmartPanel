@@ -162,9 +162,6 @@ function user_text()
                     sm_user(['error_text_key'], ['home']);
                 }
                 break;
-            case $key['test']:
-                $bot->sm($fid, 'test');
-                break;
             default:
                 sm_user(['error_text_key'], ['home']);
                 break;

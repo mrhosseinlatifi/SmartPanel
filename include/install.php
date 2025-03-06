@@ -588,6 +588,7 @@ function first_data($db, $admin)
         ]
     ];
     $settings['section_status']['main']['bot'] = 1;
+    $settings['section_status']['payment']['online_payment'] = 1;
 
     foreach ($settings as $option_value => $option_key) {
         $db->insert('setting_options', ['option_key' => $option_value, 'option_value[JSON]' => $option_key]);
