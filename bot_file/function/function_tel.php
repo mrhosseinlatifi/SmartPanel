@@ -962,23 +962,36 @@ function transactionslist($result)
 function insertTransaction($type, $id, $old, $new, $amount, $type2, $admin = 0)
 {
     global $db;
+
+    if (!is_numeric($id) || !is_numeric($amount) || !is_numeric($old) || !is_numeric($new)) {
+        throw new Exception("Invalid numeric input");
+    }
+
     $data = [
-        'user_id' => $id,
+        'user_id' => (int)$id,
         'status' => 1,
         'type' => $type,
-        'amount' => $amount,
+        'amount' => (int)$amount,
         'data[JSON]' => [
-            'old' => $old,
-            'new' => $new,
-            'amount' => $amount,
+            'old' => (int)$old,
+            'new' => (int)$new,
+            'amount' => (int)$amount,
             'type' => $type2,
-            'admin' => $admin
+            'admin' => (int)$admin
         ],
         'date' => time(),
         's_date' => time(),
     ];
 
-    $db->insert('transactions', $data);
+    try {
+        $db->insert('transactions', $data);
+        if (!$db->id()) {
+            throw new Exception("Insert failed");
+        }
+    } catch (Exception $e) {
+        file_put_contents('error.log', "insertTransaction error: " . $e->getMessage() . "\n", FILE_APPEND);
+        throw $e;
+    }
 }
 
 function get_user($id, $type = 'user_id')
@@ -997,9 +1010,19 @@ function user_set_step($step = 'none', $id = null)
 function user_set_data($data, $id = null)
 {
     global $db, $fid;
-    $userId = ($id == null) ? $fid : $id;
-    if (is_array($data)) {
-        $db->update('users_information', $data, ['user_id' => $userId]);
+    $userId = ($id === null) ? $fid : $id;
+
+    if (!is_array($data) || empty($data) || !is_numeric($userId)) {
+        throw new Exception("Invalid input data or user ID");
+    }
+
+    try {
+        if (!$db->update('users_information', $data, ['user_id' => $userId])) {
+            throw new Exception("No rows updated");
+        }
+    } catch (Exception $e) {
+        file_put_contents('error.log', "user_set_data error: " . $e->getMessage() . "\n", FILE_APPEND);
+        throw $e;
     }
 }
 
@@ -1076,12 +1099,15 @@ function convertnumber($string)
 {
     $persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
     $arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-
     $num = range(0, 9);
-    $convertedPersianNums = str_replace($persian, $num, $string);
-    $englishNumbersOnly = str_replace($arabic, $num, $convertedPersianNums);
 
-    return $englishNumbersOnly;
+    $string = str_replace($persian, $num, $string);
+    $string = str_replace($arabic, $num, $string);
+
+    if (filter_var($string, FILTER_VALIDATE_INT) === false || (int)$string <= 0) {
+        return null;
+    }
+    return (int)$string;
 }
 
 

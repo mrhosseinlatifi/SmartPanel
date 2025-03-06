@@ -40,7 +40,7 @@ function user_step()
                                         }
                                     } else {
                                         user_set_step('sendsms');
-                                        sm_user(['delay_time_sms', $n],['back']);
+                                        sm_user(['delay_time_sms', $n], ['back']);
                                     }
                                 } else {
 
@@ -77,7 +77,7 @@ function user_step()
                         sm_channel('channel_kyc', ['ok_number_2', $contactuser, $fid, $first_name, $referral_id]);
                     }
 
-                    user_set_data(['step' => 'none' , 'referral_id' => $referral_id, 'number' => $contactuser]);
+                    user_set_data(['step' => 'none', 'referral_id' => $referral_id, 'number' => $contactuser]);
                     processReferral($referral_id, $fid);
                     handleStart('start');
                 } else {
@@ -367,18 +367,23 @@ function user_step()
                 break;
             case 'change_gift_balance_1':
                 $text = convertnumber($text);
-                if (is_numeric($text)) {
-                    if ($text >= $settings['min_move_gift'] and $text <= $user['gift']) {
-                        $old_balance = $user['balance'];
-                        $new_balance = $user['balance'] + $text;
+                if ($text === null) {
+                    sm_user(['gift_balance_int']);
+                    exit;
+                }
+
+                if ($text >= $settings['min_move_gift'] && $text <= $user['gift']) {
+                    try {
+                        $old_balance = (int)$user['balance'];
+                        $new_balance = $old_balance + $text;
                         insertTransaction('gift_move', $fid, $old_balance, $new_balance, $text, 'gift');
                         user_set_data(['step' => 'none', 'data' => 'none', 'gift[-]' => $text, 'balance[+]' => $text]);
                         sm_user(['ok_gift_balance', $text], ['home']);
-                    } else {
-                        sm_user(['amount_gift_balance_wrong', $min_to_move_balance, $user['gift']]);
+                    } catch (Exception $e) {
+                        sm_user(['error_processing']);
                     }
                 } else {
-                    sm_user(['gift_balance_int']);
+                    sm_user(['amount_gift_balance_wrong', $settings['min_move_gift'], $user['gift']]);
                 }
                 break;
             case 'buy1':
@@ -997,14 +1002,14 @@ function user_step()
 
                                     if ($sms['result'] == 'OK') {
                                         user_set_data(['step' => 'send_sms', 'last_sms[JSON]' => ['last_sms' => time(), 'c' => md5($sms['code'])], 'number' => $contactuser . 'off']);
-                                        sm_user(['payment_authentication_send_sms'],['back']);
+                                        sm_user(['payment_authentication_send_sms'], ['back']);
                                     } else {
                                         sm_channel('channel_errors', ['sms_error', json_encode($sms['error'])]);
                                         sm_user(['payment_authentication_send_sms_again']);
                                     }
                                 } else {
                                     user_set_step('send_sms');
-                                    sm_user(['delay_time_sms', $n],['back']);
+                                    sm_user(['delay_time_sms', $n], ['back']);
                                 }
                             } else {
                                 # Send Data To Channel
@@ -1145,9 +1150,9 @@ function user_step()
                     $photo = $update['message']['photo'];
                     $caption = $update['message']['caption'] ?? '';
                     $file_id = end($photo)['file_id'];
-                    if($settings['channel_kyc'] != 0){
+                    if ($settings['channel_kyc'] != 0) {
                         $bot->sp($settings['channel_kyc'], $file_id, $media->atext('payment_verify_caption', [$fid, $first_name, $caption]), $media->akeys('verify_keys', $fid));
-                    }else{
+                    } else {
                         $bot->sp(admins['0'], $file_id, $media->atext('payment_verify_caption', [$fid, $first_name, $caption]), $media->akeys('verify_keys', $fid));
                     }
                     user_set_data(['step' => 'none', 'payment_card' => 'wait']);
