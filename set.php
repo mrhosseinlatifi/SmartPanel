@@ -1,6 +1,6 @@
 <?php
 require_once 'config.php';
-require_once ROOTPATH . '/bot_file/function/function.php';
+require_once ROOTPATH . '/bot_file/function/function_tel.php';
 require_once ROOTPATH . '/include/hkbot.php';
 
 function getDomain(): string {

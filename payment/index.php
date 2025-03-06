@@ -2,7 +2,7 @@
 define('BASE_DIR', dirname(__DIR__));
 
 require_once BASE_DIR . '/config.php';
-require_once ROOTPATH . "/bot_file/function/function.php";
+require_once ROOTPATH . "/bot_file/function/function_tel.php";
 require_once ROOTPATH . '/include/db.php';
 require_once ROOTPATH . "/media/index.php";
 require_once ROOTPATH . "/include/hkbot.php";
@@ -131,8 +131,6 @@ if (isset($_GET['file'])) {
                           redirect($base_url);
                         }
                       }
-                    } else {
-                      echo 1;
                     }
                   } else {
                     echo "<title>@$idbot</title><h1 style='text-align: center;margin-top:30px'>" . $media->text('time_payment_end', $result_payment['file']) . "</h1>";
