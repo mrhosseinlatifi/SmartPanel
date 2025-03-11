@@ -400,7 +400,7 @@ function admin_steps()
                     break;
                 case text_starts_with($text, '/ac_'):
                     $str = str_replace('/ac_', '', $text);
-                    if ($str != $fid and $str != admins[0]) {
+                    if ($str != $fid and $str != admins[0] and in_array($fid,admins)) {
                         $user_status = json_decode($db->get('admins', 'access', ['user_id' => $str]), 1);
 
                         sm_admin(['access_admin'], ['show_access_admin', $user_status, $str]);
