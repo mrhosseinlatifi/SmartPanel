@@ -12,7 +12,7 @@ class api
 				$b = number_format($result['data']['balance']) . ' ' . strtoupper($result['data']['currency']) ?: 'مشکل در دریافت';
 				return ['result' => true, 'balance' => $b];
 			} else {
-				error_log('error balance : ' . $result['data']['error'].' - api : '. $api['name']);
+				error_log('error balance : ' . $result['data']['error'] . ' - api : ' . $api['name']);
 				return ['result' => false, 'balance' => 'Error'];
 			}
 		}
@@ -33,7 +33,7 @@ class api
 			if ($result['result']) {
 				return ['result' => true, 'data' => $result['data']];
 			} else {
-				error_log('error status : ' . $result['data']['error'].' - id : '. $id.' - api : '. $api['name']);
+				error_log('error status : ' . $result['data']['error'] . ' - id : ' . $id . ' - api : ' . $api['name']);
 				return ['result' => false, 'error' => $result['data']['error']];
 			}
 		}
@@ -53,7 +53,7 @@ class api
 			if ($result['result']) {
 				return ['result' => true, 'data' => $result['data']];
 			} else {
-				error_log('error status multi : ' . $result['data']['error'].' - id : '. json_encode($ids).' - api : '. $api['name']);
+				error_log('error status multi : ' . $result['data']['error'] . ' - id : ' . json_encode($ids) . ' - api : ' . $api['name']);
 				return ['result' => false, 'error' => $result['data']['error']];
 			}
 		}
@@ -74,7 +74,7 @@ class api
 			if ($result['result']) {
 				return ['result' => true, 'order' => $result['data']['order']];
 			} else {
-				error_log('error add order : ' . $result['data']['error'].' - service : '. $service.' - api : '. $api['name']);
+				error_log('error add order : ' . $result['data']['error'] . ' - service : ' . $service . ' - api : ' . $api['name']);
 				return ['result' => false, 'error' => $result['data']['error']];
 			}
 		}
@@ -86,12 +86,16 @@ class api
 			$url = $api['api_url'];
 			$data = ['key' => $api['api_key'], 'action' => 'services'];
 			$result = $this->rq($url, 'POST', $data);
-
-			return $result;
+			if ($result['result']) {
+				return $result;
+			}else{
+				error_log('error services : '. $result['data']['error'].' - api : '. $api['name']);
+                return ['result' => false, 'error' => $result['data']['error']];
+			}
 		}
 	}
 
-	function rq($url, $method = 'GET', $data = [])
+	private function rq($url, $method = 'GET', $data = [])
 	{
 		if ($method == 'GET') {
 			$q = http_build_query($data);

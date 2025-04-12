@@ -22,7 +22,7 @@ function admin_data_step()
                 }
 
                 edk_admin(['show_access_admin', $user_status, $id]);
-            }else{
+            } else {
                 alert_admin(['not_access']);
             }
             break;
@@ -305,7 +305,7 @@ function admin_data_step()
                         sm_admin(['update_api_ok', 1, $add_count], ['products_panel']);
                         break;
                     case '2':
-                        $p_s = ['up' => 0, 'round' => 1, 'next' => 0];
+                        $p_s = ['up' => 0, 'round' => 0, 'convert' => 0, 'next' => 0];
                         $admin_data['p_s'] = $p_s;
                         admin_data(['step' => 'update_api_4', 'data[JSON]' => $admin_data]);
                         edt_admin(['update_api_2'], ['update_api_product_settings', 1, $p_s]);
@@ -341,7 +341,7 @@ function admin_data_step()
                     case '4':
                         if ($db->has('categories', ['id[>]' => 0])) {
 
-                            $p_s = ['up' => 0, 'round' => 1, 'next' => 0];
+                            $p_s = ['up' => 0, 'round' => 0, 'convert' => 0, 'next' => 0];
                             $admin_data['p_s'] = $p_s;
                             admin_data(['step' => 'update_api_4', 'data[JSON]' => $admin_data]);
                             edt_admin(['update_api_2'], ['update_api_product_settings', 4, $p_s]);
@@ -351,13 +351,13 @@ function admin_data_step()
                         }
                         break;
                     case '5':
-                        $p_s = ['up' => 0, 'round' => 1, 'next' => 0];
+                        $p_s = ['up' => 0, 'round' => 0, 'convert' => 0, 'next' => 0];
                         $admin_data['p_s'] = $p_s;
                         admin_data(['step' => 'update_api_4', 'data[JSON]' => $admin_data]);
                         edt_admin(['update_api_2'], ['update_api_product_settings', 5, $p_s]);
                         break;
                     case '6':
-                        $p_s = ['name' => 0, 'price' => 1, 'price_type' => 1, 'min' => 1, 'info' => 0, 'up' => 0, 'round' => 1, 'next' => 0];
+                        $p_s = ['name' => 0, 'price' => 1, 'price_type' => 1, 'min' => 1, 'info' => 0, 'up' => 0, 'round' => 0, 'next' => 0, 'convert' => 0];
                         $admin_data['p_s'] = $p_s;
                         admin_data(['step' => 'update_api_4', 'data[JSON]' => $admin_data]);
                         edt_admin(['update_api_2'], ['update_api_product_settings', 6, $p_s]);
@@ -521,14 +521,16 @@ function admin_data_step()
                             $services = $api->services($result_api);
 
                             $true = true;
+                            $usd_rate = $settings['usd_rate'];
                             foreach ($services['data'] as $row) {
                                 if ($row['service'] == $admin_data['product_id']) {
                                     $name_product = mb_substr(removeWhiteSpace($row['name']), 0, 130);
                                     $text_en = js($name_product);
 
                                     if (!$db->has('products', ['service' => $row['service'], 'api' => $result_api['name'], 'name' => $text_en, 'category_id' => $id])) {
+                                        $row['rate'] = ($p_s['convert']) ? $row['rate'] * $usd_rate : $row['rate'];
                                         $row['rate'] = ($p_s['up'] > 0) ? up_price($row['rate'], $p_s['up']) : $row['rate'];
-                                        $row['rate'] = ($p_s['round'] > 1) ? round_up($row['rate'], $p_s['round']) : $row['rate'];
+                                        $row['rate'] = ($p_s['round'] > 0) ? round_up($row['rate'], $p_s['round']) : $row['rate'];
                                         $product = $row;
                                         $true = true;
                                     } else {
@@ -611,14 +613,16 @@ function admin_data_step()
                         $services = $api->services($result_api);
 
                         $true = true;
+                        $usd_rate = $settings['usd_rate'];
                         foreach ($services['data'] as $row) {
                             if ($row['service'] == $admin_data['product_id']) {
                                 $name_product = mb_substr(removeWhiteSpace($row['name']), 0, 130);
                                 $text_en = js($name_product);
 
                                 if (!$db->has('products', ['service' => $row['service'], 'api' => $result_api['name'], 'name' => $text_en, 'category_id' => $id])) {
+                                    $row['rate'] = ($p_s['convert']) ? $row['rate'] * $usd_rate : $row['rate'];
                                     $row['rate'] = ($p_s['up'] > 0) ? up_price($row['rate'], $p_s['up']) : $row['rate'];
-                                    $row['rate'] = ($p_s['round'] > 1) ? round_up($row['rate'], $p_s['round']) : $row['rate'];
+                                    $row['rate'] = ($p_s['round'] > 0) ? round_up($row['rate'], $p_s['round']) : $row['rate'];
                                     $product = $row;
                                     $true = true;
                                 } else {
@@ -753,7 +757,7 @@ function admin_data_step()
                                         }
                                     }
                                 }
-
+                                $usd_rate = $settings['usd_rate'];
                                 foreach ($services['data'] as $row) {
                                     if (in_array($row['category'], $list)) {
                                         $name_product = mb_substr(removeWhiteSpace($row['name']), 0, 130);
@@ -762,8 +766,9 @@ function admin_data_step()
 
                                         if (!$db->has('products', ['service' => $row['service'], 'api' => $result_api['name'], 'name' => $text_en, 'category_id' => $cate])) {
 
+                                            $row['rate'] = ($p_s['convert']) ? $row['rate'] * $usd_rate : $row['rate'];
                                             $row['rate'] = ($p_s['up'] > 0) ? up_price($row['rate'], $p_s['up']) : $row['rate'];
-                                            $row['rate'] = ($p_s['round'] > 1) ? round_up($row['rate'], $p_s['round']) : $row['rate'];
+                                            $row['rate'] = ($p_s['round'] > 0) ? round_up($row['rate'], $p_s['round']) : $row['rate'];
                                             $products[] = $row;
                                         }
                                     }
@@ -858,7 +863,7 @@ function admin_data_step()
                                         }
                                     }
                                 }
-
+                                $usd_rate = $settings['usd_rate'];
                                 foreach ($services['data'] as $row) {
                                     if (in_array($row['category'], $list)) {
                                         $name_product = mb_substr(removeWhiteSpace($row['name']), 0, 130);
@@ -867,8 +872,9 @@ function admin_data_step()
 
                                         $id = $db->has('products', ['service' => $row['service'], 'api' => $result_api['name'], 'name' => $text_en, 'category_id' => $cate]);
                                         if (!$id) {
+                                            $row['rate'] = ($p_s['convert']) ? $row['rate'] * $usd_rate : $row['rate'];
                                             $row['rate'] = ($p_s['up'] > 0) ? up_price($row['rate'], $p_s['up']) : $row['rate'];
-                                            $row['rate'] = ($p_s['round'] > 1) ? round_up($row['rate'], $p_s['round']) : $row['rate'];
+                                            $row['rate'] = ($p_s['round'] > 0) ? round_up($row['rate'], $p_s['round']) : $row['rate'];
                                             $products[] = $row;
                                         }
                                     }
@@ -918,7 +924,7 @@ function admin_data_step()
                                 $list = [];
                                 $products = [];
                                 $ids = [];
-
+                                $usd_rate = $settings['usd_rate'];
                                 foreach ($services['data'] as $row) {
                                     $products[$row['service']] = $row;
                                 }
@@ -941,7 +947,7 @@ function admin_data_step()
 
                                     if ($p_s['price']) {
                                         $price = $data_p['rate'];
-
+                                        $price = ($p_s['convert']) ? $price * $usd_rate : $price;
                                         if ($p_s['price_type'] == 2 && $value['price'] < $data_p['rate']) {
                                             $price = $value['price'];
                                         }
@@ -950,7 +956,7 @@ function admin_data_step()
                                             $price = up_price($price, $p_s['up']);
                                         }
 
-                                        if ($p_s['round'] > 1) {
+                                        if ($p_s['round'] > 0) {
                                             $price = round_up($price, $p_s['round']);
                                         }
                                         $price = $price;
@@ -982,12 +988,13 @@ function admin_data_step()
                     case 'price':
                     case 'min':
                     case 'info':
+                    case 'convert':
                         $p_s = $admin_data['p_s'];
                         $p_s[$str] = ($p_s[$str]) ? 0 : 1;
 
                         $admin_data['p_s'] = $p_s;
                         admin_data(['data[JSON]' => $admin_data]);
-                        edk_admin(['update_api_product_settings', 6, $p_s]);
+                        edk_admin(['update_api_product_settings', $admin_data['update_type'], $p_s]);
                         alert_admin(['none']);
                         break;
                     case 'price_type':
@@ -996,7 +1003,7 @@ function admin_data_step()
 
                         $admin_data['p_s'] = $p_s;
                         admin_data(['data[JSON]' => $admin_data]);
-                        edk_admin(['update_api_product_settings', 6, $p_s]);
+                        edk_admin(['update_api_product_settings', $admin_data['update_type'], $p_s]);
                         alert_admin(['none']);
                         break;
                     case 'up':
@@ -1016,7 +1023,6 @@ function admin_data_step()
                         alert_admin(['none']);
                         break;
                     case 'list':
-
                         $p_s = $admin_data['p_s'];
                         edk_admin(['update_api_product_settings', 6, $p_s]);
                         alert_admin(['none']);

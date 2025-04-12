@@ -1,20 +1,24 @@
 <?php
-$key['admin_answer'] = 'پاسخ';
-$key['admin_rad'] = 'رد';
-$key['admin_info'] = 'مشخصات کاربر';
-$key['admin_ban'] = 'مسدود کردن';
-$key['admin_confirm_order'] = 'تایید سفارش';
-$key['admin_cancel_order'] = 'لغو سفارش';
-$key['admin_pending_order'] = 'در انتظار';
-$key['admin_inprogress_order'] = 'در حال انجام';
-$key['admin_complete_order'] = 'تکمیل سفارش';
-$key['admin_completed_order'] = 'تکمیل شد';
-$key['admin_cancel_order'] = 'لغو سفارش';
-$key['admin_canceled_order'] = 'لغو شد';
-$key['admin_status_order'] = ' وضعیت سفارش';
-$key['admin_api_order'] = 'این سفارش به سایت ارسال شد';
-$key['admin_ok_card'] = 'تایید کارت';
-$key['admin_cancel_card'] = 'رد کارت';
+$key['admin_answer'] = 'پاسخ ✉️';
+$key['admin_rad'] = 'رد ❌';
+$key['admin_info'] = 'مشخصات کاربر ℹ️';
+$key['admin_ban'] = 'مسدود کردن 🚫';
+$key['admin_confirm_order'] = 'تایید سفارش ✅';
+$key['admin_cancel_order'] = 'لغو سفارش ❌';
+$key['admin_pending_order'] = 'در انتظار ⏳';
+$key['admin_inprogress_order'] = 'در حال انجام 🔄';
+$key['admin_complete_order'] = 'تکمیل سفارش ✔️';
+$key['admin_completed_order'] = 'تکمیل شد 🎉';
+$key['admin_cancel_order'] = 'لغو سفارش ❌';
+$key['admin_canceled_order'] = 'لغو شد ❌';
+$key['admin_status_order'] = ' وضعیت سفارش 📋';
+$key['admin_api_order'] = 'این سفارش به سایت ارسال شد 🌐';
+$key['admin_ok_card'] = 'تایید کارت 💳';
+$key['admin_cancel_card'] = 'رد کارت ❌';
+$key['admin_payout_ok'] = 'پرداخت شد 💰';
+$key['admin_payout_cancel'] = 'کنسل کردن ❌';
+$key['admin_gift_payout_ok'] = 'واریز شد 💸';
+$key['admin_gift_payout_cancel'] = 'لغو شد ❌';
 trait admin_user_text
 {
     public function akeys($k, $data = null)
@@ -36,17 +40,17 @@ trait admin_user_text
                 break;
             case 'gifts_payouts':
                 $t = ['inline_keyboard' => [
-                    [['text' => 'پرداخت شد', 'callback_data' => 'payout_ok_' . $data], ['text' => 'کنسل کردن', 'callback_data' => 'payout_nok_' . $data]]
+                    [['text' => $key['admin_payout_ok'], 'callback_data' => 'payout_ok_' . $data], ['text' => $key['admin_payout_cancel'], 'callback_data' => 'payout_nok_' . $data]]
                 ]];
                 break;
             case 'gift_payouts':
                 if ($data == 1) {
                     $t = ['inline_keyboard' => [
-                        [['text' => 'واریزشد', 'callback_data' => 'fyk']],
+                        [['text' => $key['admin_gift_payout_ok'], 'callback_data' => 'fyk']],
                     ]];
                 } elseif ($data == 2) {
                     $t = ['inline_keyboard' => [
-                        [['text' => 'لغو شد', 'callback_data' => 'fyk']],
+                        [['text' => $key['admin_gift_payout_cancel'], 'callback_data' => 'fyk']],
                     ]];
                 }
                 break;
@@ -155,21 +159,17 @@ trait admin_user_text
                 break;
             case 'support_pm2':
                 $text = $data;
-                $t = "🗣 شما یک پیام از پشتیبانی دارید\n$text";
+                $t = "🗣 شما یک پیام از پشتیبانی دارید 📩\n$text";
                 break;
             case 'up_coin':
                 $amount = $data[0];
                 $balance = $data[1];
-                $t = "❤️ کاربر عزیز
-    💸 {$amount} تومان از طرف مدیریت به حساب شما واریز شد.
-    💎 موجودی جدید شما : {$balance}";
+                $t = "❤️ کاربر عزیز\n💸 {$amount} تومان از طرف مدیریت به حساب شما واریز شد.\n💎 موجودی جدید شما : {$balance}";
                 break;
             case 'down_coin':
                 $amount = $data[0];
                 $balance = $data[1];
-                $t = "❤️ کاربر عزیز
-  💸 {$amount} تومان از طرف مدیریت از حساب شما کسر شد.
-  💎 موجودی جدید شما : {$balance}";
+                $t = "❤️ کاربر عزیز\n💸 {$amount} تومان از طرف مدیریت از حساب شما کسر شد.\n💎 موجودی جدید شما : {$balance}";
                 break;
             case 'block':
                 $t = '❌ اکانت شما مسدود میباشد.';
@@ -285,24 +285,7 @@ $tt
                 $count = $data[2];
                 $price = $data[3];
                 $date = jdate('Y/m/d - H:i:s');
-                $t = "🔥✅ گزارش سفارش موفق
-  ‏
-  💎 مشخصات سفارش :
-
-  📝نام محصول : {$category}
-
-  📌دسته انتخابی : {$product}
-
-  ❔تعداد : {$count}
-  💸قیمت : {$price}
-  🗓تاریخ سفارش : {$date}
-  ‏
-  ⁉️ مراحل ثبت سفارش :
-
-  ➊ وارد ربات @{$idbot} شوید.
-  ➋ موجودی خود را افزایش دهید.
-  ➌ سرویس مورد نظر خود را سفارش دهید.
-  ";
+                $t = "🔥✅ گزارش سفارش موفق\n  ‏\n  💎 مشخصات سفارش :\n\n  📝نام محصول : {$category}\n\n  📌دسته انتخابی : {$product}\n\n  ❔تعداد : {$count}\n  💸قیمت : {$price}\n  🗓تاریخ سفارش : {$date}\n  ‏\n  ⁉️ مراحل ثبت سفارش :\n\n  ➊ وارد ربات @{$idbot} شوید.\n  ➋ موجودی خود را افزایش دهید.\n  ➌ سرویس مورد نظر خود را سفارش دهید.";
                 break;
             case 'ok_number':
                 $contactuser = $data[0];

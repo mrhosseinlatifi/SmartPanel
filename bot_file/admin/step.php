@@ -2385,6 +2385,11 @@ function admin_steps()
                                     admin_data(['step' => 'edit_info_2', 'data[JSON]' => $admin_data]);
                                     sm_admin(['edit_info', 'confirm', 0], ['back_panel']);
                                     break;
+                                case $key_admin['product_edit_option']['service']:
+                                    $admin_data['type_edit'] = 'service';
+                                    admin_data(['step' => 'edit_info_2', 'data[JSON]' => $admin_data]);
+                                    sm_admin(['edit_info', 'service', 0], ['back_panel']);
+                                    break;
                             }
                         }
                         break;
@@ -2546,6 +2551,11 @@ function admin_steps()
                         } else {
                             sm_admin(['error_edit_product_7']);
                         }
+                        break;
+                    case 'service':
+                        $db->update('products', ['service' => $text], ['id' => $id]);
+                        $true = true;
+                        
                         break;
                 }
 
