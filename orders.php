@@ -181,7 +181,7 @@ if (!get_option('cron_order_lock', 1)) {
 					$usResult = $db->get('users_information', '*', ['user_id' => $user_id]);
 					$old_balance = $usResult['balance'];
 					$new_balance = $old_balance + $order['price'];
-					insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], $fd['id']);
+					insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], $order['id']);
 
 					$decode_data['error'] = (isset($add_info['error'])) ? $add_info['error'] : 'Error';
 					$db->update('orders', ['status' => 'error', 'extra_data[JSON]' => $decode_data], ['id' => $order['id']]);
