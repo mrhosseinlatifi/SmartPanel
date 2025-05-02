@@ -2670,7 +2670,7 @@ function admin_steps()
                         $db->query('TRUNCATE TABLE ' . prefix . 'categories;');
                         $db->query('TRUNCATE TABLE ' . prefix . 'products;');
                         break;
-                    case 'prodcuts':
+                    case 'products':
                         $db->query('TRUNCATE TABLE ' . prefix . 'products;');
                         break;
                     case 'products_off':
