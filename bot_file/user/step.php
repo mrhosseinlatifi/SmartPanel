@@ -45,7 +45,9 @@ function user_step()
                                 } else {
 
                                     processReferral($referral_id, $fid);
-
+                                    if ($section_status['payment']['authentication']) {
+                                        sm_channel('channel_kyc', ['ok_number_2', $contactuser, $fid, $first_name, $referral_id]);
+                                    }
                                     handleStart('start');
                                 }
                             } else {
@@ -198,7 +200,7 @@ function user_step()
                         if ($section_status['payment']['move_balance']) {
                             if ($settings['min_move_balance'] <= $user['balance']) {
                                 user_set_step('move_1');
-                                sm_user(['move_balance', $settings['min_move_balance']], ['back']);
+                                sm_user(['move_balance', $settings['min_move_balance'], $user['balance']], ['back']);
                             } else {
                                 sm_user(['min_move_balance', $settings['min_move_balance']]);
                             }
@@ -263,7 +265,7 @@ function user_step()
 
                         sm_user(['move_balance_2', $name, $decode['id'], $text], ['ok_move_balance']);
                     } else {
-                        sm_user(['move_balance_not_enough', $settings['min_move_balance']]);
+                        sm_user(['move_balance_not_enough', $settings['min_move_balance'], $user['balance']]);
                     }
                 } else {
 
@@ -1131,6 +1133,10 @@ function user_step()
                         $getTr = $db->get('transactions', '*', ['id' => $code]);
 
                         $decode = json_decode($getTr['data'], true);
+
+                        $resultcode = $db->get('gift_code', '*', ['code' => $text, 'type' => 'percent']);
+                        $decodecode = json_decode($resultcode['amount'], true);
+
                         $decode['discount'] = $text;
                         $db->update('transactions', ['data[JSON]' => $decode], ['id' => $getTr['id']]);
 
@@ -1138,7 +1144,7 @@ function user_step()
 
                         $result = $db->select('payment_gateways', '*', ['status' => 1]);
                         $bot->delete_msg($fid, $message_id);
-                        edt_user(['payment_text', $user, $code, $getTr['amount'], $text], ['payment_gateways', $result, $getTr['amount'], $domin, $code], $fid, $user['link']);
+                        edt_user(['payment_text', $user, $code, $getTr['amount'], $text, $decodecode['amount'], $decodecode['max']], ['payment_gateways', $result, $getTr['amount'], $domin, $code], $fid, $user['link']);
                         user_set_step();
                     }
                 } else {

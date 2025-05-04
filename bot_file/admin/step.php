@@ -1188,6 +1188,11 @@ function admin_steps()
             }
             break;
         case 'cr_code':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('payments');
+                sm_admin(['payments_1'], ['payment_key']);
+                return;
+            }
             if (preg_match("/^[a-zA-Z0-9$-\/:-?@{-~!\"^_`\[\]]+$/", $text)) {
                 if ($db->has('gift_code', ['code' => $text, 'status' => 1])) {
                     sm_admin(['edit_code_error_2']);
@@ -2737,7 +2742,7 @@ function admin_steps()
                 if ($fid != $chat['id']) {
                     $bot->bot('sendmessage', [
                         'chat_id' => $chat,
-                        'text' => $media_admin->atext('send_pm_result', $caption),
+                        'text' => $media_admin->atext('send_pm_result', $text),
                         'reply_to_message_id' => $msgid,
                         'parse_mode' => 'Html',
                         'disable_web_page_preview' => true,
