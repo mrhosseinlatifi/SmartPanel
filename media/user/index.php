@@ -427,9 +427,9 @@ $discount_tx
                 $t = "❌ زمان مجاز برای پرداخت به اتمام رسیده است.";
                 break;
             case 'desc_payment':
-                $payment_file = $data[0];
-                $fid = $data[1];
-                $name = $data[2];
+                $fid = $data[0];
+                $name = $data[1];
+                $payment_file = $data[2];
                 if ($payment_file == 'nowpayments') {
                     $t = "Charge Balance : $name | $fid";
                 } else {
