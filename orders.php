@@ -132,7 +132,7 @@ if (!get_option('cron_order_lock', 1)) {
 									$usResult = $db->get('users_information', '*', ['user_id' => $user_id]);
 									$old_balance = $usResult['balance'];
 									$new_balance = $old_balance + $order['price'];
-									insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], $fd['id']);
+									insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], $order['id']);
 
 									$db->update('orders', ['status' => 'canceled'], ['id' => $order['id']]);
 									$db->update('users_information', ['balance[+]' => $order['price'], 'amount_spent[-]' => $order['price']], ['user_id' => $user_id]);
@@ -142,7 +142,7 @@ if (!get_option('cron_order_lock', 1)) {
 									$usResult = $db->get('users_information', '*', ['user_id' => $user_id]);
 									$old_balance = $usResult['balance'];
 									$new_balance = $old_balance + $order['price'];
-									insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], $fd['id']);
+									insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], $order['id']);
 
 									$back = (($result_order['data']['remains'] * $order['price']) / $order['count']);
 									$db->update('orders', ['status' => 'partial'], ['id' => $order['id']]);
