@@ -4,7 +4,6 @@ $key['admin_rad'] = 'رد ❌';
 $key['admin_info'] = 'مشخصات کاربر ℹ️';
 $key['admin_ban'] = 'مسدود کردن 🚫';
 $key['admin_confirm_order'] = 'تایید سفارش ✅';
-$key['admin_cancel_order'] = 'لغو سفارش ❌';
 $key['admin_pending_order'] = 'در انتظار ⏳';
 $key['admin_inprogress_order'] = 'در حال انجام 🔄';
 $key['admin_complete_order'] = 'تکمیل سفارش ✔️';

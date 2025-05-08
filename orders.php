@@ -173,21 +173,24 @@ if (!get_option('cron_order_lock', 1)) {
 				$decode_data = json_decode($order['extra_data'], true);
 				$user_id = $order['user_id'];
 				$service = $decode_data['product']['service_id'];
+				// check second time status is pending
+				$check_order = $db->get('orders', 'status', ['id' => $order['id']]);
+				if ($check_order == 'pending') {
+					$add_info = $api->add_order($api_info, $service, $link, $count);
+					if ($add_info['result']) {
+						$db->update('orders', ['code_api' => $add_info['order']], ['id' => $order['id']]);
+					} else {
+						$usResult = $db->get('users_information', '*', ['user_id' => $user_id]);
+						$old_balance = $usResult['balance'];
+						$new_balance = $old_balance + $order['price'];
+						insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], $order['id']);
 
-				$add_info = $api->add_order($api_info, $service, $link, $count);
-				if ($add_info['result']) {
-					$db->update('orders', ['code_api' => $add_info['order']], ['id' => $order['id']]);
-				} else {
-					$usResult = $db->get('users_information', '*', ['user_id' => $user_id]);
-					$old_balance = $usResult['balance'];
-					$new_balance = $old_balance + $order['price'];
-					insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], $order['id']);
-
-					$decode_data['error'] = (isset($add_info['error'])) ? $add_info['error'] : 'Error';
-					$db->update('orders', ['status' => 'error', 'extra_data[JSON]' => $decode_data], ['id' => $order['id']]);
-					$db->update('users_information', ['balance[+]' => $order['price'], 'amount_spent[-]' => $order['price']], ['user_id' => $user_id]);
-					sm_user(['order_cancel', $order, $show_channel], null, $user_id);
-					sm_channel('channel_errors', ['order_add_error', $decode_data['error']]);
+						$decode_data['error'] = (isset($add_info['error'])) ? $add_info['error'] : 'Error';
+						$db->update('orders', ['status' => 'error', 'extra_data[JSON]' => $decode_data], ['id' => $order['id']]);
+						$db->update('users_information', ['balance[+]' => $order['price'], 'amount_spent[-]' => $order['price']], ['user_id' => $user_id]);
+						sm_user(['order_cancel', $order, $show_channel], null, $user_id);
+						sm_channel('channel_errors', ['order_add_error', $decode_data['error']]);
+					}
 				}
 			}
 		}

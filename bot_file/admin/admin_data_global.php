@@ -47,7 +47,7 @@ function admin_data_global()
                     }
                     break;
                 case 'check':
-                    alert_admin(['status_order', $order],true);
+                    alert_admin(['status_order', $order], true);
                     break;
                 case 'confirm':
                     check_allow('ch_order', 'sub');
@@ -71,16 +71,14 @@ function admin_data_global()
                             insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], $order['id']);
                         }
                     } else {
-                        if ($order['code_api'] == 0) {
-                            if($order['status'] != 'canceled'){
-                                $db->update('orders', ['status' => 'canceled'], ['id' => $order['id']]);
-                                $db->update('users_information', ['balance[+]' => $order['price'], 'amount_spent[-]' => $order['price']], ['user_id' => $user_id]);
-                                sm_user(['order_cancel', $order, $show_channel], null, $user_id);
-                                alert_admin(['cancel_order', $order]);
-                                edk_channel('channel_order_noapi', ['order_noapi', $code, 'cancel']);
-                                $new_balance = $old_balance + $order['price'];
-                                insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], $order['id']);
-                            }
+                        if ($order['status'] == 'pending' && $order['code_api'] == 0) {
+                            $db->update('orders', ['status' => 'canceled'], ['id' => $order['id']]);
+                            $db->update('users_information', ['balance[+]' => $order['price'], 'amount_spent[-]' => $order['price']], ['user_id' => $user_id]);
+                            sm_user(['order_cancel', $order, $show_channel], null, $user_id);
+                            alert_admin(['cancel_order', $order]);
+                            edk_channel('channel_order_noapi', ['order_noapi', $code, 'cancel']);
+                            $new_balance = $old_balance + $order['price'];
+                            insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], $order['id']);
                         } else {
                             alert_admin(['cant_cancel_order', $order]);
                         }
@@ -280,7 +278,7 @@ function admin_data_global()
             $yesterdate_member = number_format($db->count('users_information', 'user_id', ['join_date[<>]' => [$yes2, $yes]])) ?: 0;
             $number_user_block = number_format($db->count('users_information', ['block' => 1])) ?: 0;
             $number_order = number_format($db->count('orders')) ?: 0;
-            $order_cheack_api = number_format($db->count('orders', ['api[!]' => 'noapi', 'status' => ['pending','in progress']])) ?: 0;
+            $order_cheack_api = number_format($db->count('orders', ['api[!]' => 'noapi', 'status' => ['pending', 'in progress']])) ?: 0;
             $order_cheack_no_api = number_format($db->count('orders', ['api' => 'noapi', 'status' => 'pending'])) ?: 0;
             $number_payment = number_format($db->count('transactions', ['status' => ['OK', 100]])) ?: 0;
             $number_payment_creted = number_format($db->count('transactions')) ?: 0;
@@ -291,7 +289,7 @@ function admin_data_global()
             $ba2 = ($db->sum('users_information', 'gift') > 0) ? $db->sum('users_information', 'gift') : 0;
             $users_gift_balance = number_format($ba2) ?: 0;
 
-            $ba3 = ($db->sum('transactions', 'amount', ['status' => 1,'type'=>'payment']) > 0) ? $db->sum('transactions', 'amount', ['status' => 1,'type'=>'payment']) : 0;
+            $ba3 = ($db->sum('transactions', 'amount', ['status' => 1, 'type' => 'payment']) > 0) ? $db->sum('transactions', 'amount', ['status' => 1, 'type' => 'payment']) : 0;
             $amount_paid = number_format($ba3) ?: 0;
 
             $cron = $settings['last_cron_send'];
