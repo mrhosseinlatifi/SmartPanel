@@ -2672,11 +2672,11 @@ function admin_steps()
                 $type = $admin_data['type'];
                 switch ($type) {
                     case 'all':
-                        $db->query('TRUNCATE TABLE ' . prefix . 'categories;');
-                        $db->query('TRUNCATE TABLE ' . prefix . 'products;');
+                        $db->delete('categories', []);
+                        $db->delete('products', []);
                         break;
                     case 'products':
-                        $db->query('TRUNCATE TABLE ' . prefix . 'products;');
+                        $db->delete('products', []);
                         break;
                     case 'products_off':
                         $db->delete('products', ['status' => 0]);

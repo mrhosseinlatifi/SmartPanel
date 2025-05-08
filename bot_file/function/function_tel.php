@@ -458,35 +458,34 @@ function sendallmsg($id, $data)
     }
 }
 
-function handlePoshtibani2($update, $media, $channels, $bot, $fid, $first_name, $user)
+function handlePoshtibani2($update, $media, $channel, $bot, $fid, $first_name, $user)
 {
     $types = ['video', 'photo', 'audio', 'voice', 'document'];
     $file_id = null;
     $caption = '';
-
-    $true = true;
+    $recipient_id = (isset($settings[$channel]) && $settings[$channel] != 0) ? $settings[$channel] : admins['0'];
+    $true = false;
 
     foreach ($types as $i) {
         if (isset($update['message'][$i])) {
             $type = $update['message'][$i];
             $caption = $update['message']['caption'] ?? '';
             $file_id = ($i == 'photo') ? end($type)['file_id'] : $type['file_id'];
+            $true = true;
             break;
-        } else {
-            $true = false;
         }
     }
-
     if ($true) {
+
         $send = str_replace($types, ['sendvideo', 'sendphoto', 'sendaudio', 'sendvoice', 'senddocument'], $i);
 
         $re = $bot->bot($send, [
-            'chat_id' => $channels,
+            'chat_id' => $recipient_id,
             $i => $file_id,
             'caption' => $media->atext('admin_support', [$fid, $first_name, $user['data'], $caption]),
             'parse_mode' => 'Html',
             'reply_markup' => json_encode($media->akeys('admin_support', $fid)),
-        ])->ok;
+        ])['ok'];
         if ($re) {
             return true;
         } else {
@@ -528,19 +527,21 @@ function StartGift($fid)
     }
 }
 
-
 function js($text)
 {
     return json_encode($text);
 }
+
 function removeWhiteSpace($text)
 {
+    if (empty($text)) {
+        return $text;
+    }
+
     $text = json_encode($text);
     $text = str_replace('\u00a0', '', $text);
-    $text = json_decode($text);
-    $text = strip_tags($text);
-    $text = trim($text);
-    return $text;
+    $text = json_decode($text, true);
+    return trim(strip_tags($text));
 }
 
 function getip()
@@ -558,7 +559,7 @@ function getip()
     return $ip;
 }
 
-function ip_info($ip, $type = 1)
+function ip_info($ip, $type = 2)
 {
     if ($type == 1) {
         $c = curl_init();
@@ -580,6 +581,9 @@ function ip_info($ip, $type = 1)
         $exec = curl_exec($c);
         curl_close($c);
         $decode = json_decode($exec, 1);
+        if ($decode['country'] == 'IR') {
+            $decode['country'] = 'iran';
+        }
         return $decode['country'];
     }
 }
