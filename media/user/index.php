@@ -941,10 +941,10 @@ $tt
 
                 break;
             case 'order_partial':
-                $order_info = $data[1];
-                $code = $order_info['code'];
-                $back = $data[2];
-                $channel = $data[3];
+                $order_info = $data[0];
+                $code = type_text($order_info['id'], 'c');
+                $back = $data[1];
+                $channel = $data[2];
                 $time = jdate('H:i:s');
                 $date = jdate('Y/m/d');
 

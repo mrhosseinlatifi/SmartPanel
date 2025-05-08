@@ -684,7 +684,7 @@ function random_code($r = 8)
     return $key;
 }
 
-function text_starts_with(string $text, string $needle): bool
+function text_starts_with($text, string $needle): bool
 {
     if (empty($needle) || empty($text)) {
         return false;
@@ -692,7 +692,7 @@ function text_starts_with(string $text, string $needle): bool
     return str_starts_with($text, $needle);
 }
 
-function text_contains(string $text, string $needle): bool
+function text_contains($text, string $needle): bool
 {
     if (empty($needle) || empty($text)) {
         return false;

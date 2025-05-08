@@ -1,6 +1,8 @@
 <?php
 class api
 {
+	protected $timeout = 30;
+	protected $connect_timeout = 30;
 
 	public function balance($api)
 	{
@@ -110,11 +112,12 @@ class api
 			curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
 		}
 
-		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 20);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $this->connect_timeout);
+		curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 		$result = curl_exec($ch);
 		if (curl_errno($ch)) {
+			error_log('error curl : code ' . curl_errno($ch) . ' txt : ' .curl_error($ch) . ' - url : ' . $url);
 			return ['result' => false, 'data' => ['error' => curl_error($ch)]];
 		} else {
 			$result = strtolower($result);
