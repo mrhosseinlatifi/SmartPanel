@@ -528,7 +528,7 @@ function admin_data_step()
                                     $text_en = js($name_product);
 
                                     if (!$db->has('products', ['service' => $row['service'], 'api' => $result_api['name'], 'name' => $text_en, 'category_id' => $id])) {
-                                        $row['rate'] = ($p_s['convert']) ? $row['rate'] * $usd_rate : $row['rate'];
+                                        $row['rate'] = ($p_s['convert'] && $usd_rate > 0) ? $row['rate'] * $usd_rate : $row['rate'];
                                         $row['rate'] = ($p_s['up'] > 0) ? up_price($row['rate'], $p_s['up']) : $row['rate'];
                                         $row['rate'] = ($p_s['round'] > 0) ? round_up($row['rate'], $p_s['round']) : $row['rate'];
                                         $product = $row;
@@ -620,7 +620,7 @@ function admin_data_step()
                                 $text_en = js($name_product);
 
                                 if (!$db->has('products', ['service' => $row['service'], 'api' => $result_api['name'], 'name' => $text_en, 'category_id' => $id])) {
-                                    $row['rate'] = ($p_s['convert']) ? $row['rate'] * $usd_rate : $row['rate'];
+                                    $row['rate'] = ($p_s['convert'] && $usd_rate > 0) ? $row['rate'] * $usd_rate : $row['rate'];
                                     $row['rate'] = ($p_s['up'] > 0) ? up_price($row['rate'], $p_s['up']) : $row['rate'];
                                     $row['rate'] = ($p_s['round'] > 0) ? round_up($row['rate'], $p_s['round']) : $row['rate'];
                                     $product = $row;
@@ -766,7 +766,7 @@ function admin_data_step()
 
                                         if (!$db->has('products', ['service' => $row['service'], 'api' => $result_api['name'], 'name' => $text_en, 'category_id' => $cate])) {
 
-                                            $row['rate'] = ($p_s['convert']) ? $row['rate'] * $usd_rate : $row['rate'];
+                                            $row['rate'] = ($p_s['convert'] && $usd_rate > 0) ? $row['rate'] * $usd_rate : $row['rate'];
                                             $row['rate'] = ($p_s['up'] > 0) ? up_price($row['rate'], $p_s['up']) : $row['rate'];
                                             $row['rate'] = ($p_s['round'] > 0) ? round_up($row['rate'], $p_s['round']) : $row['rate'];
                                             $products[] = $row;
@@ -872,7 +872,7 @@ function admin_data_step()
 
                                         $id = $db->has('products', ['service' => $row['service'], 'api' => $result_api['name'], 'name' => $text_en, 'category_id' => $cate]);
                                         if (!$id) {
-                                            $row['rate'] = ($p_s['convert']) ? $row['rate'] * $usd_rate : $row['rate'];
+                                            $row['rate'] = ($p_s['convert'] && $usd_rate > 0) ? $row['rate'] * $usd_rate : $row['rate'];
                                             $row['rate'] = ($p_s['up'] > 0) ? up_price($row['rate'], $p_s['up']) : $row['rate'];
                                             $row['rate'] = ($p_s['round'] > 0) ? round_up($row['rate'], $p_s['round']) : $row['rate'];
                                             $products[] = $row;
@@ -947,7 +947,7 @@ function admin_data_step()
 
                                     if ($p_s['price']) {
                                         $price = $data_p['rate'];
-                                        $price = ($p_s['convert']) ? $price * $usd_rate : $price;
+                                        $price = ($p_s['convert'] && $usd_rate > 0) ? $price * $usd_rate : $price;
                                         if ($p_s['price_type'] == 2 && $value['price'] < $data_p['rate']) {
                                             $price = $value['price'];
                                         }
