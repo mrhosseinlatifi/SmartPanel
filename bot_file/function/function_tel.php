@@ -1108,9 +1108,6 @@ function convertnumber($string)
     $string = str_replace($persian, $num, $string);
     $string = str_replace($arabic, $num, $string);
 
-    if (filter_var($string, FILTER_VALIDATE_INT) === false || (int)$string <= 0) {
-        return null;
-    }
     return (int)$string;
 }
 

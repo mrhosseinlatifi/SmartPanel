@@ -152,6 +152,8 @@ function admin_steps()
                 } else {
                     sm_admin(['userinfo_4']);
                 }
+            }else{
+                sm_admin(['userinfo_4']);
             }
             break;
         case 'userinfo_2':
