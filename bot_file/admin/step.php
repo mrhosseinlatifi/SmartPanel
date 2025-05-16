@@ -400,7 +400,7 @@ function admin_steps()
                     break;
                 case text_starts_with($text, '/ac_'):
                     $str = str_replace('/ac_', '', $text);
-                    if ($str != $fid and $str != admins[0] and in_array($fid,admins)) {
+                    if ($str != $fid and $str != admins[0] and in_array($fid, admins)) {
                         $user_status = json_decode($db->get('admins', 'access', ['user_id' => $str]), 1);
 
                         sm_admin(['access_admin'], ['show_access_admin', $user_status, $str]);
@@ -2534,11 +2534,16 @@ function admin_steps()
                         $true = true;
                         break;
                     case 'api':
-                        if ($db->has('apis', ['name' => js($text)])) {
-                            $db->update('products', ['api' => js($text)], ['id' => $id]);
+                        if ($text == $key_admin['no_api']) {
+                            $db->update('products', ['api' => 'noapi','service'=>0], ['id' => $id]);
                             $true = true;
                         } else {
-                            sm_admin(['error_edit_product_5']);
+                            if ($db->has('apis', ['name' => js($text)])) {
+                                $db->update('products', ['api' => js($text)], ['id' => $id]);
+                                $true = true;
+                            } else {
+                                sm_admin(['error_edit_product_5']);
+                            }
                         }
                         break;
                     case 'discount':
@@ -2560,7 +2565,7 @@ function admin_steps()
                     case 'service':
                         $db->update('products', ['service' => $text], ['id' => $id]);
                         $true = true;
-                        
+
                         break;
                 }
 

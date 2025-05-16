@@ -1288,6 +1288,8 @@ $data";
                     $api = '🔗 وب سرویس: ' . json_decode($order['api']);
                     if ($order['code_api'] != 0) {
                         $code = "کد: {$order['code_api']}\n";
+                    }else{
+                        $code = 0;
                     }
                     $result = $api . "\n" . $code;
                 } else {
