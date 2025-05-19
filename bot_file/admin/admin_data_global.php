@@ -192,7 +192,7 @@ function admin_data_global()
             $bef = $now - $page;
             $result = null;
             $c = 0;
-            $find = ['log', 'gift', 'gift_payout', 'gift_move', 'managment', 'move_balance', 'orders', 'orders_back'];
+            $find = ['log', 'gift', 'gift_payout', 'gift_move', 'managment', 'send_balance', 'orders', 'orders_back','receive_balance'];
             $result = $db->select('transactions', '*', ['user_id' => $id, 'ORDER' => ['id' => 'DESC'], 'LIMIT' => [$now, $page], 'type' => $find]);
             $c = $db->count('transactions', ['user_id' => $id, 'type' => $find]);
             edt_admin(['userinfo_trs', $result, $id, $nex, $page, $c], ['userinfo_data_page', 'admintrans', $c, $id, $nex, $bef]);

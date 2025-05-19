@@ -342,8 +342,14 @@ trait main_admin_text
 -------
 ";
                                 break;
-                            case 'move_balance':
-                                $tx .= "🔄 مقدار: {$d['amount']} | کاربر انتقال دهنده: {$d['type']}
+                            case 'send_balance':
+                                $tx .= "💸 مقدار: {$d['amount']} | کاربر گیرنده: {$d['type']}
+📅 {$date}
+-------
+";
+                                break;
+                            case 'receive_balance':
+                                $tx .= "💵 مقدار: {$d['amount']} | کاربر انتقال دهنده: {$d['type']}
 📅 {$date}
 -------
 ";
