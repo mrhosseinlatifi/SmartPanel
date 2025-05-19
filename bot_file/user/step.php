@@ -290,6 +290,9 @@ function user_step()
                     insertTransaction('send_balance', $sender['user_id'], $sender['balance'], $new_balance, $amount, $reciver['user_id']);
 
                     sm_user(['receive_balance', $amount, $sender['user_id']], null, $reciver['user_id']);
+
+                    sm_channel('channel_transaction', ['ok_move_balance', $amount, $sender['user_id'], $reciver['user_id']]);
+                    
                     user_set_step();
                     sm_user(['ok_move_balance'], ['home']);
                 }
