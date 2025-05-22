@@ -530,7 +530,7 @@ trait keyboard_admin
                 } elseif ($c > $nex) {
                     $t[] = [['text' => $key_admin['prev_page'], 'callback_data' => $type . '_' . $bef . '_' . $id], ['text' => $key_admin['close_panel'], 'callback_data' => 'close_panel'], ['text' => $key_admin['next_page'], 'callback_data' => $type . '_' . $nex . '_' . $id]];
                     $t[] =  [['text' => $key_admin['userinfo_details'], 'callback_data' => "adminupuser_" . $id]];
-                } elseif ($c < $nex) {
+                } elseif ($c <= $nex) {
                     $t[] = [['text' => $key_admin['prev_page'], 'callback_data' => $type . '_' . $bef . '_' . $id], ['text' => $key_admin['close_panel'], 'callback_data' => 'close_panel']];
                     $t[] =  [['text' => $key_admin['userinfo_details'], 'callback_data' => "adminupuser_" . $id]];
                 }
