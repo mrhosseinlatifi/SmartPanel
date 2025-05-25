@@ -640,6 +640,7 @@ function redirect($url)
     }
     exit;
 }
+
 function round_up($float, $pow = '500', $dec = -1)
 {
     if ($dec == 0) {
@@ -657,15 +658,13 @@ function round_up($float, $pow = '500', $dec = -1)
         }
     }
 }
+
 function price_once($min, $max, $price = 0)
 {
     if ($price == 0) {
         return $price;
     } else {
         if ($min == 1 and $max == 1) {
-            return $price;
-        } elseif ($max < 1000) {
-            $price = $price / $max;
             return $price;
         } else {
             $price = $price / 1000;
