@@ -1,5 +1,9 @@
 <?php
 
+define('AQAYEPARDAKHT_CREATE_URL', 'https://panel.aqayepardakht.ir/api/v2/create');    // Create payment token
+define('AQAYEPARDAKHT_VERIFY_URL', 'https://panel.aqayepardakht.ir/api/v2/verify');    // Verify payment
+define('AQAYEPARDAKHT_PAYMENT_URL', 'https://panel.aqayepardakht.ir/startpay/');       // Redirect to payment page
+
 $paymentEn = 'aqayepardakht';
 $paymentFa = 'آقای پرداخت';
 $base_url = 'https://' . $domin . '/payment/show.php?NOK&idbot=' . $idbot . '&msg=' . $media->text('error', $paymentEn);
@@ -8,7 +12,7 @@ if ($type === 'get') {
 
     switch ($step) {
         case 2:
-            $url = "https://panel.aqayepardakht.ir/api/v2/create";
+            $url = AQAYEPARDAKHT_CREATE_URL;
 
             $data_transaction = [
                 "pin" => $result_payment['code'],
@@ -42,10 +46,10 @@ if ($type === 'get') {
                         'tracking_code' => $trackid,
                         'getway' => $paymentEn,
                     ], ['id' => $code]);
-                    header('Location: https://panel.aqayepardakht.ir/startpay/' . $trackid);
+                    header('Location: ' . AQAYEPARDAKHT_PAYMENT_URL . $trackid);
                 } else {
                     $msg = $result['response']['code'];
-                    sm_channel('error_getway_get', [$paymentEn, $msg]);
+                    sm_channel('channel_errors', ['error_getway_get', $paymentEn, $msg]);
                     redirect($base_url);
                 }
             }
@@ -54,7 +58,7 @@ if ($type === 'get') {
         case 3:
             if ($payment['getway'] == $paymentEn) {
                 $trackid = $payment['tracking_code'];
-                header('Location: https://panel.aqayepardakht.ir/startpay/' . $payment['tracking_code']);
+                header('Location: ' . AQAYEPARDAKHT_PAYMENT_URL . $payment['tracking_code']);
             }
             break;
 
@@ -64,7 +68,7 @@ if ($type === 'get') {
     }
 } elseif ($type === 'back') {
 
-    $url = "https://panel.aqayepardakht.ir/api/v2/verify";
+    $url = AQAYEPARDAKHT_VERIFY_URL;
 
     $data_transaction = [
         "pin" => $result_payment['code'],

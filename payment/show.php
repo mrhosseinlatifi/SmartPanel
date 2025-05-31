@@ -1,9 +1,5 @@
 <?php
 
-
-
-
-
 if(isset($_GET['OK'])){ 
     $code = $_GET['code'] ?? 0; 
     $idbot = $_GET['idbot'] ?? null;

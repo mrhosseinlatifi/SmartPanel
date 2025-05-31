@@ -1,11 +1,11 @@
 <?php
 
+define('CRYPTOMUS_PAYMENT_URL', 'https://api.cryptomus.com/v1/payment');     // Create payment
+define('CRYPTOMUS_INFO_URL', 'https://api.cryptomus.com/v1/payment/info');   // Get payment info
+
 $paymentEn = 'cryptomus';
 $paymentFa = 'cryptomus';
 $base_url = 'https://' . $domin . '/payment/show.php?NOK&idbot=' . $idbot;
-
-$url_1 = "https://api.cryptomus.com/v1/payment";
-$url_2 = "https://api.cryptomus.com/v1/payment/info";
 
 if ($type === 'get') {
 
@@ -44,7 +44,7 @@ if ($type === 'get') {
             $sign = md5(base64_encode($jsonData) . $cryptomus_ipn);
 
 
-            $result = sendCurlRequest($url_1, $data_transaction,$cryptomus_key,$sign);
+            $result = sendCurlRequest(CRYPTOMUS_PAYMENT_URL, $data_transaction,$cryptomus_key,$sign);
 
             if ($result['error']) {
                 sm_channel('channel_errors', ['curl_payment_error', $paymentEn, $result['error']]);
@@ -68,7 +68,7 @@ if ($type === 'get') {
                     header('Location: ' . $result['response']['result']['url']);
                 } else {
                     $msg = $result['response']['errors']['message'];
-                    sm_channel('error_getway_get', [$paymentEn, $msg]);
+                    sm_channel('channel_errors', ['error_getway_get', $paymentEn, $msg]);
                     $base_url .= '&msg=' . $media->text('error', $paymentEn);
 
                     redirect($base_url);
@@ -177,7 +177,7 @@ if ($type === 'get') {
                 $jsonData = json_encode($params);
                 $sign = md5(base64_encode($jsonData) . $cryptomus_ipn);
                 
-                $result = sendCurlRequest($url_2, $params,$cryptomus_key,$sign);
+                $result = sendCurlRequest(CRYPTOMUS_INFO_URL, $params,$cryptomus_key,$sign);
                 
                 if ($result['response']['state'] == 0) {
                     if ($result['response']['result']['uuid'] == $payment['tracking_code']) {
@@ -251,10 +251,9 @@ function sendCurlRequest($url, $data = [],$key,$sign)
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "accept: application/json",
-        "content-type: application/json",
-        'merchant: ' . $key,
-        'sign: ' . $sign,
+        "merchant: " . $key,
+        "sign: " . $sign,
+        "Content-Type: application/json"
     ]);
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
     $result = curl_exec($ch);

@@ -1,18 +1,18 @@
 <?php
 
+define('ZARINPAL_REQUEST_URL', 'https://api.zarinpal.com/pg/v4/payment/request.json');  // Request payment token
+define('ZARINPAL_VERIFY_URL', 'https://api.zarinpal.com/pg/v4/payment/verify.json');    // Verify payment
+define('ZARINPAL_PAYMENT_URL', 'https://www.zarinpal.com/pg/StartPay/');                // Redirect to payment page
+
 $paymentEn = 'zarinpal';
 $paymentFa = 'زرین پال';
 $base_url = 'https://' . $domin . '/payment/show.php?NOK&idbot=' . $idbot;
-
-$url_1 = "https://api.zarinpal.com/pg/v4/payment/request.json";
-$url_2 = "https://api.zarinpal.com/pg/v4/payment/verify.json";
-$url_3 = "https://www.zarinpal.com/pg/StartPay/";
 
 if ($type === 'get') {
 
     switch ($step) {
         case 2:
-            $url = $url_1;
+            $url = ZARINPAL_REQUEST_URL;
 
             $data_transaction = [
                 "merchant_id" => $result_payment['code'],
@@ -50,10 +50,10 @@ if ($type === 'get') {
                         'getway' => $paymentEn,
                     ], ['id' => $code]);
 
-                    header('Location: ' . $url_3 . $trackid);
+                    header('Location: ' . ZARINPAL_PAYMENT_URL . $trackid);
                 } else {
                     $msg = $result['response']['errors']['message'];
-                    sm_channel('error_getway_get',[$paymentEn, $msg]);
+                    sm_channel('channel_errors', ['error_getway_get', $paymentEn, $msg]);
                     $base_url .= '&msg=' . $media->text('error', $paymentEn);
 
                     redirect($base_url);
@@ -64,7 +64,7 @@ if ($type === 'get') {
         case 3:
             if ($payment['getway'] == $paymentEn) {
                 $trackid = $payment['tracking_code'];
-                header('Location: ' . $url_3 . $trackid);
+                header('Location: ' . ZARINPAL_PAYMENT_URL . $trackid);
             } else {
                 $base_url .= '&msg=' . $media->text('error_getway', $paymentEn);
                 redirect($base_url);
@@ -76,7 +76,7 @@ if ($type === 'get') {
             break;
     }
 } elseif ($type === 'back') {
-    $url = "https://payment.zarinpal.com/pg/v4/payment/verify.json";
+    $url = ZARINPAL_VERIFY_URL;
     if ($payment['tracking_code'] == $_REQUEST['Authority']) {
         if ($_REQUEST['Status'] == 'OK') {
 
