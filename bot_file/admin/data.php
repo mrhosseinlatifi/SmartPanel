@@ -936,9 +936,12 @@ function admin_data_step()
                                         continue;
                                     }
 
+                                    
                                     $data_p = $products[$value['service']];
                                     $s = [];
 
+                                    $s['status'] = 1;
+                                    
                                     if ($p_s['name']) {
                                         $name_product = mb_substr(removeWhiteSpace($data_p['name']), 0, 130);
                                         $text_en = js($name_product);
