@@ -1015,8 +1015,12 @@ function user_set_data($data, $id = null)
     global $db, $fid;
     $userId = ($id === null) ? $fid : $id;
 
-    if (!is_array($data) || empty($data) || !is_numeric($userId)) {
-        throw new Exception("Invalid input data or user ID");
+    if (!is_numeric($userId)) {
+        throw new Exception("Invalid input user ID");
+    }
+    
+    if (!is_array($data) || empty($data)) {
+        throw new Exception("Invalid input data");
     }
 
     try {
