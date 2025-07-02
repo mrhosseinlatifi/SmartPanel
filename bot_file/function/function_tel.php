@@ -841,24 +841,29 @@ function updateLastMessage($lastMsg, $admin = false)
 {
     global $settings;
     $currentTime = time();
-    if ($admin != null) {
+
+    if ($admin === true) {
         $lastMsg['block'] = 0;
         $lastMsg['last_msg'] = $currentTime;
     } else {
-        if ($lastMsg['block'] && $lastMsg['last_msg'] <= $currentTime) {
+        $isBlocked = isset($lastMsg['block']) && $lastMsg['block'];
+        $lastMsgTime = isset($lastMsg['last_msg']) ? $lastMsg['last_msg'] : 0;
+
+        if ($isBlocked && $lastMsgTime <= $currentTime) {
             $lastMsg['block'] = 0;
             $lastMsg['last_msg'] = $currentTime + $settings['s_spam'];
-        } elseif ($lastMsg['last_msg'] <= $currentTime) {
+        } elseif (!$isBlocked && $lastMsgTime <= $currentTime) {
             $lastMsg['last_msg'] = $currentTime + $settings['s_spam'];
-        } elseif (!$lastMsg['block']) {
+        } elseif (!$isBlocked && $lastMsgTime > $currentTime) {
             $lastMsg['last_msg'] = $currentTime + $settings['s_block'];
             $lastMsg['block'] = 1;
             sm_user(['spam', $settings['s_block']]);
-            user_set_data(['last_msg[JSON]' => $lastMsg]);
         } else {
-            exit;
+            exit();
         }
     }
+
+    // ذخیره‌سازی نهایی اطلاعات
     user_set_data(['last_msg[JSON]' => $lastMsg]);
 }
 
@@ -1018,7 +1023,7 @@ function user_set_data($data, $id = null)
     if (!is_numeric($userId)) {
         throw new Exception("Invalid input user ID");
     }
-    
+
     if (!is_array($data) || empty($data)) {
         throw new Exception("Invalid input data");
     }
