@@ -863,7 +863,6 @@ function updateLastMessage($lastMsg, $admin = false)
         }
     }
 
-    // ذخیره‌سازی نهایی اطلاعات
     user_set_data(['last_msg[JSON]' => $lastMsg]);
 }
 
