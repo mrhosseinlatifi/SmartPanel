@@ -971,7 +971,7 @@ function insertTransaction($type, $id, $old, $new, $amount, $type2, $admin = 0)
     global $db;
 
     if (!is_numeric($id) || !is_numeric($amount) || !is_numeric($old) || !is_numeric($new)) {
-        throw new Exception("Invalid numeric input");
+        return false;
     }
 
     $data = [
@@ -993,11 +993,12 @@ function insertTransaction($type, $id, $old, $new, $amount, $type2, $admin = 0)
     try {
         $db->insert('transactions', $data);
         if (!$db->id()) {
-            throw new Exception("Insert failed");
+            return false;
         }
+        return true;
     } catch (Exception $e) {
         file_put_contents('error.log', "insertTransaction error: " . $e->getMessage() . "\n", FILE_APPEND);
-        throw $e;
+        return false;
     }
 }
 
@@ -1020,20 +1021,20 @@ function user_set_data($data, $id = null)
     $userId = ($id === null) ? $fid : $id;
 
     if (!is_numeric($userId)) {
-        throw new Exception("Invalid input user ID");
+        return false;
     }
 
     if (!is_array($data) || empty($data)) {
-        throw new Exception("Invalid input data");
+        return false;
     }
 
     try {
         if (!$db->update('users_information', $data, ['user_id' => $userId])) {
-            throw new Exception("No rows updated");
+            return false;
         }
     } catch (Exception $e) {
         file_put_contents('error.log', "user_set_data error: " . $e->getMessage() . "\n", FILE_APPEND);
-        throw $e;
+        return false;
     }
 }
 
