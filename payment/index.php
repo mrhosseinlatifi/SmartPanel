@@ -80,8 +80,8 @@ if (isset($_GET['file'])) {
                       include ROOTPATH . '/payment/' . $result_payment['file'] . '.php';
                       if ($result_ok) {
                         // up ref
-                        if ($user["referral_id"] > 0 && !text_contains($user["referral_id"], 'off') && $section_status['main']['free'] && $section_status['free']['gift_payment']) {
-                          $gifi = (($amount * $gift_payment) / 100);
+                        if ($user["referral_id"] > 0 && !text_contains($user["referral_id"], 'off') && $section_status['main']['free'] && $section_status['free']['gift_payment'] && $fid != $user["referral_id"]) {
+                          $gifi = (($amount * $settings['gift_payment']) / 100);
 
                           $usResult = $db->get('users_information', '*', ['user_id' => $user["referral_id"]]);
                           $old_balance = $usResult['balance'];
@@ -136,7 +136,6 @@ if (isset($_GET['file'])) {
                     echo "<title>@$idbot</title><h1 style='text-align: center;margin-top:30px'>" . $media->text('time_payment_end', $result_payment['file']) . "</h1>";
                   }
                 } else {
-
                   echo "<title>@$idbot</title><h1 style='text-align: center;margin-top:30px'>" . $media->text('time_payment_end', $result_payment['file']) . "</h1>";
                 }
 
