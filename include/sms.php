@@ -14,7 +14,7 @@ function sendsms($username,$password,$pattern_code,$from,$tonumber,$value='code'
     curl_close($curl);
     if($err){
         error_log('SMS '.$err);
-        return ['result'=>'false'];
+        return ['result'=>'false','error'=>$err];
     }else{
         if(is_numeric($response)){
     return ['result'=>'OK','code'=>$code];
