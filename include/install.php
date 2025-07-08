@@ -199,11 +199,12 @@ function table($db)
         'api' => [
             'VARCHAR(500)',
             'NOT NULL',
+            "DEFAULT 'noapi'",
         ],
         'code_api' => [
             'VARCHAR(500)',
             'NOT NULL',
-            "DEFAULT 'noapi'",
+            "DEFAULT 0",
         ],
         'extra_data' => [
             'TEXT',
