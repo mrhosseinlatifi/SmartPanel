@@ -25,17 +25,22 @@ if ($secret_token) {
     $ch = curl_init($url);
     curl_setopt_array($ch, [
         CURLOPT_POSTFIELDS          => $data,
-        CURLOPT_TIMEOUT             => 150,
+        CURLOPT_TIMEOUT             => 10,
         CURLOPT_RETURNTRANSFER      => true,
         CURLOPT_SSL_VERIFYPEER      => false,
         CURLOPT_SSL_VERIFYHOST      => false,
-        CURLOPT_CONNECTTIMEOUT_MS   => 150,
+        CURLOPT_CONNECTTIMEOUT      => 10,
         CURLOPT_HTTPHEADER => [
             'accept: application/json',
             'content-type: application/json'
         ]
     ]);
     curl_exec($ch);
+    if (curl_errno($ch)) {
+        $error = curl_error($ch);
+        $log = date('Y-m-d H:i:s') . " CURL ERROR: $error";
+        error_log($log);
+    }
     curl_close($ch);
 } else {
     exit(include "page.php");

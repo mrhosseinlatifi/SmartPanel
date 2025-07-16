@@ -15,6 +15,7 @@ require ROOTPATH . "/media/index.php";
 if (!get_option('cron_order_lock', 1)) {
 	update_option('cron_order_lock', 1);
 	$show_channel = get_option('channel_main', 0);
+	$settings['channel_errors'] = get_option('channel_errors',0);
 	// send pendign orders
 	$api = new api();
 	$media = new media;

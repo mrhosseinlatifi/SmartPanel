@@ -90,19 +90,27 @@ class api
 			$result = $this->rq($url, 'POST', $data);
 			if ($result['result']) {
 				return $result;
-			}else{
-				error_log('error services : '. $result['data']['error'].' - api : '. $api['name']);
-                return ['result' => false, 'error' => $result['data']['error']];
+			} else {
+				error_log('error services : ' . $result['data']['error'] . ' - api : ' . $api['name']);
+				return ['result' => false, 'error' => $result['data']['error']];
 			}
 		}
 	}
 
-	private function rq($url, $method = 'GET', $data = [])
+	private function rq($url, $method = 'GET', $data = [], $cookie_id = 'default')
 	{
 		if ($method == 'GET') {
 			$q = http_build_query($data);
 			$url .= '?' . $q;
 		}
+
+		$cookie_dir = ROOTPATH . '/temp/';
+		if (!is_dir($cookie_dir)) {
+			mkdir($cookie_dir, 0700, true);
+		}
+
+		$cookie_file = $cookie_dir . 'cookie_' . md5($cookie_id) . '.txt';
+
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -115,18 +123,26 @@ class api
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $this->connect_timeout);
 		curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, [
+			'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+		]);
+
+		curl_setopt($ch, CURLOPT_COOKIEJAR, $cookie_file);
+		curl_setopt($ch, CURLOPT_COOKIEFILE, $cookie_file);
+
 		$result = curl_exec($ch);
+
+		if (file_exists($cookie_file)) {
+			chmod($cookie_file, 0600);
+		}
+
 		if (curl_errno($ch)) {
-			error_log('error curl : code ' . curl_errno($ch) . ' txt : ' .curl_error($ch) . ' - url : ' . $url);
+			error_log('error curl : code ' . curl_errno($ch) . ' txt : ' . curl_error($ch) . ' - url : ' . $url);
 			return ['result' => false, 'data' => ['error' => curl_error($ch)]];
 		} else {
 			$result = strtolower($result);
 			$result = json_decode($result, true);
-			if (!isset($result['error'])) {
-				$result_type = true;
-			} else {
-				$result_type = false;
-			}
+			$result_type = !isset($result['error']);
 			return ['result' => $result_type, 'data' => $result];
 		}
 	}
