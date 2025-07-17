@@ -167,13 +167,15 @@ function user_text()
                 break;
         }
     } else {
-        if (!$db->has('users_information', ['user_id' => $fid])) {
-            $db->insert('users_information', ['user_id' => $fid, 'step' => 'none', 'join_date' => time()]);
-            StartGift($fid);
-        } else {
-            user_set_step();
+        if (!empty($fid)) {
+            if (!$db->has('users_information', ['user_id' => $fid])) {
+                $db->insert('users_information', ['user_id' => $fid, 'step' => 'none', 'join_date' => time()]);
+                StartGift($fid);
+            } else {
+                user_set_step();
+            }
+            sm_user(['lock_channel', $settings['channel_lock']], ['lock_channel', $settings['channel_lock'], 0]);
         }
-        sm_user(['lock_channel', $settings['channel_lock']], ['lock_channel', $settings['channel_lock'], 0]);
         exit;
     }
 }
