@@ -541,7 +541,7 @@ if (isset($_GET['install']) || ($_SERVER["REQUEST_METHOD"] === "POST" && isset($
         <form class="form-card" method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
             <fieldset class="form-fieldset">
                 <legend class="form-legend">راه اندازی ربات</legend>
-                <legend class="form-legend"><a href="tg://resolve?domain=SourceCx">@SourceCx</a>
+                <legend class="form-legend"><a href="tg://resolve?domain=SourceHK">@SourceHK</a>
                     <br />برای دریافت اخرین اخبار و اپدیت ها داخل کانال عضو شوید
                 </legend>
                 <div class="form-element">
