@@ -646,7 +646,7 @@ trait keyboard_admin
                     $balance = ($moj['result']) ? $moj['balance'] : $key_admin['api_balance_error'];
                     $t[] = [['text' => json_decode($api_row['name']), 'callback_data' => 'fyk'], ['text' => $balance, 'callback_data' => 'fyk']];
                 }
-                $t[] = [['text' => $key_admin['api_close_list'], 'callback_data' => 'close']];
+                $t[] = [['text' => $key_admin['api_close_list'], 'callback_data' => 'close_panel']];
                 $t = ['inline_keyboard' => $t];
                 break;
             case 'status_api':
@@ -660,7 +660,7 @@ trait keyboard_admin
                         $t[] = [['text' => off($row['status']), 'callback_data' => 'adminoff_api_status_' . $row['id']], ['text' => $row['name'] . "(" . off($row['smart_panel']) . ")", 'callback_data' => 'fyk']];
                     }
                 }
-                $t[] = [['text' => $key_admin['api_close_panel'], 'callback_data' => 'close']];
+                $t[] = [['text' => $key_admin['api_close_panel'], 'callback_data' => 'close_panel']];
                 $t = ['inline_keyboard' => $t];
                 break;
             case 'edit_api':
@@ -716,7 +716,7 @@ trait keyboard_admin
                 foreach ($result as $row) {
                     $t[] = [['text' => $row['name'], 'callback_data' => 'fyk'], ['text' => off($row['status']), 'callback_data' => 'adminoff_payment_status_' . $row['id']], ['text' => off($row['ip']), 'callback_data' => 'adminoff_payment_ip_' . $row['id']]];
                 }
-                $t[] = [['text' => $key_admin['close_panel'], 'callback_data' => 'close']];
+                $t[] = [['text' => $key_admin['close_panel'], 'callback_data' => 'close_panel']];
                 $t = ['inline_keyboard' => $t];
                 break;
             case 'payment_file':

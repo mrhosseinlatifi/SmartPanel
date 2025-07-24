@@ -1594,6 +1594,7 @@ function admin_steps()
         case 'display_product_1':
             $admin_data = json_decode($admin['data'], true);
             $type = $admin_data['type'];
+            $text = convertnumber($text);
             switch ($type) {
                 case 'row_product':
                     $explode = explode('-', $text);
@@ -1670,6 +1671,7 @@ function admin_steps()
                     switch ($str) {
                         case 'category':
                             $admin_data = ['type' => $str];
+                            admin_data(['step' => 'add_product_2', 'data[JSON]' => $admin_data]);
                             sm_admin(['category_add_1'], ['back_panel']);
                             break;
                         case 'sub_category':
@@ -1677,6 +1679,7 @@ function admin_steps()
                             if ($result) {
                                 $admin_data = ['offset' => 0, 'type' => $str];
                                 $c = $db->count('categories', 'id', ['category_id' => null]);
+                                admin_data(['step' => 'add_product_2', 'data[JSON]' => $admin_data]);
                                 sm_admin(['sub_category_add_1'], ['category_select_panel', $result, $c, null, 0]);
                             } else {
 
@@ -1688,13 +1691,13 @@ function admin_steps()
                             if ($result) {
                                 $admin_data = ['offset_main' => 0, 'type' => $str];
                                 $c = $db->count('categories', 'id', ['category_id' => null]);
+                                admin_data(['step' => 'add_product_2', 'data[JSON]' => $admin_data]);
                                 sm_admin(['product_add_1'], ['category_select_panel', $result, $c, null, 0]);
                             } else {
                                 sm_admin(['edit_shop_error_2']);
                             }
                             break;
                     }
-                    admin_data(['step' => 'add_product_2', 'data[JSON]' => $admin_data]);
                 }
             }
             break;
@@ -1803,7 +1806,6 @@ function admin_steps()
                                 sm_admin(['category_add_error_4']);
                             }
                         }
-
                         break;
                 }
             }
@@ -2455,8 +2457,10 @@ function admin_steps()
                                     $db->update('products', ['name' => $name_en], ['id' => $id]);
                                     $true = true;
                                 } else {
+                                    sm_admin(['error_edit_product_1']);
                                 }
                             } else {
+                                sm_admin(['error_edit_product_8']);
                             }
                         } else {
                             if (strlen($name_product) <= 130) {
@@ -2469,6 +2473,7 @@ function admin_steps()
                                     sm_admin(['error_edit_product_1']);
                                 }
                             } else {
+                                sm_admin(['error_edit_product_8']);
                             }
                         }
 

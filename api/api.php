@@ -11,7 +11,7 @@ class api
 			$data = ['key' => $api['api_key'], 'action' => 'balance'];
 			$result = $this->rq($url, 'POST', $data);
 			if ($result['result']) {
-				$b = number_format($result['data']['balance']) . ' ' . strtoupper($result['data']['currency']) ?: 'مشکل در دریافت';
+				$b = number_format($result['data']['balance']) . ' ' . strtoupper($result['data']['currency']) ?: 'Error';
 				return ['result' => true, 'balance' => $b];
 			} else {
 				error_log('error balance : ' . $result['data']['error'] . ' - api : ' . $api['name']);
@@ -130,20 +130,28 @@ class api
 		curl_setopt($ch, CURLOPT_COOKIEJAR, $cookie_file);
 		curl_setopt($ch, CURLOPT_COOKIEFILE, $cookie_file);
 
-		$result = curl_exec($ch);
+		$response = curl_exec($ch);
 
 		if (file_exists($cookie_file)) {
 			chmod($cookie_file, 0600);
 		}
 
-		if (curl_errno($ch)) {
+		if (curl_errno($ch) || !$response) {
 			error_log('error curl : code ' . curl_errno($ch) . ' txt : ' . curl_error($ch) . ' - url : ' . $url);
-			return ['result' => false, 'data' => ['error' => curl_error($ch)]];
-		} else {
-			$result = strtolower($result);
-			$result = json_decode($result, true);
-			$result_type = !isset($result['error']);
-			return ['result' => $result_type, 'data' => $result];
+			return ['result' => false, 'data' => ['error' => curl_error($ch) ?: 'Empty response']];
 		}
+
+		$response = strtolower($response);
+		$decoded = json_decode($response, true);
+
+		if (is_null($decoded)) {
+			error_log('error decoding JSON response: ' . substr($response, 0, 500) . ' - url: ' . $url);
+			return ['result' => false, 'data' => ['error' => 'Invalid JSON or null response']];
+		}
+
+
+		$success = !isset($decoded['error']);
+
+		return ['result' => $success, 'data' => $decoded];
 	}
 }

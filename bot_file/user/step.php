@@ -292,7 +292,7 @@ function user_step()
                     sm_user(['receive_balance', $amount, $sender['user_id']], null, $reciver['user_id']);
 
                     sm_channel('channel_transaction', ['ok_move_balance', $amount, $sender['user_id'], $reciver['user_id']]);
-                    
+
                     user_set_step();
                     sm_user(['ok_move_balance'], ['home']);
                 }
@@ -353,7 +353,6 @@ function user_step()
                 }
                 break;
             case 'withdraw_balance_2':
-                $text = convertnumber($text);
                 $req = $user['data'];
 
                 $old_balance = $user['balance'];
@@ -1163,6 +1162,30 @@ function user_step()
                         $bot->sp($settings['channel_kyc'], $file_id, $media->atext('payment_verify_caption', [$fid, $first_name, $caption]), $media->akeys('verify_keys', $fid));
                     } else {
                         $bot->sp(admins['0'], $file_id, $media->atext('payment_verify_caption', [$fid, $first_name, $caption]), $media->akeys('verify_keys', $fid));
+                    }
+                    user_set_data(['step' => 'none', 'payment_card' => 'wait']);
+                    sm_user(['send_verify_ok'], ['home']);
+                } elseif (isset($update['message']['video'])) {
+                    $video = $update['message']['video'];
+                    $caption = $update['message']['caption'] ?? '';
+                    $file_id = $video['file_id'];
+
+                    if ($settings['channel_kyc'] != 0) {
+                        $bot->bot('sendvideo', [
+                            'chat_id' => $settings['channel_kyc'],
+                            'video' => $file_id,
+                            'caption' => $media->atext('payment_verify_caption', [$fid, $first_name, $caption]),
+                            'parse_mode' => 'Html',
+                            'reply_markup' => json_encode($media->akeys('verify_keys', $fid)),
+                        ]);
+                    } else {
+                        $bot->bot('sendvideo', [
+                            'chat_id' => admins['0'],
+                            'video' => $file_id,
+                            'caption' => $media->atext('payment_verify_caption', [$fid, $first_name, $caption]),
+                            'parse_mode' => 'Html',
+                            'reply_markup' => json_encode($media->akeys('verify_keys', $fid)),
+                        ]);
                     }
                     user_set_data(['step' => 'none', 'payment_card' => 'wait']);
                     sm_user(['send_verify_ok'], ['home']);
