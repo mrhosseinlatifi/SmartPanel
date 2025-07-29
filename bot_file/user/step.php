@@ -943,7 +943,7 @@ function user_step()
                                                             $code,
                                                             $old_balance,
                                                             $new_balance,
-                                                            'noapi'
+                                                            $api_info['name']
                                                         ],
                                                         ['order_api', $code, 'pending']
                                                     );
