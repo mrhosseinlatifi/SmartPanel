@@ -1107,16 +1107,42 @@ function get_settings(&$settings)
 }
 
 
-function convertnumber($string)
+function convertnumber($input)
 {
+    if (empty($input)) {
+        return $input;
+    }
+
     $persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
     $arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
     $num = range(0, 9);
 
-    $string = str_replace($persian, $num, $string);
-    $string = str_replace($arabic, $num, $string);
+    if (strpos($input, "\n") !== false) {
+        $lines = explode("\n", $input);
+        $result = [];
+        foreach ($lines as $line) {
+            $result[] = preg_replace_callback('/[۰-۹٠-٩0-9]+/', function($matches) use ($persian, $arabic, $num) {
+                $number = $matches[0];
+                $number = str_replace($persian, $num, $number);
+                $number = str_replace($arabic, $num, $number);
+                return $number;
+            }, $line);
+        }
+        return implode("\n", $result);
+    }
 
-    return (int)$string;
+    if (preg_match('/^[۰-۹٠-٩0-9]+$/', $input)) {
+        $output = str_replace($persian, $num, $input);
+        $output = str_replace($arabic, $num, $output);
+        return (int)$output;
+    }
+
+    return preg_replace_callback('/[۰-۹٠-٩0-9]+/', function($matches) use ($persian, $arabic, $num) {
+        $number = $matches[0];
+        $number = str_replace($persian, $num, $number);
+        $number = str_replace($arabic, $num, $number);
+        return $number;
+    }, $input);
 }
 
 

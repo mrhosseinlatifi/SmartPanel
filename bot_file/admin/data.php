@@ -1035,7 +1035,7 @@ function admin_data_step()
             break;
         case text_starts_with($data, 'adminchkey_'):
             $str = str_replace('adminchkey_', '', $data);
-            if ($admin['step'] == 'display_product') {
+            if ($admin['step'] == 'products') {
                 switch ($str) {
                     case 'update_row':
                         edt_admin(['display_product'], ['display_prodcuts']);

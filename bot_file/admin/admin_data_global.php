@@ -192,7 +192,7 @@ function admin_data_global()
             $bef = $now - $page;
             $result = null;
             $c = 0;
-            $find = ['log', 'gift', 'gift_payout', 'gift_move', 'managment', 'send_balance', 'orders', 'orders_back','receive_balance'];
+            $find = ['log', 'gift', 'gift_payout', 'gift_move', 'managment', 'send_balance', 'orders', 'orders_back', 'receive_balance'];
             $result = $db->select('transactions', '*', ['user_id' => $id, 'ORDER' => ['id' => 'DESC'], 'LIMIT' => [$now, $page], 'type' => $find]);
             $c = $db->count('transactions', ['user_id' => $id, 'type' => $find]);
             edt_admin(['userinfo_trs', $result, $id, $nex, $page, $c], ['userinfo_data_page', 'admintrans', $c, $id, $nex, $bef]);
@@ -280,8 +280,8 @@ function admin_data_global()
             $number_order = number_format($db->count('orders')) ?: 0;
             $order_cheack_api = number_format($db->count('orders', ['api[!]' => 'noapi', 'status' => ['pending', 'in progress']])) ?: 0;
             $order_cheack_no_api = number_format($db->count('orders', ['api' => 'noapi', 'status' => 'pending'])) ?: 0;
-            $number_payment = number_format($db->count('transactions', ['status' => ['OK', 100]])) ?: 0;
-            $number_payment_creted = number_format($db->count('transactions')) ?: 0;
+            $number_payment = number_format($db->count('transactions', ['status' => ['OK', 100], 'type' => ['payment']])) ?: 0;
+            $number_payment_creted = number_format($db->count('transactions', 'id', ['type' => ['payment']])) ?: 0;
 
             $ba1 = ($db->sum('users_information', 'balance') > 0) ? $db->sum('users_information', 'balance') : 0;
             $users_balance = number_format($ba1) ?: 0;

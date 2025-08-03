@@ -152,7 +152,7 @@ function admin_steps()
                 } else {
                     sm_admin(['userinfo_4']);
                 }
-            }else{
+            } else {
                 sm_admin(['userinfo_4']);
             }
             break;
@@ -1586,7 +1586,6 @@ function admin_steps()
 
                     break;
                 case $key_admin['display_product']:
-                    admin_step('display_product');
                     sm_admin(['display_product'], ['display_prodcuts']);
                     break;
             }
@@ -1598,35 +1597,62 @@ function admin_steps()
             switch ($type) {
                 case 'row_product':
                     $explode = explode('-', $text);
-                    if (count($explode) > 0) {
+                    $isValid = true;
+                    foreach ($explode as $num) {
+                        if (!is_numeric($num)) {
+                            $isValid = false;
+                            break;
+                        }
+                    }
+                    if (count($explode) > 0 && $isValid) {
                         $category = json_decode($settings['display_products'], true);
                         $category['row'] = $explode;
                         update_option('display_products', js($category));
-                        admin_step('display_product');
+                        admin_step('products');
                         $bot->delete_msg($fid, $message_id);
                         edt_admin(['display_product'], ['display_prodcuts', true], $admin_data['msgid']);
+                    } else {
+                        sm_admin(['error_display_format']);
                     }
                     break;
                 case 'row_under':
                     $explode = explode('-', $text);
-                    if (count($explode) > 0) {
+                    $isValid = true;
+                    foreach ($explode as $num) {
+                        if (!is_numeric($num)) {
+                            $isValid = false;
+                            break;
+                        }
+                    }
+                    if (count($explode) > 0 && $isValid) {
                         $category = json_decode($settings['display_sub_category'], true);
                         $category['row'] = $explode;
                         update_option('display_sub_category', js($category));
-                        admin_step('display_product');
+                        admin_step('products');
                         $bot->delete_msg($fid, $message_id);
                         edt_admin(['display_product'], ['display_prodcuts', true], $admin_data['msgid']);
+                    } else {
+                        sm_admin(['error_display_format']);
                     }
                     break;
                 case 'row_category':
                     $explode = explode('-', $text);
-                    if (count($explode) > 0) {
+                    $isValid = true;
+                    foreach ($explode as $num) {
+                        if (!is_numeric($num)) {
+                            $isValid = false;
+                            break;
+                        }
+                    }
+                    if (count($explode) > 0 && $isValid) {
                         $category = json_decode($settings['display_category'], true);
                         $category['row'] = $explode;
                         update_option('display_category', js($category));
-                        admin_step('display_product');
+                        admin_step('products');
                         $bot->delete_msg($fid, $message_id);
                         edt_admin(['display_product'], ['display_prodcuts', true], $admin_data['msgid']);
+                    } else {
+                        sm_admin(['error_display_format']);
                     }
                     break;
                 case 'page_product':
@@ -1634,9 +1660,11 @@ function admin_steps()
                         $category = json_decode($settings['display_products'], true);
                         $category['page'] = $text;
                         update_option('display_products', js($category));
-                        admin_step('display_product');
+                        admin_step('products');
                         $bot->delete_msg($fid, $message_id);
                         edt_admin(['display_product'], ['display_prodcuts', true], $admin_data['msgid']);
+                    } else {
+                        sm_admin(['error_display_format']);
                     }
                     break;
                 case 'page_under':
@@ -1644,9 +1672,11 @@ function admin_steps()
                         $category = json_decode($settings['display_sub_category'], true);
                         $category['page'] = $text;
                         update_option('display_sub_category', js($category));
-                        admin_step('display_product');
+                        admin_step('products');
                         $bot->delete_msg($fid, $message_id);
                         edt_admin(['display_product'], ['display_prodcuts', true], $admin_data['msgid']);
+                    } else {
+                        sm_admin(['error_display_format']);
                     }
                     break;
                 case 'page_category':
@@ -1654,13 +1684,17 @@ function admin_steps()
                         $category = json_decode($settings['display_category'], true);
                         $category['page'] = $text;
                         update_option('display_category', js($category));
-                        admin_step('display_product');
+                        admin_step('products');
                         $bot->delete_msg($fid, $message_id);
                         edt_admin(['display_product'], ['display_prodcuts', true], $admin_data['msgid']);
+                    } else {
+                        sm_admin(['error_display_format']);
                     }
                     break;
             }
             break;
+
+
         case 'add_product':
             if ($text == $key_admin['back_admin_before']) {
                 admin_step('products');
@@ -1827,7 +1861,20 @@ function admin_steps()
                         }
                         break;
                     case 'product':
+                        $current_category = $db->get('categories', ['category_id'], ['id' => $admin_data['category_id']]);
 
+                        if ($current_category && $current_category['category_id'] !== null) {
+                            $result = get_category(['offset' => 0, 'status' => 1], $current_category['category_id']);
+
+                            $c = $db->count('categories', 'id', ['category_id' => $current_category['category_id']]);
+                            admin_data(['step' => 'add_product_3', 'data[JSON]' => $admin_data]);
+                            sm_admin(['product_add_2'], ['category_select_panel', $result, $c, $current_category['category_id'], 0]);
+                        } else {
+                            $result = get_category(['offset' => 0, 'status' => 1], 0);
+                            $c = $db->count('categories', 'id', ['category_id' => null]);
+                            admin_data(['step' => 'add_product_2', 'data[JSON]' => $admin_data]);
+                            sm_admin(['product_add_1'], ['category_select_panel', $result, $c, null, 0]);
+                        }
                         break;
                 }
             } else {
@@ -1869,207 +1916,231 @@ function admin_steps()
             break;
         case 'add_product_4':
             $admin_data = json_decode($admin['data'], true);
-            switch ($admin_data['type']) {
-                case 'product':
-                    if ($text == $key_admin['no_api']) {
-                        $admin_data['api'] = 0;
-                        admin_data(['step' => 'add_product_5', 'data[JSON]' => $admin_data]);
-                        sm_admin(['product_add_4', 0], ['back_panel']);
-                    } else {
-                        $result_api = $db->get('apis', '*', ['name' => js($text)]);
-                        if ($result_api) {
-                            if ($result_api['smart_panel']) {
-                                $admin_data['api'] = $result_api['id'];
-                                admin_data(['step' => 'add_product_5', 'data[JSON]' => $admin_data]);
-                                sm_admin(['product_add_4', 1], ['back_panel']);
-                            } else {
-                                $admin_data['api'] = $result_api['id'];
-                                admin_data(['step' => 'add_product_5', 'data[JSON]' => $admin_data]);
-                                sm_admin(['product_add_4', 2], ['back_panel']);
-                            }
+            if ($text == $key_admin['back_admin_before']) {
+                $category_id = $admin_data['category_id'];
+
+                $current_category = $db->get('categories', ['category_id'], ['id' => $category_id]);
+
+                if ($current_category && $current_category['category_id'] !== null) {
+                    $result = get_category(['offset' => 0, 'status' => 1], $current_category['category_id']);
+                    $c = $db->count('categories', 'id', ['category_id' => $current_category['category_id']]);
+                    admin_data(['step' => 'add_product_3', 'data[JSON]' => $admin_data]);
+                    sm_admin(['product_add_2'], ['category_select_panel', $result, $c, $current_category['category_id'], 0]);
+                } else {
+                    $result = get_category(['offset' => 0, 'status' => 1], 0);
+                    $c = $db->count('categories', 'id', ['category_id' => null]);
+                    admin_data(['step' => 'add_product_2', 'data[JSON]' => $admin_data]);
+                    sm_admin(['product_add_1'], ['category_select_panel', $result, $c, null, 0]);
+                }
+            } else {
+                switch ($admin_data['type']) {
+                    case 'product':
+                        if ($text == $key_admin['no_api']) {
+                            $admin_data['api'] = 0;
+                            admin_data(['step' => 'add_product_5', 'data[JSON]' => $admin_data]);
+                            sm_admin(['product_add_4', 0], ['back_panel']);
                         } else {
-                            sm_admin(['product_add_bot_key']);
+                            $result_api = $db->get('apis', '*', ['name' => js($text)]);
+                            if ($result_api) {
+                                if ($result_api['smart_panel']) {
+                                    $admin_data['api'] = $result_api['id'];
+                                    admin_data(['step' => 'add_product_5', 'data[JSON]' => $admin_data]);
+                                    sm_admin(['product_add_4', 1], ['back_panel']);
+                                } else {
+                                    $admin_data['api'] = $result_api['id'];
+                                    admin_data(['step' => 'add_product_5', 'data[JSON]' => $admin_data]);
+                                    sm_admin(['product_add_4', 2], ['back_panel']);
+                                }
+                            } else {
+                                sm_admin(['product_add_bot_key']);
+                            }
                         }
-                    }
-                    break;
+                        break;
+                }
             }
             break;
         case 'add_product_5':
             $admin_data = json_decode($admin['data'], true);
-            $explode = explode("\n", $text);
-            if ($admin_data['api'] == 0) {
-                if (count($explode) == 4) {
-                    $name_product = removeWhiteSpace($explode[0]);
-                    $name_en = json_encode($name_product);
-                    $price = trim($explode[1]);
-                    $min = trim($explode[2]);
-                    $max = trim($explode[3]);
-                    if (mb_strlen($name_product) <= 130) {
-                        if (is_numeric($price) and is_numeric($min) and is_numeric($max) and $min > 0 and $max > 0) {
-                            $btn = $db->get('categories', '*', ['id' => $admin_data['category_id']]);
-                            if (!$db->has('products', ['name' => $name_en, 'category_id' => $btn['id']])) {
-                                $ordering = (int) $db->max('products', 'ordering', ['category_id' => $btn['id']]);
-                                $ordering += 1;
-                                $db->insert('products', [
-                                    'name' => $name_en,
-                                    'price' => $price,
-                                    'min' => $min,
-                                    'max' => $max,
-                                    'info' => null,
-                                    'api' => 'noapi',
-                                    'service' => 0,
-                                    'category_id' => $btn['id'],
-                                    'ordering' => $ordering,
-                                ]);
-                                $insert = $db->id();
-                                if ($insert) {
-                                    $admin_data['id'] = $insert;
-                                    admin_data(['step' => 'add_product_6', 'data[JSON]' => $admin_data]);
-                                    sm_admin(['product_add_5', $btn['id'], $name_product, $price, $min, $max], ['skip_back_panel', 0]);
-                                } else {
-                                    sm_admin(['product_add_error_1']);
-                                }
-                            } else {
-                                sm_admin(['product_add_error_2']);
-                            }
-                        } else {
-                            sm_admin(['product_add_error_3']);
-                        }
-                    } else {
-                        sm_admin(['product_add_error_4']);
-                    }
-                } else {
-                    sm_admin(['product_add_error_5']);
-                }
+            if ($text == $key_admin['back_admin_before']) {
+
+                $result = $db->select('apis', 'name', ['LIMIT' => 95]);
+                admin_data(['step' => 'add_product_4', 'data[JSON]' => $admin_data]);
+                sm_admin(['product_add_3'], ['product_add_api', $result]);
             } else {
-                $result_api = $db->get('apis', '*', ['id' => $admin_data['api']]);
-                if ($result_api) {
-                    if ($result_api['smart_panel']) {
-                        /** Smart Panel */
-                        if (count($explode) >= 2 and count($explode) <= 5) {
-                            $id = trim($explode['0']);
-                            $price = trim($explode['1']);
-
-                            $result_service = $api->services($result_api);
-                            if ($result_service['result']) {
-                                foreach ($result_service['data'] as $service) {
-                                    if ($service['service'] == $id) {
-                                        $info_product = $service;
-                                        break;
-                                    }
-                                }
-                                if (isset($explode['2'])) {
-                                    $name_product = $explode['2'];
-                                } else {
-                                    $name_product = $info_product['name'];
-                                }
-                                if (strlen($name_product) <= 130) {
-
-                                    if (isset($explode['3']) && isset($explode['4'])) {
-                                        $min = $explode['3'];
-                                        $max = $explode['4'];
-                                    } else {
-                                        $min = $info_product['min'];
-                                        $max = $info_product['max'];
-                                    }
-                                    if ($min && $max) {
-                                        if (is_numeric($price) and $min > 0 and $max > 0) {
-                                            $btn = $db->get('categories', '*', ['id' => $admin_data['category_id']]);
-                                            $name_en = js($name_product);
-                                            if (!$db->has('products', ['name' => $name_en, 'category_id' => $btn['id']])) {
-                                                $ordering = (int) $db->max('products', 'ordering', ['category_id' => $btn['id']]);
-                                                $ordering += 1;
-                                                $db->insert('products', [
-                                                    'name' => $name_en,
-                                                    'price' => $price,
-                                                    'min' => $min,
-                                                    'max' => $max,
-                                                    'info' => null,
-                                                    'api' => $result_api['name'],
-                                                    'service' => $id,
-                                                    'category_id' => $btn['id'],
-                                                    'ordering' => $ordering,
-                                                ]);
-                                                $insert = $db->id();
-                                                if ($insert) {
-                                                    $admin_data['id'] = $insert;
-                                                    admin_data(['step' => 'add_product_6', 'data[JSON]' => $admin_data]);
-                                                    sm_admin(['product_add_5', $btn['id'], $name_product, $price, $min, $max], ['skip_back_panel', 1]);
-                                                } else {
-                                                    sm_admin(['product_add_error_1']);
-                                                }
-                                            } else {
-                                                sm_admin(['product_add_error_2']);
-                                            }
-                                        } else {
-                                            sm_admin(['product_add_error_3']);
-                                        }
-                                    } else {
-                                        sm_admin(['product_add_error_6']);
-                                    }
-                                } else {
-                                    sm_admin(['product_add_error_4']);
-                                }
-                            } else {
-                                sm_admin(['product_add_error_7']);
-                            }
-                        } else {
-                            sm_admin(['product_add_error_8']);
-                        }
-                    } else {
-                        /** Not Smart Panel */
-                        if (count($explode) == 5) {
-                            $name_product = removeWhiteSpace($explode[0]);
-                            $name_en = js($name_product);
-                            $price = trim($explode[2]);
-                            $id = trim($explode[1]);
-                            $min = trim($explode[3]);
-                            $max = trim($explode[4]);
-                            if (strlen($name_product) <= 130) {
+                $explode = explode("\n", $text);
+                if ($admin_data['api'] == 0) {
+                    if (count($explode) == 4) {
+                        $name_product = removeWhiteSpace($explode[0]);
+                        $name_en = json_encode($name_product);
+                        $price = trim($explode[1]);
+                        $min = trim($explode[2]);
+                        $max = trim($explode[3]);
+                        if (mb_strlen($name_product) <= 130) {
+                            if (is_numeric($price) and is_numeric($min) and is_numeric($max) and $min > 0 and $max > 0) {
                                 $btn = $db->get('categories', '*', ['id' => $admin_data['category_id']]);
                                 if (!$db->has('products', ['name' => $name_en, 'category_id' => $btn['id']])) {
-
-                                    if (is_numeric($price) and is_numeric($min) and is_numeric($max) and $min > 0 and $max > 0) {
-
-                                        $ordering = (int) $db->max('products', 'ordering', ['category_id' => $btn['id']]);
-                                        $ordering += 1;
-
-                                        $db->insert('products', [
-                                            'name' => $name_en,
-                                            'price' => $price,
-                                            'min' => $min,
-                                            'max' => $max,
-                                            'info' => null,
-                                            'api' => $result_api['name'],
-                                            'service' => $id,
-                                            'category_id' => $btn['id'],
-                                            'ordering' => $ordering,
-                                        ]);
-
-                                        $insert = $db->id();
-                                        if ($insert) {
-                                            $admin_data['id'] = $insert;
-                                            admin_data(['step' => 'add_product_6', 'data[JSON]' => $admin_data]);
-                                            sm_admin(['product_add_5', $btn['id'], $name_product, $price, $min, $max], ['skip_back_panel', 0]);
-                                        } else {
-                                            sm_admin(['product_add_error_1']);
-                                        }
+                                    $ordering = (int) $db->max('products', 'ordering', ['category_id' => $btn['id']]);
+                                    $ordering += 1;
+                                    $db->insert('products', [
+                                        'name' => $name_en,
+                                        'price' => $price,
+                                        'min' => $min,
+                                        'max' => $max,
+                                        'info' => null,
+                                        'api' => 'noapi',
+                                        'service' => 0,
+                                        'category_id' => $btn['id'],
+                                        'ordering' => $ordering,
+                                    ]);
+                                    $insert = $db->id();
+                                    if ($insert) {
+                                        $admin_data['id'] = $insert;
+                                        admin_data(['step' => 'add_product_6', 'data[JSON]' => $admin_data]);
+                                        sm_admin(['product_add_5', $btn['id'], $name_product, $price, $min, $max], ['skip_back_panel', 0]);
                                     } else {
-                                        sm_admin(['product_add_error_3']);
+                                        sm_admin(['product_add_error_1']);
                                     }
                                 } else {
                                     sm_admin(['product_add_error_2']);
                                 }
                             } else {
-                                sm_admin(['product_add_error_4']);
+                                sm_admin(['product_add_error_3']);
                             }
+                        } else {
+                            sm_admin(['product_add_error_4']);
                         }
+                    } else {
+                        sm_admin(['product_add_error_5']);
                     }
                 } else {
-                    sm_admin(['product_add_error_9']);
+                    $result_api = $db->get('apis', '*', ['id' => $admin_data['api']]);
+                    if ($result_api) {
+                        if ($result_api['smart_panel']) {
+                            /** Smart Panel */
+                            if (count($explode) >= 2 and count($explode) <= 5) {
+                                $id = trim($explode['0']);
+                                $price = trim($explode['1']);
+
+                                $result_service = $api->services($result_api);
+                                if ($result_service['result']) {
+                                    foreach ($result_service['data'] as $service) {
+                                        if ($service['service'] == $id) {
+                                            $info_product = $service;
+                                            break;
+                                        }
+                                    }
+                                    if (isset($explode['2'])) {
+                                        $name_product = $explode['2'];
+                                    } else {
+                                        $name_product = $info_product['name'];
+                                    }
+                                    if (strlen($name_product) <= 130) {
+
+                                        if (isset($explode['3']) && isset($explode['4'])) {
+                                            $min = $explode['3'];
+                                            $max = $explode['4'];
+                                        } else {
+                                            $min = $info_product['min'];
+                                            $max = $info_product['max'];
+                                        }
+                                        if ($min && $max) {
+                                            if (is_numeric($price) and $min > 0 and $max > 0) {
+                                                $btn = $db->get('categories', '*', ['id' => $admin_data['category_id']]);
+                                                $name_en = js($name_product);
+                                                if (!$db->has('products', ['name' => $name_en, 'category_id' => $btn['id']])) {
+                                                    $ordering = (int) $db->max('products', 'ordering', ['category_id' => $btn['id']]);
+                                                    $ordering += 1;
+                                                    $db->insert('products', [
+                                                        'name' => $name_en,
+                                                        'price' => $price,
+                                                        'min' => $min,
+                                                        'max' => $max,
+                                                        'info' => null,
+                                                        'api' => $result_api['name'],
+                                                        'service' => $id,
+                                                        'category_id' => $btn['id'],
+                                                        'ordering' => $ordering,
+                                                    ]);
+                                                    $insert = $db->id();
+                                                    if ($insert) {
+                                                        $admin_data['id'] = $insert;
+                                                        admin_data(['step' => 'add_product_6', 'data[JSON]' => $admin_data]);
+                                                        sm_admin(['product_add_5', $btn['id'], $name_product, $price, $min, $max], ['skip_back_panel', 1]);
+                                                    } else {
+                                                        sm_admin(['product_add_error_1']);
+                                                    }
+                                                } else {
+                                                    sm_admin(['product_add_error_2']);
+                                                }
+                                            } else {
+                                                sm_admin(['product_add_error_3']);
+                                            }
+                                        } else {
+                                            sm_admin(['product_add_error_6']);
+                                        }
+                                    } else {
+                                        sm_admin(['product_add_error_4']);
+                                    }
+                                } else {
+                                    sm_admin(['product_add_error_7']);
+                                }
+                            } else {
+                                sm_admin(['product_add_error_8']);
+                            }
+                        } else {
+                            /** Not Smart Panel */
+                            if (count($explode) == 5) {
+                                $name_product = removeWhiteSpace($explode[0]);
+                                $name_en = js($name_product);
+                                $price = trim($explode[2]);
+                                $id = trim($explode[1]);
+                                $min = trim($explode[3]);
+                                $max = trim($explode[4]);
+                                if (strlen($name_product) <= 130) {
+                                    $btn = $db->get('categories', '*', ['id' => $admin_data['category_id']]);
+                                    if (!$db->has('products', ['name' => $name_en, 'category_id' => $btn['id']])) {
+
+                                        if (is_numeric($price) and is_numeric($min) and is_numeric($max) and $min > 0 and $max > 0) {
+
+                                            $ordering = (int) $db->max('products', 'ordering', ['category_id' => $btn['id']]);
+                                            $ordering += 1;
+
+                                            $db->insert('products', [
+                                                'name' => $name_en,
+                                                'price' => $price,
+                                                'min' => $min,
+                                                'max' => $max,
+                                                'info' => null,
+                                                'api' => $result_api['name'],
+                                                'service' => $id,
+                                                'category_id' => $btn['id'],
+                                                'ordering' => $ordering,
+                                            ]);
+
+                                            $insert = $db->id();
+                                            if ($insert) {
+                                                $admin_data['id'] = $insert;
+                                                admin_data(['step' => 'add_product_6', 'data[JSON]' => $admin_data]);
+                                                sm_admin(['product_add_5', $btn['id'], $name_product, $price, $min, $max], ['skip_back_panel', 0]);
+                                            } else {
+                                                sm_admin(['product_add_error_1']);
+                                            }
+                                        } else {
+                                            sm_admin(['product_add_error_3']);
+                                        }
+                                    } else {
+                                        sm_admin(['product_add_error_2']);
+                                    }
+                                } else {
+                                    sm_admin(['product_add_error_4']);
+                                }
+                            }
+                        }
+                    } else {
+                        sm_admin(['product_add_error_9']);
+                    }
                 }
             }
-
             break;
         case 'add_product_6':
             $admin_data = json_decode($admin['data'], true);
@@ -2542,7 +2613,7 @@ function admin_steps()
                         break;
                     case 'api':
                         if ($text == $key_admin['no_api']) {
-                            $db->update('products', ['api' => 'noapi','service'=>0], ['id' => $id]);
+                            $db->update('products', ['api' => 'noapi', 'service' => 0], ['id' => $id]);
                             $true = true;
                         } else {
                             if ($db->has('apis', ['name' => js($text)])) {
@@ -2679,6 +2750,8 @@ function admin_steps()
             break;
         case 'delete_all_1':
             if ($text == $key_admin['back_admin_before']) {
+                admin_step('delete_all');
+                sm_admin(['type_of_delete'], ['type_of_delete']);
             } else {
                 $admin_data = json_decode($admin['data'], true);
                 $type = $admin_data['type'];
