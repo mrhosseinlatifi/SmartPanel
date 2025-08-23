@@ -2650,6 +2650,7 @@ function admin_steps()
                 if ($true) {
                     switch ($type) {
                         case 'category':
+                        case 'under':
                             $result = $db->get('categories', '*', ['id' => $id]);
                             if ($result['category_id'] == null) {
                                 admin_data(['step' => 'edit_info', 'data[JSON]' => ['type' => 'category', 'id' => $id]]);

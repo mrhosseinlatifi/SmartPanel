@@ -32,7 +32,7 @@ if ($type === 'get') {
                 'ipn_callback_url' => "https://" . $domin . '/payment/index.php?file=' . $paymentEn . '&code=' . $code . '&action=back&status=ipn',
                 'success_url' => "https://" . $domin . '/payment/index.php?file=' . $paymentEn . '&code=' . $code . '&action=back&status=OK',
                 'cancel_url' => "https://" . $domin . '/payment/index.php?file=' . $paymentEn . '&code=' . $code . '&action=back&status=NOK',
-                'is_fee_paid_by_user' => true
+                'is_fee_paid_by_user' => false
             ];
 
             $result = sendCurlRequest($url, $data_transaction);

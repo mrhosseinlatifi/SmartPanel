@@ -82,24 +82,21 @@ trait user_keyboard
         global $key, $key_admin, $section_status, $admin, $settings;
         switch ($keys) {
             case 'home':
-                if ($section_status['main']['free'] == 1) {
+                if ($section_status['main']['free']) {
                     $t = ['keyboard' => [
                         [['text' => $key['price'][0]], ['text' => $key['order'][0]]],
                         [['text' => $key['info'][0]], ['text' => $key['payment'][0]]],
                         [['text' => $key['support'][0]], ['text' => $key['status'][0]], ['text' => $key['free'][0]]],
                     ]];
-                    if ($admin) {
-                        $t['keyboard'][] = [['text' => $key['panel_admin']]];
-                    }
                 } else {
                     $t = ['keyboard' => [
                         [['text' => $key['price'][0]], ['text' => $key['order'][0]]],
                         [['text' => $key['info'][0]], ['text' => $key['payment'][0]]],
                         [['text' => $key['support'][0]], ['text' => $key['status'][0]]],
                     ]];
-                    if ($admin) {
-                        $t['keyboard'][] = [['text' => $key['panel_admin']]];
-                    }
+                }
+                if ($admin) {
+                    $t['keyboard'][] = [['text' => $key['panel_admin']]];
                 }
                 break;
             case 'request_contact':
@@ -344,7 +341,7 @@ trait user_keyboard
                 foreach ($result as $pa) {
                     $t[] = [['text' => $this->text('payment_key', [$amount, $pa['name']]), 'url' => "https://" . $domin . "/payment/index.php?file=" . $pa['file'] . "&code=" . $code . "&action=get"]];
                 }
-                if($section_status['payment']['gift_code']){
+                if ($section_status['payment']['gift_code']) {
                     $t[] = [['text' => $key['gift_code'], 'callback_data' => "gift_code_" . $code]];
                 }
                 $t = ['inline_keyboard' => $t];
@@ -360,7 +357,7 @@ trait user_keyboard
                 if ($status['payment']['move_balance']) {
                     $t[] = [['text' => $key['move_balance']]];
                 }
-                if($section_status['payment']['gift_charge']){
+                if ($section_status['payment']['gift_charge']) {
                     $t[] = [['text' => $key['charge_code']]];
                 }
                 $t = row_chunk($t, [2]);
