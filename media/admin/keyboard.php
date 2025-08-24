@@ -136,12 +136,14 @@ $key_admin['api_balance_error'] = 'مشکل در دریافت ❌';
 $key_admin['api_close_list'] = 'بستن لیست ❌';
 
 /** Api Delete Option */
-$key_admin['api_delete_option_1'] = "تکمیل شوند ✅";
-$key_admin['api_delete_option_2'] = "حذف شوند ❌";
-$key_admin['api_delete_option_3'] = "وضعیت نامشخص ❓";
-$key_admin['api_delete_option_4'] = "هیچکدام ❌";
-$key_admin['api_delete_option_5'] = "خاموش شوند 🔴";
-
+$key_admin['api_delete_option'] =
+    [
+        'completed' => 'تکمیل شوند ✅',
+        'delete' => 'حذف شوند ❌',
+        'unknown' => 'وضعیت نامشخص ❓',
+        'nothing' => 'هیچکدام ❌',
+        'off' => 'خاموش شوند 🔴'
+    ];
 /** Product panel */
 $key_admin['add_product'] = "افزودن ➕";
 $key_admin['edit_product'] = "ویرایش ✏️";
@@ -696,9 +698,18 @@ trait keyboard_admin
                 break;
             case 'edit_api_delete_2':
                 $t = [
-                    [['text' => $key_admin['api_delete_option']["delete"]], ['text' => $key_admin['api_delete_option']['completed']]],
-                    [['text' => $key_admin['api_delete_option']['unknow']]],
-                    [['text' => $key_admin['back_admin']]],
+                    'keyboard' => [
+                        [
+                            ['text' => $key_admin['api_delete_option']["delete"]],
+                            ['text' => $key_admin['api_delete_option']['completed']]
+                        ],
+                        [
+                            ['text' => $key_admin['api_delete_option']['unknown']]
+                        ],
+                        [
+                            ['text' => $key_admin['back_admin']]
+                        ]
+                    ]
                 ];
                 break;
             case 'edit_api_setting':
@@ -934,7 +945,7 @@ trait keyboard_admin
                                 [['text' => $key_admin['product_edit_option']['min']], ['text' => $key_admin['product_edit_option']['price']], ['text' => $key_admin['product_edit_option']['name']]],
                                 [['text' => $key_admin['product_edit_option']['api']], ['text' => $key_admin['product_edit_option']['info']]],
                                 [['text' => $key_admin['product_edit_option']['discount']], ['text' => $key_admin['product_edit_option']['ordering']]],
-                                [['text' => $key_admin['product_edit_option']['confirm']],['text' => $key_admin['product_edit_option']['service']]],
+                                [['text' => $key_admin['product_edit_option']['confirm']], ['text' => $key_admin['product_edit_option']['service']]],
                                 [['text' => $key_admin['product_edit_option']['delete']]],
                                 [['text' => $key_admin['back_admin']], ['text' => $key_admin['back_admin_before']]],
                             ],
@@ -1046,7 +1057,7 @@ trait keyboard_admin
                             [['text' => $key_admin['update_api_section'], 'callback_data' => 'fyk'], ['text' => $key_admin['update_api_status'], 'callback_data' => 'fyk']],
                             [['text' => $key_admin['update_api_price_increase'], 'callback_data' => 'fyk'], ['text' => $p_s['up'], 'callback_data' => 'adminupdate_up']],
                             [['text' => $key_admin['update_api_rounding'], 'callback_data' => 'fyk'], ['text' => $p_s['round'], 'callback_data' => 'adminupdate_round']],
-                            [['text' => $key_admin['update_api_price_convert'], 'callback_data' => 'fyk'], ['text' => off($p_s['convert']) , 'callback_data' => 'adminupdate_convert']],
+                            [['text' => $key_admin['update_api_price_convert'], 'callback_data' => 'fyk'], ['text' => off($p_s['convert']), 'callback_data' => 'adminupdate_convert']],
                             [['text' => $key_admin['back_admin'], 'callback_data' => 'admin_back'], ['text' => $key_admin['update_api_next_step'], 'callback_data' => 'adminupdate_next']],
                         ]];
                         break;
