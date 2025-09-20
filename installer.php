@@ -36,7 +36,7 @@ function connectDatabase($config)
     ]);
 }
 
-function installBot($db, $bot, $admin, $lic, $type_license)
+function installBot($db, $admin)
 {
     if (!table($db)) {
         exit('<h1 style="text-align: center;margin-top:30px">در ساخت دیتابیس خطا رخ داده است</h1>');
@@ -108,7 +108,7 @@ if (isset($_GET['install']) || ($_SERVER["REQUEST_METHOD"] === "POST" && isset($
         }
 
         validateLicense($getBotInfo['result']['username'], $license, $type_license, $_SERVER['HTTP_HOST']);
-        installBot($db, $bot, $admin, $license, $type_license);
+        installBot($db, $admin);
 
         $random_code = random_code(rand(32, 64));
         $hash_random_code = md5($random_code);

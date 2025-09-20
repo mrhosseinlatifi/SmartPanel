@@ -65,7 +65,7 @@ if ($type === 'get') {
                         'getway' => $paymentEn,
                     ], ['id' => $code]);
 
-                    header('Location: ' . $result['response']['result']['url']);
+                    redirect_payment($result['response']['result']['url']);
                 } else {
                     $msg = $result['response']['errors']['message'];
                     sm_channel('channel_errors', ['error_getway_get', $paymentEn, $msg]);

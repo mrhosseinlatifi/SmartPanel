@@ -3,7 +3,8 @@ require_once 'config.php';
 require_once ROOTPATH . '/bot_file/function/function_tel.php';
 require_once ROOTPATH . '/include/hkbot.php';
 
-function getDomain(): string {
+function getDomain(): string
+{
     $url = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
     $url = preg_replace('/^https?:\/\//', '', $url); // Remove protocol
     $url = preg_replace('/\?.*$/', '', $url); // Remove query parameters
@@ -23,8 +24,14 @@ $response = $bot->bot('setwebhook', [
     'secret_token' => $randomCode,
     'ip_address' => $ip,
     'allowed_updates' => json_encode([
-        "message", "edited_message", "channel_post", "edited_channel_post",
-        "callback_query", "chat_member", "my_chat_member",
+        "message",
+        "edited_message",
+        "channel_post",
+        "edited_channel_post",
+        "callback_query",
+        "chat_member",
+        "my_chat_member",
+        "pre_checkout_query"
     ])
 ]);
 
@@ -32,7 +39,7 @@ if ($response['ok']) {
     $configContent = file_get_contents(ROOTPATH . '/config.php');
     $updatedConfig = str_replace(sec_code, $hashedCode, $configContent);
     file_put_contents(ROOTPATH . '/config.php', $updatedConfig);
-    
+
     $bot->sm(admins[0], 'OK!');
     echo 'OK';
     // unlink('set.php'); // Uncomment if needed

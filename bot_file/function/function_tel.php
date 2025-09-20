@@ -458,12 +458,13 @@ function sendallmsg($id, $data)
     }
 }
 
-function handlePoshtibani2($update, $media, $channel, $bot, $fid, $first_name, $user)
+function handlePoshtibani2($update)
 {
+    global $settings, $update, $bot, $fid, $media, $first_name, $user;
     $types = ['video', 'photo', 'audio', 'voice', 'document'];
     $file_id = null;
     $caption = '';
-    $recipient_id = (isset($settings[$channel]) && $settings[$channel] != 0) ? $settings[$channel] : admins['0'];
+    $recipient_id = (isset($settings['channel_support']) && $settings['channel_support'] != 0) ? $settings['channel_support'] : admins['0'];
     $true = false;
 
     foreach ($types as $i) {
@@ -641,6 +642,12 @@ function redirect($url)
     exit;
 }
 
+function redirect_payment($url)
+{
+    echo "<script type='text/javascript'>window.location.href='$url'</script>";
+    echo "<noscript><meta http-equiv='refresh' content='0;url=$url'/></noscript>";
+}
+
 function round_up($float, $pow = '500', $dec = -1)
 {
     if ($dec == 0) {
@@ -659,12 +666,15 @@ function round_up($float, $pow = '500', $dec = -1)
     }
 }
 
-function price_once($min, $max, $price = 0)
+function price_once($min, $max, $price = 0, $type = 'default')
 {
     if ($price == 0) {
         return $price;
     } else {
         if ($min == 1 and $max == 1) {
+            return $price;
+        } elseif ($type == 'package') {
+            // For package type, return unit price without division
             return $price;
         } else {
             $price = $price / 1000;
@@ -1054,6 +1064,66 @@ function add_tranaction($type, $id, $amount, $data = [])
     return $code;
 }
 
+function check_daily_payment_limit($user_id, $amount, $payment_card)
+{
+    global $db;
+    
+    $daily_limit = get_option('daily_limit', 200000);
+    
+    if ($payment_card && $payment_card !== '0' && $payment_card !== 'wait') {
+        return [
+            'allowed' => true,
+            'daily_total' => 0,
+            'limit' => 0,
+            'remaining' => 0
+        ];
+    }
+    
+    $today_start = strtotime('today');
+    $today_end = strtotime('tomorrow') - 1;
+    
+     $transactions = $db->select('transactions', ['amount', 'getway'], [
+         'user_id' => $user_id,
+         'type' => 'payment',
+         'status' => 1,
+         'date[>=]' => $today_start,
+         'date[<=]' => $today_end
+     ]);
+     
+     $daily_total = 0;
+     if ($transactions) {
+         foreach ($transactions as $transaction) {
+             $gateway_type = 'IRT';
+             
+             if ($transaction['getway'] && $transaction['getway'] !== 'offline') {
+                 $gateway_info = $db->get('payment_gateways', 'type', ['file' => $transaction['getway']]);
+                 if ($gateway_info) {
+                     $gateway_type = $gateway_info;
+                 }
+             }
+             
+             if ($gateway_type === 'IRT') {
+                 $daily_total += (int)$transaction['amount'];
+             }
+         }
+     }
+     
+     $daily_total = (int)$daily_total;
+     $amount = (int)$amount;
+     
+     $new_total = $daily_total + $amount;
+    $allowed = $new_total <= $daily_limit;
+    $remaining = max(0, $daily_limit - $daily_total);
+    
+    return [
+        'allowed' => $allowed,
+        'daily_total' => $daily_total,
+        'limit' => $daily_limit,
+        'remaining' => $remaining,
+        'new_total' => $new_total
+    ];
+}
+
 function type_text($text, $type = 'none', $href = null)
 {
     switch ($type) {
@@ -1121,7 +1191,7 @@ function convertnumber($input)
         $lines = explode("\n", $input);
         $result = [];
         foreach ($lines as $line) {
-            $result[] = preg_replace_callback('/[۰-۹٠-٩0-9]+/', function($matches) use ($persian, $arabic, $num) {
+            $result[] = preg_replace_callback('/[۰-۹٠-٩0-9]+/', function ($matches) use ($persian, $arabic, $num) {
                 $number = $matches[0];
                 $number = str_replace($persian, $num, $number);
                 $number = str_replace($arabic, $num, $number);
@@ -1137,7 +1207,7 @@ function convertnumber($input)
         return (int)$output;
     }
 
-    return preg_replace_callback('/[۰-۹٠-٩0-9]+/', function($matches) use ($persian, $arabic, $num) {
+    return preg_replace_callback('/[۰-۹٠-٩0-9]+/', function ($matches) use ($persian, $arabic, $num) {
         $number = $matches[0];
         $number = str_replace($persian, $num, $number);
         $number = str_replace($arabic, $num, $number);

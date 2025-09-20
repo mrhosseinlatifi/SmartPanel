@@ -61,7 +61,7 @@ class api
 		}
 	}
 	//---------------------------------------//
-	public function add_order($api, $service, $link, $quantity)
+	public function add_order($api, $service, $link, $quantity, $comments = null)
 	{
 		if ($api['smart_panel']) {
 			$url = $api['api_url'];
@@ -72,6 +72,12 @@ class api
 				'link' => $link,
 				'quantity' => $quantity,
 			];
+			
+			// Add comments if provided (array of comments joined with \r\n)
+			if (!empty($comments) && is_array($comments)) {
+				$postFields['comments'] = implode("\r\n", $comments);
+			}
+			
 			$result = $this->rq($url, 'POST', $postFields);
 			if ($result['result']) {
 				return ['result' => true, 'order' => $result['data']['order']];

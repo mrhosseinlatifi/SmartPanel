@@ -18,6 +18,10 @@ $key['admin_payout_ok'] = 'پرداخت شد 💰';
 $key['admin_payout_cancel'] = 'کنسل کردن ❌';
 $key['admin_gift_payout_ok'] = 'واریز شد 💸';
 $key['admin_gift_payout_cancel'] = 'لغو شد ❌';
+
+$key['admin_confirm_receipt'] = 'تایید رسید ✅';
+$key['admin_edit_receipt'] = '✅ تایید و ویرایش مبلغ ✅';
+$key['admin_cancel_receipt'] = 'رد رسید ❌';
 trait admin_user_text
 {
     public function akeys($k, $data = null)
@@ -130,6 +134,17 @@ trait admin_user_text
                     ],
                     [
                         ['text' => $key['admin_info'], 'callback_data' => "verifycard-info-" . $data]
+                    ],
+                ]];
+                break;
+            case 'verify_receipt':
+                $t = ['inline_keyboard' => [
+                    [
+                        ['text' => $key['admin_edit_receipt'], 'callback_data' => "verifyreceipt-edit-" . $data]
+                    ],
+                    [
+                        ['text' =>  $key['admin_confirm_receipt'], 'callback_data' => "verifyreceipt-ok-" . $data],
+                        ['text' => $key['admin_cancel_receipt'], 'callback_data' => "verifyreceipt-nok-" . $data]
                     ],
                 ]];
                 break;
@@ -365,8 +380,12 @@ $tt
                 $t = "کارت شما به شماره : $card ثبت شد.\nلطفا فقط از این کارت برای پرداخت استفاده نمایید";
                 break;
             case 'order_add_error':
-                $error = $data;
-                $t = "یک سفارش به دلیل خطا به وب سرویس ارسال نشد.\nهزینه به کاربر عودت داده شد.\nمتن خطا : ".$error;
+                $order = $data[0];
+                $decode = json_decode($order['product'], true);
+                $product = $decode['product'];
+                $category = implode("\n", $decode['category']);
+                $error = $data[1];
+                $t = "یک سفارش به دلیل خطا به وب سرویس ارسال نشد.\nهزینه به کاربر عودت داده شد.\nمتن خطا : " . $error."\n\nجزئیات سفارش : \nمحصول : $product\nدسته بندی : $category\nتعداد : " . $order['count'] . "\nلینک : " . $order['link'] . "\nکد پیگیری ربات : " . $order['code'];
                 break;
             case 'ok_move_balance':
                 $amount = $data[0];
@@ -378,6 +397,37 @@ $tt
 👤 ارسال کننده : $sender
 👥 دریافت کننده : $reciver
 تاریخ : $date";
+                break;
+            case 'offline_payment':
+                $fid = $data[0];
+                $first_name = type_text($data[1], 'm', $fid);
+                $caption = $data[2];
+                $amount = $data[3];
+                $code = $data[4];
+                $t = "🟢 پرداخت آفلاین جدید
+کاربر : <a href='tg://user?id=$fid'>$first_name</a> | #user_$fid
+مبلغ : $amount
+کد پیگیری ربات : $code
+توضیحات کاربر : $caption";
+                break;
+            case 'receipt_up':
+                $amount = $data[0];
+                $balance = $data[1];
+                $date = jdate('Y/m/d - H:i:s');
+                $t = "❤️ کاربر گرامی
+
+✅ رسید واریز شما ثبت شد.
+💸 مبلغ {$amount} تومان واریز شد.
+💎 موجودی جدید: {$balance} تومان
+📆 $date";
+                break;
+            case 'receipt_nok':
+                $tx = $data['0'];
+                $id = $data['1'];
+                $t = "❌ پرداخت شما رد شد
+
+✍️ دلیل: {$tx}
+🛒 کد پیگیری: {$id}";
                 break;
             default:
                 $t = '❓انتخاب کنید';

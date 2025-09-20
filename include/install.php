@@ -259,6 +259,11 @@ function table($db)
             'NOT NULL',
             'DEFAULT 0',
         ],
+        'type' => [
+            'VARCHAR(500)',
+            'NOT NULL',
+            "DEFAULT 'IRT'",
+        ],
         'status' => [
             'INT',
             'NOT NULL',
@@ -268,6 +273,9 @@ function table($db)
             'INT',
             'NOT NULL',
             'DEFAULT 1',
+        ],
+        'data' => [
+            'TEXT',
         ],
     ], [
         'CHARSET' => 'utf8mb4'
@@ -584,7 +592,7 @@ function first_data($db, $admin)
         'section_status' => [
             'main' => array_fill_keys(['bot', 'buy', 'payment', 'member', 'free', 'support'], 0),
             'free' => array_fill_keys(['number', 'sms', 'gift_payment', 'gift_referral', 'gift_start', 'withdraw_balance', 'change_gift_balance'], 0),
-            'payment' => array_fill_keys(['number', 'sms', 'offline_payment', 'verify_card', 'move_balance', 'online_payment', 'authentication','gift_code','gift_charge'], 0),
+            'payment' => array_fill_keys(['number', 'sms', 'offline_payment', 'verify_card', 'move_balance', 'online_payment', 'authentication', 'gift_code', 'gift_charge','crypto_payment','starz_payment'], 0),
             'buy' => ['order_msg' => 0]
         ]
     ];
@@ -600,7 +608,7 @@ function first_data($db, $admin)
         'number_float' => 0,
         'last_cron_send' => 0,
         'last_cron_orders' => 0,
-        'version' => 9,
+        'version' => '9.1',
         'sall' => 50,
         'fall' => 30,
         'DIFF_TIME' => 0,
@@ -618,9 +626,12 @@ function first_data($db, $admin)
         'max_deposit' => 500000,
         'min_move_balance' => 1000,
         'min_kyc' => 100000,
+        'daily_limit' => 400000,
         'channel_main' => 0,
         'channel_lock' => 0,
+        'channel_lock' => 0,
         'channel_transaction' => $admin,
+        'channel_payment_offline' => $admin,
         'channel_ads' => 0,
         'channel_order_api' => $admin,
         'channel_order_noapi' => $admin,
@@ -628,6 +639,7 @@ function first_data($db, $admin)
         'channel_kyc' => $admin,
         'channel_gift_transaction' => $admin,
         'channel_errors' => $admin,
+        'kyc_media' => 'photo',
         'baner_tx' => '🤖 ربات خدمات مجازی (رایگان؛پولی)
 	🔰 تو این ربات میتونید تمامی خدمات شبکه های اجتماعی مثل؛فالوور، ممبر، لایک، کامنت، ویو، و... رو دریافت کنید، اونهم به صورت رایگان!
 	
@@ -639,6 +651,7 @@ function first_data($db, $admin)
         'min_move_gift' => 5000,
         'p2p' => '💳 درصورتی که امکان خرید به صورت آنلاین و با رمز دوم ندارید میتوانید پرداخت را آفلاین انجام دهید ! برای راهنمایی بیشتر به پشتیبانی مراجعه کنید.',
         'text_payment' => 'درصورت پرداخت موفق حساب شما به صورت خودکار شارژ میشود.',
+        'text_payment_crypto' => 'پس از تأیید تراکنش ارز دیجیتال، حساب شما به صورت خودکار شارژ خواهد شد.',
         'text_order' => 'ممنون از اعتما شما. به منوی اصلی بازگشتید',
         'text_kyc' => 'دوست عزیز به دلیل بالا بودن مبلغ واریزی و امنیت بیشتر و جلوگیری از پرداخت های فیشینگ میبایست یک کارت را احراز کنید
 
@@ -647,13 +660,14 @@ function first_data($db, $admin)
         'last_order_page' => 10,
         'last_transactions_page' => 10,
         'cron_order_lock' => 0,
-        'delay_time_sms' => 300
+        'delay_time_sms' => 300,
+        'starz_rate' => 1000,
     ];
 
 
     foreach ($staticSettings as $key => $value) {
         $st = null;
-        $st = ['option_key' => $key, 'option_value[JSON]' => $value];
+        $st = ['option_key' => $key, 'option_value' => $value];
         $db->insert('setting_options', $st);
     }
 }

@@ -1,244 +1,375 @@
-<?php //00507
-// 14.0 82
-if(!extension_loaded('ionCube Loader')){$__oc=strtolower(substr(php_uname(),0,3));$__ln='ioncube_loader_'.$__oc.'_'.substr(phpversion(),0,3).(($__oc=='win')?'.dll':'.so');if(function_exists('dl')){@dl($__ln);}if(function_exists('_il_exec')){return _il_exec();}$__ln='/ioncube/'.$__ln;$__oid=$__id=realpath(ini_get('extension_dir'));$__here=dirname(__FILE__);if(strlen($__id)>1&&$__id[1]==':'){$__id=str_replace('\\','/',substr($__id,2));$__here=str_replace('\\','/',substr($__here,2));}$__rd=str_repeat('/..',substr_count($__id,'/')).$__here.'/';$__i=strlen($__rd);while($__i--){if($__rd[$__i]=='/'){$__lp=substr($__rd,0,$__i).$__ln;if(file_exists($__oid.$__lp)){$__ln=$__lp;break;}}}if(function_exists('dl')){@dl($__ln);}}else{die('The file '.__FILE__." is corrupted.\n");}if(function_exists('_il_exec')){return _il_exec();}echo("Site error: the ".(php_sapi_name()=='cli'?'ionCube':'<a href="http://www.ioncube.com">ionCube</a>')." PHP Loader needs to be installed. This is a widely used PHP extension for running ionCube protected PHP code, website security and malware blocking.\n\nPlease visit ".(php_sapi_name()=='cli'?'get-loader.ioncube.com':'<a href="http://get-loader.ioncube.com">get-loader.ioncube.com</a>')." for install assistance.\n\n");exit(199);
+<?php
+function user_data()
+{
+	extract($GLOBALS);
+	
+	switch ($data) {
+		case 'fyk':
+			alert_user(['fyk']);
+			break;
+		case 'close':
+			edt_user(['close']);
+			break;
+		case 'ozv':
+			if ($tch['status'] == 'joined') {
+				$bot->delete_msg($fid, $message_id);
+				handleStart('start');
+				alert_user(['joined']);
+			} else {
+				alert_user(['not_join'], true);
+			}
+			break;
+		case 'support':
+			alert_user(['none']);
+			user_set_data(['step' => 'poshtibani2', 'data' => 'Reply again']);
+			sm_user(['support'], ['back']);
+			break;
+		case text_starts_with($data, "ref_join"):
+			if ($tch['status'] == 'joined') {
+				$bot->delete_msg($fid, $message_id);
+				$referral_id = str_replace('ref_join', '', $data);
 
-?>
-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
+				if (is_numeric($referral_id)) {
+					if ($fid != $referral_id) {
+						if ($db->has('users_information', ['user_id' => $referral_id])) {
+							if (!$db->has('users_information', ['user_id' => $fid])) {
+								if (!$section_status['free']['number']) {
+
+									processReferral($referral_id, $fid);
+
+									handleStart('start');
+								} else {
+									$db->insert('users_information', ['user_id' => $fid, 'step' => 'oknum', 'referral_id' => $referral_id . 'off', 'join_date' => time()]);
+									sm_user(['ok_commission', $settings['gift_payment'], $referral_id, $fid], null, $referral_id);
+									sm_user(['referral_authentication'], ['request_contact']);
+									StartGift($fid);
+								}
+							} else {
+								handleStart('start');
+							}
+						} else {
+							handleStart('start');
+						}
+					} else {
+						handleStart('start');
+					}
+				} else {
+					handleStart('start');
+				}
+			} else {
+				alert_user(['not_join'], true);
+			}
+
+			break;
+		case text_starts_with($data, "orderstatus_"):
+			$str = str_replace('orderstatus_', '', $data);
+			if ($db->has('orders', ['code' => $str])) {
+				$res = $db->get('orders', '*', ['code' => $str]);
+				alert_user(['result_order_inline', $res]);
+			}
+			break;
+		case text_starts_with($data, "price_info_"):
+			$str = str_replace('price_info_', '', $data);
+			$ex = explode('_', $str);
+			$type = $ex['0'];
+			switch ($type) {
+				case 'category':
+					$type_2 = $ex['1'];
+					switch ($type_2) {
+						case 'show':
+							$id = $ex['2'];
+							$categoryResult = $db->get('categories', '*', ['id' => $id]);
+							if ($categoryResult) {
+								if ($db->has('categories', ['category_id' => $categoryResult['id']])) {
+									# has under
+									$result = get_category(['inline', 'offset' => 0], $categoryResult['id']);
+									if ($result) {
+										$c = $db->count('categories', ['status' => 1, 'category_id' => $categoryResult['id']]);
+										edk_user(['price_info', $result, $c, $categoryResult['id'], 0]);
+									} else {
+										alert_user(['not_found']);
+									}
+								} else {
+									# go show product
+									if ($db->has('products', ['category_id' => $categoryResult['id']])) {
+										# get products
+										$result = get_products(['inline', 'offset' => 0], $categoryResult['id']);
+										if ($result) {
+
+											$c = $db->count('products', ['status' => 1, 'category_id' => $categoryResult['id']]);
+											edt_user(['price_info'], ['price_info_products', $result, $c, $categoryResult['id'], 0]);
+										} else {
+											alert_user(['not_found']);
+										}
+									} else {
+										alert_user(['not_found']);
+									}
+								}
+							} else {
+								alert_user(['not_found']);
+							}
+							break;
+						case 'page':
+							$depth = $ex['2'];
+							$depth = ($depth == '0') ? null : $depth;
+							$displaySettings = ($depth === null)
+								? json_decode($settings['display_category'], true)
+								: json_decode($settings['display_sub_category'], true);
+
+							$page = $displaySettings['page'];
+							$now = $ex['3'];
+							$nex = $now + $page;
+							$bef = $now - $page;
+
+							$result = get_category(['inline', 'offset' => $now], $depth);
+							$c = $db->count('categories', ['status' => 1, 'category_id' => $depth]);
+							edk_user(['price_info', $result, $c, $depth, $now]);
+							break;
+						case 'back':
+							$id = $ex['2'];
+							$categoryResult = $db->get('categories', '*', ['id' => $id]);
+							if ($categoryResult) {
+								if ($categoryResult['category_id'] == null) {
+
+									$displaySettings = json_decode($settings['display_category'], true);
+									$depth = null;
+									$now = 0;
+
+									$result = get_category(['inline', 'offset' => $now], $depth);
+									$c = $db->count('categories', ['status' => 1, 'category_id' => $depth]);
+									edk_user(['price_info', $result, $c, $depth, $now]);
+								} else {
+
+									# has under
+									$result = get_category(['inline', 'offset' => 0], $categoryResult['category_id']);
+									if ($result) {
+										$c = $db->count('categories', ['status' => 1]);
+										edt_user(['price_info'], ['price_info', $result, $c, $categoryResult['category_id'], 0]);
+									} else {
+										alert_user(['not_found']);
+									}
+								}
+							} else {
+								alert_user(['not_found']);
+							}
+
+							break;
+						default:
+							# code...
+							break;
+					}
+					break;
+				case 'product':
+					$type_2 = $ex['1'];
+					switch ($type_2) {
+						case 'show':
+							$code = $ex['2'];
+							$result_product = $db->get('products', '*', ['status' => 1, 'id' => $code]);
+							if ($result_product) {
+								// Calculate price with discounts
+								$price = $result_product['price'];
+								
+								// Apply product discount: positive = price increase, negative = price decrease
+								if ($result_product['discount']) {
+									$price = $price + (($result_product['price'] / 100) * $result_product['discount']);
+								}
+								
+								// Apply user discount (always reduces price)
+								if ($user['discount']) {
+									$price = $price - (($price / 100) * $user['discount']);
+								}
+								if ($price <= 0) {
+									$price = 0;
+									$price_once = price_once($result_product['min'], $result_product['max'], $price, $result_product['type']);
+									$how_much = $result_product['max'];
+								} else {
+									$price_once = price_once($result_product['min'], $result_product['max'], $price, $result_product['type']);
+									$how_much = $user['balance'] / $price_once;
+									if ($how_much >= $result_product['max']) {
+										$how_much = $result_product['max'];
+									}
+								}
+
+								edt_user(['price_info_products', $result_product, $price, $price_once, $how_much], ['product_info', $result_product]);
+							} else {
+								alert_user(['not_found']);
+							}
+							break;
+						case 'back':
+							$category_id = $ex['2'];
+							$categoryResult = $db->get('categories', '*', ['id' => $category_id]);
+							if ($categoryResult) {
+								# get products
+								$result = get_products(['inline', 'offset' => 0], $categoryResult['id']);
+								if ($result) {
+									$c = $db->count('products', ['status' => 1, 'category_id' => $categoryResult['id']]);
+									edt_user(['price_info'], ['price_info_products', $result, $c, $categoryResult['id'], 0]);
+								} else {
+									alert_user(['not_found']);
+								}
+							} else {
+								alert_user(['not_found']);
+							}
+							break;
+						case 'page':
+							$depth = $ex['2'];
+							$now = $ex['3'];
+
+							$result = get_products(['inline', 'offset' => $now], $depth);
+							$c = $db->count('products', ['status' => 1, 'category_id' => $depth]);
+							edt_user(['price_info'], ['price_info_products', $result, $c, $depth, $now]);
+							break;
+						case 'order':
+							if ($section_status['main']['buy']) {
+							$name_e = $ex['2'];
+
+							$result_product = $db->get('products', '*', ['status' => 1, 'id' => $name_e]);
+
+							if ($result_product) {
+								$bot->delete_msg($fid, $message_id);
+								
+								// Build category path for proper navigation
+								$userdata = [];
+								$userdata['now'] = 0;
+								$userdata['category'] = [];
+								
+								// Build category hierarchy
+								$category_id = $result_product['category_id'];
+								$category_path = [];
+								
+								// Get full category path
+								while ($category_id) {
+									$category = $db->get('categories', '*', ['id' => $category_id]);
+									if ($category) {
+										array_unshift($category_path, [
+											'id' => $category['id'],
+											'name' => json_decode($category['name']),
+											'offset' => 0
+										]);
+										$category_id = $category['category_id'];
+										$userdata['now']++;
+									} else {
+										break;
+									}
+								}
+								
+								$userdata['category'] = $category_path;
+								
+								// Calculate price with discounts
+								$price = $result_product['price'];
+								
+								// Apply product discount: positive = price increase, negative = price decrease
+								if ($result_product['discount']) {
+									$price = $price + (($result_product['price'] / 100) * $result_product['discount']);
+								}
+								
+								// Apply user discount (always reduces price)
+								if ($user['discount']) {
+									$price = $price - (($price / 100) * $user['discount']);
+								}
+								if ($price <= 0) {
+									$price = 0;
+									$price_once = price_once($result_product['min'], $result_product['max'], $price, $result_product['type']);
+									$how_much = $result_product['max'];
+								} else {
+									$price_once = price_once($result_product['min'], $result_product['max'], $price, $result_product['type']);
+									$how_much = $user['balance'] / $price_once;
+									if ($how_much >= $result_product['max']) {
+										$how_much = $result_product['max'];
+									}
+								}
+								$userdata['product'] =  ['product' => $result_product['id'], 'min' => $result_product['min'], 'max' => $result_product['max'], 'price_once' => $price_once, 'pattern' => $result_product['pattern']];
+								
+								// Handle different product types
+								if ($result_product['type'] == 'custom_comments') {
+									// For comment type, show product first, then ask for comments
+									user_set_data(['step' => 'buy3', 'data[JSON]' => $userdata, 'type' => $result_product['type']]);
+									sm_user(['shop4_comments', $result_product, $price, $price_once, $result_product['min'], $result_product['max']], ['back_to_before']);
+								} elseif ($result_product['min'] == 1 && $result_product['max'] == 1) {
+									// For products with min/max = 1, show product info but ask for link directly
+									$userdata['price'] = $price_once;
+									$userdata['count'] = 1;
+									$link_text = $db->get('pattern', 'text', ['type' => $result_product['pattern']]);
+									user_set_data(['step' => 'buy5', 'data[JSON]' => $userdata, 'type' => $result_product['type']]);
+									sm_user(['shop4_direct_link', $result_product, $price, $price_once, $link_text], ['back_to_before']);
+								} else {
+									// Normal flow
+									user_set_data(['step' => 'buy3', 'data[JSON]' => $userdata, 'type' => $result_product['type']]);
+									sm_user(['shop4', $result_product, $price, $price_once, $how_much], ['back_to_before']);
+								}
+							} else {
+								sm_user(['shop_justkey']);
+							}
+						}else{
+							alert_user(['off_buy']);
+						}
+							break;
+					}
+					break;
+				default:
+					# code...
+					break;
+			}
+			break;
+		case text_starts_with($data, "backcoin_"):
+			$code = str_replace('backcoin_', '', $data);
+
+			$result = $db->has('payment_gateways', ['status' => 1]);
+			if ($result) {
+				$getTr = $db->get('transactions', '*', ['id' => $code]);
+				$code = $getTr['id'];
+				$text = $getTr['amount'];
+
+				$result = $db->select('payment_gateways', '*', ['status' => 1]);
+
+				edt_user(['payment_text', $user, $code, $text], ['payment_gateways', $result, $text, $domin, $code]);
+				user_set_step();
+			}
+			break;
+		case text_starts_with($data, "gift_code_"):
+			$id = str_replace('gift_code_', '', $data);
+			user_set_data(['step' => 'gift_code', 'link' => $message_id, 'data' => $id]);
+			edt_user(['gift_code'], ['back_to_payment', $id]);
+			break;
+		case text_starts_with($data, "userpayment_"):
+			$page = str_replace('userpayment_', '', $data);
+			$n = $settings['last_transactions_page'];
+			$nex = $page + $n;
+			$bef = $page - $n;
+
+			$result = $db->select('transactions', '*', ['user_id' => $fid, 'ORDER' => ['id' => 'DESC'], 'LIMIT' => [$page, $n], 'type' => 'payment']);
+			if ($result) {
+				$c = $db->count('transactions', ['user_id' => $fid, 'type' => 'payment']);
+				$tx = transactionslist($result);
+				edt_user(['last_payment', $tx], ['last_payment', $c,  $n, $bef, $nex]);
+			} else {
+				edt_user(['not_payment']);
+			}
+
+			break;
+		case text_starts_with($data, "userorder_"):
+			$page = str_replace('userorder_', '', $data);
+			$n = $settings['last_order_page'];
+			$nex = $page + $n;
+			$bef = $page - $n;
+
+			$result = $db->select('orders', '*', ['user_id' => $fid, 'ORDER' => ['id' => 'DESC'], 'LIMIT' => [$page, $n]]);
+			if ($result) {
+				$c = $db->count('orders', ['user_id' => $fid]);
+				$tx = orderlist($result);
+				edt_user(['last_order', $tx], ['last_order', $c,  $n, $bef, $nex]);
+			} else {
+				edt_user(['not_order']);
+			}
+			break;
+		case text_starts_with($data, "send_receipt_"):
+			$amount = str_replace('send_receipt_', '', $data);
+			user_set_data(['step' => 'payment_offline_2', 'data' => $amount]);
+			$bot->delete_msg($fid, $message_id);
+			sm_user(['send_receipt_photo',$amount], ['back']);
+			break;
+		default:
+			# code...
+			break;
+	}
+}

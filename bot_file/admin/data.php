@@ -106,7 +106,7 @@ function admin_data_step()
                             sm_admin(['edit_products_panel'], ['edit_products_panel', 'under']);
                         }
                         break;
-                    case 'produc':
+                    case 'product':
                         $result = $db->get('products', '*', ['id' => $id]);
 
                         admin_data(['step' => 'edit_info', 'data[JSON]' => ['type' => 'product', 'id' => $id]]);
@@ -554,6 +554,16 @@ function admin_data_step()
                                 $max = $product['max'];
                                 $desc = removeWhiteSpace($product['desc']);
                                 $ser_id = $product['service'];
+                                
+                                // Get product type from API if available, otherwise use default
+                                $product_type = 'default';
+                                if (isset($product['type']) && !empty($product['type'])) {
+                                    $api_type = strtolower(trim($product['type']));
+                                    // Map API type to our system types
+                                    if (in_array($api_type, ['default', 'custom_comments', 'package'])) {
+                                        $product_type = $api_type;
+                                    }
+                                }
 
                                 $db->insert('products', [
                                     'name' => $text_en,
@@ -565,6 +575,7 @@ function admin_data_step()
                                     'service' => $ser_id,
                                     'category_id' => $id,
                                     'ordering' => $ordering,
+                                    'type' => $product_type,
                                 ]);
                                 if ($db->id()) {
                                     unset($data_file[$ser_id]);
@@ -646,6 +657,16 @@ function admin_data_step()
                             $max = $product['max'];
                             $desc = removeWhiteSpace($product['desc']);
                             $ser_id = $product['service'];
+                            
+                            // Get product type from API if available, otherwise use default
+                            $product_type = 'default';
+                            if (isset($product['type']) && !empty($product['type'])) {
+                                $api_type = strtolower(trim($product['type']));
+                                // Map API type to our system types
+                                if (in_array($api_type, ['default', 'custom_comments', 'package'])) {
+                                    $product_type = $api_type;
+                                }
+                            }
 
                             $db->insert('products', [
                                 'name' => $text_en,
@@ -657,6 +678,7 @@ function admin_data_step()
                                 'service' => $ser_id,
                                 'category_id' => $id,
                                 'ordering' => $ordering,
+                                'type' => $product_type,
                             ]);
                             if ($db->id()) {
                                 unset($data_file[$ser_id]);
@@ -789,6 +811,16 @@ function admin_data_step()
                                     $max = $value['max'];
                                     $info = removeWhiteSpace($value['desc']);
                                     $ser_id = $value['service'];
+                                    
+                                    // Get product type from API if available, otherwise use default
+                                    $product_type = 'default';
+                                    if (isset($value['type']) && !empty($value['type'])) {
+                                        $api_type = strtolower(trim($value['type']));
+                                        // Map API type to our system types
+                                        if (in_array($api_type, ['default', 'custom_comments', 'package'])) {
+                                            $product_type = $api_type;
+                                        }
+                                    }
 
                                     $db->insert('products', [
                                         'name' => $text_en,
@@ -800,6 +832,7 @@ function admin_data_step()
                                         'service' => $ser_id,
                                         'category_id' => $cate,
                                         'ordering' => $ordering,
+                                        'type' => $product_type,
                                     ]);
                                     $insert = $db->id();
                                     if ($insert) {
@@ -895,6 +928,16 @@ function admin_data_step()
                                     $max = $value['max'];
                                     $info = removeWhiteSpace($value['desc']);
                                     $ser_id = $value['service'];
+                                    
+                                    // Get product type from API if available, otherwise use default
+                                    $product_type = 'default';
+                                    if (isset($value['type']) && !empty($value['type'])) {
+                                        $api_type = strtolower(trim($value['type']));
+                                        // Map API type to our system types
+                                        if (in_array($api_type, ['default', 'custom_comments', 'package'])) {
+                                            $product_type = $api_type;
+                                        }
+                                    }
 
                                     $db->insert('products', [
                                         'name' => $text_en,
@@ -906,6 +949,7 @@ function admin_data_step()
                                         'service' => $ser_id,
                                         'category_id' => $cate,
                                         'ordering' => $ordering,
+                                        'type' => $product_type,
                                     ]);
                                     $insert = $db->id();
                                     if ($insert) {
@@ -974,6 +1018,15 @@ function admin_data_step()
                                     if ($p_s['info']) {
                                         $s['info'] = removeWhiteSpace($data_p['desc']);
                                     }
+                                    
+                                    // Update product type from API if available
+                                    if (isset($data_p['type']) && !empty($data_p['type'])) {
+                                        $api_type = strtolower(trim($data_p['type']));
+                                        // Map API type to our system types
+                                        if (in_array($api_type, ['default', 'custom_comments', 'package'])) {
+                                            $s['type'] = $api_type;
+                                        }
+                                    }
 
                                     if (!empty($s)) {
                                         $db->update('products', $s, ['id' => $value['id']]);
@@ -1038,7 +1091,7 @@ function admin_data_step()
             if ($admin['step'] == 'products') {
                 switch ($str) {
                     case 'update_row':
-                        edt_admin(['display_product'], ['display_prodcuts']);
+                        edt_admin(['display_product'], ['display_products']);
                         alert_admin(['none']);
                         break;
                     case 'sort_product_by':
@@ -1097,7 +1150,7 @@ function admin_data_step()
             $admin_data = json_decode($admin['data'], true);
             $type = $admin_data['type'];
             if ($str == 'back') {
-                edt_admin(['display_product'], ['display_prodcuts', true]);
+                edt_admin(['display_product'], ['display_products', true]);
             } else {
                 switch ($type) {
                     case 'category':
@@ -1114,7 +1167,7 @@ function admin_data_step()
                                 break;
                         }
                         update_option('display_category', js($category));
-                        edt_admin(['display_product'], ['display_prodcuts', true]);
+                        edt_admin(['display_product'], ['display_products', true]);
                         break;
                     case 'sub':
                         $category = json_decode($settings['display_sub_category'], true);
@@ -1130,7 +1183,7 @@ function admin_data_step()
                                 break;
                         }
                         update_option('display_sub_category', js($category));
-                        edt_admin(['display_product'], ['display_prodcuts', true]);
+                        edt_admin(['display_product'], ['display_products', true]);
                         break;
                     case 'product':
                         $category = json_decode($settings['display_products'], true);
@@ -1147,7 +1200,7 @@ function admin_data_step()
                                 break;
                         }
                         update_option('display_products', js($category));
-                        edt_admin(['display_product'], ['display_prodcuts', true]);
+                        edt_admin(['display_product'], ['display_products', true]);
                         break;
                 }
             }

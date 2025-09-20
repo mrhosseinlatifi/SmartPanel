@@ -56,7 +56,7 @@ if ($type === 'get') {
                     ], ['id' => $code]);
 
 
-                    header('Location: ' . $url_3 . $trackid);
+                    redirect_payment($url_3 . $trackid);
                 } else {
                     $msg = $result['response']['errors']['message'] ?? 'Unknown error';
                     sm_channel('error_getway_get', [$paymentEn, $msg]);
@@ -69,7 +69,7 @@ if ($type === 'get') {
         case 3:
             if ($payment['getway'] == $paymentEn) {
                 $trackid = $payment['tracking_code'];
-                header('Location: ' . $url_3 . $trackid);
+                redirect_payment($url_3 . $trackid);
             } else {
                 $base_url .= '&msg=' . $media->text('error_getway', $paymentEn);
                 redirect($base_url);

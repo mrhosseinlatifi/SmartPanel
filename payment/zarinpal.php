@@ -50,7 +50,7 @@ if ($type === 'get') {
                         'getway' => $paymentEn,
                     ], ['id' => $code]);
 
-                    header('Location: ' . ZARINPAL_PAYMENT_URL . $trackid);
+                    redirect_payment(ZARINPAL_PAYMENT_URL . $trackid);
                 } else {
                     $msg = $result['response']['errors']['message'];
                     sm_channel('channel_errors', ['error_getway_get', $paymentEn, $msg]);
@@ -64,7 +64,7 @@ if ($type === 'get') {
         case 3:
             if ($payment['getway'] == $paymentEn) {
                 $trackid = $payment['tracking_code'];
-                header('Location: ' . ZARINPAL_PAYMENT_URL . $trackid);
+                redirect_payment(ZARINPAL_PAYMENT_URL . $trackid);
             } else {
                 $base_url .= '&msg=' . $media->text('error_getway', $paymentEn);
                 redirect($base_url);

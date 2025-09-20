@@ -47,7 +47,7 @@ if ($type === 'get') {
                         'tracking_code' => $trackid,
                         'getway' => $paymentEn,
                     ], ['id' => $code]);
-                    header('Location: ' . ZIBAL_PAYMENT_URL . $trackid);
+                    redirect_payment(ZIBAL_PAYMENT_URL . $trackid);
                 } else {
                     $msg = htmlentities($result['response']['message'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
                     sm_channel('channel_errors', ['error_getway_get', $paymentEn, $msg]);
@@ -60,7 +60,7 @@ if ($type === 'get') {
         case 3:
             if ($payment['getway'] == $paymentEn) {
                 $trackid = $payment['tracking_code'];
-                header('Location: ' . ZIBAL_PAYMENT_URL . $trackid);
+                redirect_payment(ZIBAL_PAYMENT_URL . $trackid);
             } else {
                 $base_url .= '&msg=' . $media->text('error_getway', $paymentEn);
                 redirect($base_url);

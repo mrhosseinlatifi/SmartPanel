@@ -8,6 +8,28 @@ require_once ROOTPATH . "/media/index.php";
 require_once ROOTPATH . "/include/hkbot.php";
 require_once ROOTPATH . "/include/domin.php";
 
+/**
+ * محاسبه کارمزد درگاه پرداخت
+ * @param float $amount مبلغ اصلی
+ * @param float $percent_fee درصد کارمزد
+ * @param float $max_fee حداکثر کارمزد (0 = بدون محدودیت)
+ * @return float کارمزد محاسبه شده
+ */
+function calculateGatewayCommission($amount, $percent_fee, $max_fee = 0) {
+    if ($percent_fee <= 0) {
+        return 0;
+    }
+    
+    $commission = ($amount * $percent_fee) / 100;
+    
+    // اعمال حداکثر کارمزد در صورت تعریف
+    if ($max_fee > 0 && $commission > $max_fee) {
+        $commission = $max_fee;
+    }
+    
+    return $commission;
+}
+
 $bot = new hkbot(Token);
 $getBotInfo = $bot->bot('getMe');
 $numberId = $getBotInfo['result']['id'];
@@ -37,12 +59,19 @@ if (isset($_GET['file'])) {
                 $payment = $db->get('transactions', '*', ['id' => $code]);
                 $fid = $payment['user_id'];
                 $user = $db->get('users_information', '*', ['user_id' => $fid]);
-                $amount = $payment['amount'];
+                $original_amount = $payment['amount'];
                 $number = $user['number'];
                 $step = $payment['status'];
                 $date = $payment['date'];
                 $name = $bot->getChatMember($fid)['user']['first_name'];
                 $decode_data = json_decode($payment['data'], true);
+                
+                // محاسبه کارمزد درگاه و اضافه کردن به مبلغ
+                $gateway_data = json_decode($result_payment['data'], true);
+                $percent_fee = isset($gateway_data['percent_fee']) ? floatval($gateway_data['percent_fee']) : 0;
+                $max_fee = isset($gateway_data['max_fee']) ? floatval($gateway_data['max_fee']) : 0;
+                $commission = calculateGatewayCommission($original_amount, $percent_fee, $max_fee);
+                $amount = $original_amount + $commission;
 
                 if ($date <= time() + 3600) {
 
@@ -64,12 +93,19 @@ if (isset($_GET['file'])) {
                 $payment = $db->get('transactions', '*', ['id' => $code]);
                 $fid = $payment['user_id'];
                 $user = $db->get('users_information', '*', ['user_id' => $fid]);
-                $amount = $payment['amount'];
+                $original_amount = $payment['amount'];
                 $number = $user['number'];
                 $step = $payment['status'];
                 $date = $payment['date'];
                 $name = $bot->getChatMember($fid)['user']['first_name'];
                 $decode_data = json_decode($payment['data'], true);
+                
+                // محاسبه کارمزد درگاه و اضافه کردن به مبلغ
+                $gateway_data = json_decode($result_payment['data'], true);
+                $percent_fee = isset($gateway_data['percent_fee']) ? floatval($gateway_data['percent_fee']) : 0;
+                $max_fee = isset($gateway_data['max_fee']) ? floatval($gateway_data['max_fee']) : 0;
+                $commission = calculateGatewayCommission($original_amount, $percent_fee, $max_fee);
+                $amount = $original_amount + $commission;
 
                 if ($date <= time() + 3600) {
                   if (!$user['block']) {
@@ -81,7 +117,7 @@ if (isset($_GET['file'])) {
                       if ($result_ok) {
                         // up ref
                         if ($user["referral_id"] > 0 && !text_contains($user["referral_id"], 'off') && $section_status['main']['free'] && $section_status['free']['gift_payment'] && $fid != $user["referral_id"]) {
-                          $gifi = (($amount * $settings['gift_payment']) / 100);
+                          $gifi = (($original_amount * $settings['gift_payment']) / 100);
 
                           $usResult = $db->get('users_information', '*', ['user_id' => $user["referral_id"]]);
                           $old_balance = $usResult['balance'];
@@ -89,7 +125,7 @@ if (isset($_GET['file'])) {
                           insertTransaction('gift', $user["referral_id"], $old_balance, $new_balance, $gifi, 'GiftPayment');
 
                           $db->update('users_information', ['gift[+]' => $gifi, 'gift_payment[+]' => $gifi], ['user_id' => $user["referral_id"]]);
-                          $bot->sm($user["referral_id"], $media->text('refral_gift_payment', [$fid, $name, $amount, $gifi]));
+                          $bot->sm($user["referral_id"], $media->text('refral_gift_payment', [$fid, $name, $original_amount, $gifi]));
                         }
                         // sm
                         if (isset($decode_data['discount'])) {
@@ -99,11 +135,11 @@ if (isset($_GET['file'])) {
                           if (!in_array($fid, $ids)) {
                             $decode = json_decode($getDiscount['amount'], true);
 
-                            $amountDis = ($amount * ($decode['amount'] / 100));
+                            $amountDis = ($original_amount * ($decode['amount'] / 100));
                             if ($amountDis >= $decode['max']) {
                               $amountDis = $decode['max'];
                             }
-                            $amount += $amountDis;
+                            $original_amount += $amountDis;
                             $ids[] = $fid;
                             if (($getDiscount['count'] - 1) == 0) {
                               $db->update('gift_code', ['status' => 0, 'count' => 0, 'ids[JSON]' => $ids], ['id' => $getDiscount['id']]);
@@ -112,12 +148,12 @@ if (isset($_GET['file'])) {
                             }
                           }
                         }
-                        $new = $user['balance'] + $amount;
+                        $new = $user['balance'] + $original_amount;
 
                         //up coin
-                        $db->update('users_information', ['balance[+]' => $amount, 'amount_paid[+]' => $amount], ['user_id' => $fid]);
+                        $db->update('users_information', ['balance[+]' => $original_amount, 'amount_paid[+]' => $original_amount], ['user_id' => $fid]);
 
-                        sm_user(['ok_payment', $tracking_code, $amount, $user['balance'], $result_payment['name'], $settings['channel_main']], null, $fid);
+                        sm_user(['ok_payment', $tracking_code, $original_amount, $user['balance'], $result_payment['name'], $settings['channel_main']], null, $fid);
                         $payment['tracking_code'] = $tracking_code;
                         sm_channel('channel_transaction', ['admin_ok_payment', $result_payment['file'], $name, $user, $payment, $card]);
                         // link

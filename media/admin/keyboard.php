@@ -96,6 +96,7 @@ $key_admin['float_number'] = 'تعداد اعشار 🔢';
 $key_admin['edit_spam'] = 'ویرایش مقادیر انتی اسپم 🔐';
 $key_admin['DIFF_TIME'] = 'اختلاف ساعت ⏰';
 $key_admin['usd_rate'] = 'قیمت دلار 💵';
+$key_admin['starz_rate'] = 'قیمت استارز 💵';
 
 /** Spam Panel */
 $key_admin['time_spam'] = 'زمان بلاک اسپم ⏳';
@@ -144,6 +145,7 @@ $key_admin['api_delete_option'] =
         'nothing' => 'هیچکدام ❌',
         'off' => 'خاموش شوند 🔴'
     ];
+
 /** Product panel */
 $key_admin['add_product'] = "افزودن ➕";
 $key_admin['edit_product'] = "ویرایش ✏️";
@@ -151,12 +153,27 @@ $key_admin['delete_product'] = "حذف دسته ای ❌";
 $key_admin['update_product'] = 'بروزکردن 🔄';
 $key_admin['status_product'] = 'روشن/خاموش محصولات ✅';
 $key_admin['display_product'] = 'چینش محصولات و دسته بندی 📋';
+$key_admin['patterns'] = 'مدیریت پترن ها 🔤';
+
+/** Pattern Panel */
+$key_admin['add_pattern'] = "افزودن پترن ➕";
+$key_admin['edit_pattern'] = "ویرایش پترن ✏️";
+$key_admin['delete_pattern'] = "حذف پترن ❌";
+$key_admin['pattern_text'] = "متن دریافت لینک 📝";
+$key_admin['pattern_regex'] = "Regex دریافت لینک 🔤";
 
 /** Product Type */
 $key_admin['product_type'] = [
     "category" => 'دسته بندی 📂',
     "sub_category" => 'زیر دسته 📂',
     "product" => 'محصول 🛍',
+];
+
+/** Product Service Type */
+$key_admin['product_service_type'] = [
+    "default" => 'معمولی 🔵',
+    "custom_comments" => 'کامنت دلخواه 💬',
+    "package" => 'پکیجی 📦',
 ];
 
 /** Product Edit Button */
@@ -187,6 +204,8 @@ $key_admin['product_edit_option'] = [
     'discount' => "تخفیف 🈹",
     'confirm' => "تایید سفارش ✅",
     'service' => 'ایدی سرویس 🔑',
+    'pattern' => 'الگو-پترن 🔤',
+    'type' => "نوع سرویس 🎯",
 ];
 
 /** Payment Panel */
@@ -218,6 +237,15 @@ $key_admin['edit_discount_panel'] = [
 $key_admin['payment_edit_1'] = 'نام درگاه 📝';
 $key_admin['payment_edit_2'] = 'کد درگاه 🔑';
 $key_admin['payment_edit_3'] = 'حذف درگاه ❌';
+$key_admin['payment_edit_4'] = 'نوع درگاه 🔄';
+$key_admin['payment_edit_5'] = 'درصد کارمزد 🔗';
+$key_admin['payment_edit_6'] = 'سقف کارمزد 💹';
+
+/** Type Payment */
+$key_admin['payment_type'] = [
+    'IRT' => 'درگاه تومانی',
+    'crypto' => 'درگاه ارزدیجیتال',
+];
 
 /** Edit Payment option */
 $key_admin['payment_option'] = [
@@ -225,6 +253,14 @@ $key_admin['payment_option'] = [
     "max_deposit" => "حداکثر واریز 💰",
     "min_move_balance" => "حداقل انتقال موجودی 💸",
     "min_kyc" => "حداقل مبلغ احراز کارت 💳",
+    "daily_limit" => "حد مجاز تراکنش روزانه 🚫",
+    "kyc_media" => "روش احراز کارت 🔐",
+];
+
+$key_admin['kyc_media_type'] = [
+    'photo' => 'فقط عکس',
+    'video' => 'فقط ویدیو',
+    'both' => 'هر دو',
 ];
 
 /** Channels Panel */
@@ -232,6 +268,7 @@ $key_admin['channels_key'] = [
     'channel_main' => 'اصلی 📢',
     'channel_lock' => 'جوین اجباری 🔒',
     'channel_transaction' => 'تراکنشات 💰',
+    'channel_payment_offline' => 'پرداخت کارت به کارت 💳',
     'channel_ads' => 'پیام موفق(تبلیغاتی) 📢',
     'channel_order_api' => 'سفارشات وب سرویس 🛍',
     'channel_order_noapi' => 'سفارشات دستی 🛍',
@@ -245,7 +282,8 @@ $key_admin['channels_key'] = [
 $key_admin['text_key'] = [
     'text_start' => 'استارت 🚀',
     'p2p' => 'کارت به کارت 💳',
-    'text_payment' => 'بعد از لینک پرداخت 💰',
+    'text_payment' => 'بعد از لینک پرداخت آنلاین 💰',
+    'text_payment_crypto' => 'بعد از لینک پرداخت ارز دیجیتال 💎',
     'text_order' => 'بعد از سفارش 🛒',
     'text_kyc' => 'متن احراز هویت 🔐',
 ];
@@ -268,6 +306,7 @@ $key_admin['sms_panel_3'] = "نام کاربری پنل 👤";
 $key_admin['sms_panel_4'] = "پترن احراز شماره زیرمجموعه گیری 🔐";
 $key_admin['sms_panel_5'] = "پترن احراز شماره شارژ حساب 🔐";
 
+
 /** Sub Off Panel */
 $key_admin['sub_off_section'] = 'قسمت 📂';
 $key_admin['sub_off_status'] = 'وضعیت ✅';
@@ -286,7 +325,10 @@ $key_admin['sub_off_translations'] = [
     'online_payment' => 'پرداخت انلاین 💳',
     'authentication' => 'ارسال شماره ها به کانال 📢',
     'gift_code' => 'کد تخفیف 🈹',
-    'gift_charge' => 'کد شارژ 💰'
+    'gift_charge' => 'کد شارژ 💰',
+    'crypto_payment' => 'پرداخت ارزدیجیتال 💰',
+    'starz_payment' => 'پرداخت استارز 💰',
+
 ];
 
 /** Update API Types */
@@ -380,6 +422,7 @@ $key_admin['delete_off_categories'] = "حذف دسته‌بندی‌های غی�
 $key_admin['delete_off_subcategories'] = "حذف زیردسته‌های غیرفعال 🔴";
 $key_admin['delete_empty_categories'] = "حذف دسته‌های خالی 📂";
 $key_admin['cancel'] = "لغو عملیات ❌";
+$key_admin['edit_amount'] = "ویرایش مبلغ";
 //---------------------------------//
 trait keyboard_admin
 {
@@ -462,7 +505,16 @@ trait keyboard_admin
                         [['text' => $key_admin['edit_product']], ['text' => $key_admin['add_product']]],
                         [['text' => $key_admin['delete_product']], ['text' => $key_admin['update_product']]],
                         [['text' => $key_admin['status_product']], ['text' => $key_admin['display_product']]],
+                        [['text' => $key_admin['patterns']]],
                         [['text' => $key_admin['back_admin']]],
+                    ]
+                ];
+                break;
+            case 'patterns_panel':
+                $t = [
+                    'keyboard' => [
+                        [['text' => $key_admin['add_pattern']], ['text' => $key_admin['edit_pattern']]],
+                        [['text' => $key_admin['back_admin']], ['text' => $key_admin['back_admin_before']]],
                     ]
                 ];
                 break;
@@ -585,7 +637,8 @@ trait keyboard_admin
                 if ($data) {
                     $t = [
                         'keyboard' => [
-                            [['text' => $key_admin['tikket']], ['text' => $key_admin['usd_rate']], ['text' => $key_admin['sms']]],
+                            [['text' => $key_admin['tikket']], ['text' => $key_admin['sms']]],
+                            [['text' => $key_admin['starz_rate']], ['text' => $key_admin['usd_rate']]],
                             [['text' => $key_admin['edit_spam']], ['text' => $key_admin['float_number']], ['text' => $key_admin['DIFF_TIME']]],
                             [['text' => $key_admin['add_admin']], ['text' => $key_admin['view_admins']], ['text' => $key_admin['del_admin']]],
                             [['text' => $key_admin['back_admin']]],
@@ -787,7 +840,16 @@ trait keyboard_admin
                 $t = [
                     'keyboard' => [
                         [['text' => $key_admin['payment_edit_1']], ['text' => $key_admin['payment_edit_2']]],
-                        [['text' => $key_admin['payment_edit_3']]],
+                        [['text' => $key_admin['payment_edit_3']], ['text' => $key_admin['payment_edit_4']]],
+                        [['text' => $key_admin['payment_edit_5']], ['text' => $key_admin['payment_edit_6']]],
+                        [['text' => $key_admin['back_admin']], ['text' => $key_admin['back_admin_before']]],
+                    ]
+                ];
+                break;
+            case 'type_payment':
+                $t = [
+                    'keyboard' => [
+                        [['text' => $key_admin['payment_type']['IRT']], ['text' => $key_admin['payment_type']['crypto']]],
                         [['text' => $key_admin['back_admin']], ['text' => $key_admin['back_admin_before']]],
                     ]
                 ];
@@ -797,6 +859,17 @@ trait keyboard_admin
                     'keyboard' => [
                         [['text' => $key_admin['payment_option']["min_deposit"]], ['text' => $key_admin['payment_option']["max_deposit"]]],
                         [['text' => $key_admin['payment_option']["min_move_balance"]], ['text' => $key_admin['payment_option']["min_kyc"]]],
+                        [['text' => $key_admin['payment_option']["daily_limit"]]],
+                        [['text' => $key_admin['payment_option']["kyc_media"]]],
+                        [['text' => $key_admin['back_admin']], ['text' => $key_admin['back_admin_before']]],
+                    ]
+                ];
+                break;
+            case 'edit_pattern_panel':
+                $t = [
+                    'keyboard' => [
+                        [['text' => $key_admin['pattern_text']], ['text' => $key_admin['pattern_regex']]],
+                        [['text' => $key_admin['delete_pattern']]],
                         [['text' => $key_admin['back_admin']], ['text' => $key_admin['back_admin_before']]],
                     ]
                 ];
@@ -912,7 +985,7 @@ trait keyboard_admin
                     ]];
                 } else {
                     $t = ['inline_keyboard' => [
-                        [['text' => $key_admin['edit'], 'callback_data' => '/edit_produc_' . $data['1']]]
+                        [['text' => $key_admin['edit'], 'callback_data' => '/edit_product_' . $data['1']]]
                     ]];
                 }
                 break;
@@ -946,6 +1019,7 @@ trait keyboard_admin
                                 [['text' => $key_admin['product_edit_option']['api']], ['text' => $key_admin['product_edit_option']['info']]],
                                 [['text' => $key_admin['product_edit_option']['discount']], ['text' => $key_admin['product_edit_option']['ordering']]],
                                 [['text' => $key_admin['product_edit_option']['confirm']], ['text' => $key_admin['product_edit_option']['service']]],
+                                [['text' => $key_admin['product_edit_option']['pattern']], ['text' => $key_admin['product_edit_option']['type']]],
                                 [['text' => $key_admin['product_edit_option']['delete']]],
                                 [['text' => $key_admin['back_admin']], ['text' => $key_admin['back_admin_before']]],
                             ],
@@ -965,6 +1039,17 @@ trait keyboard_admin
                     foreach ($result as $button) {
                         $button = json_decode($button, true);
                         $t[] = [['text' => $button]];
+                    }
+                    $t = row_chunk($t, [2]);
+                }
+                $t[] = [['text' => $key_admin['back_admin']], ['text' => $key_admin['back_admin_before']]];
+                $t = ['keyboard' => $t];
+                break;
+            case 'pattern_select_panel':
+                $result = $data;
+                if ($result) {
+                    foreach ($result as $pattern) {
+                        $t[] = [['text' => $pattern]];
                     }
                     $t = row_chunk($t, [2]);
                 }
@@ -1204,7 +1289,7 @@ trait keyboard_admin
                 }
 
                 break;
-            case 'display_prodcuts':
+            case 'display_products':
                 if (isset($data)) {
                     $category = json_decode(get_option('display_category'), true);
                     $sub = json_decode(get_option('display_sub_category'), true);
@@ -1276,8 +1361,14 @@ trait keyboard_admin
                         break;
                 }
                 break;
-            case 'value':
-                # code...
+            case 'kyc_media_type':
+                $t = [
+                    'keyboard' => [
+                        [['text' => $key_admin['kyc_media_type']['photo']], ['text' => $key_admin['kyc_media_type']['video']]],
+                        [['text' => $key_admin['kyc_media_type']['both']]],
+                        [['text' => $key_admin['back_admin']], ['text' => $key_admin['back_admin_before']]],
+                    ]
+                ];
                 break;
             case 'product_add_api':
                 $result = $data;
@@ -1405,6 +1496,16 @@ trait keyboard_admin
                     [['text' => $key_admin['back_admin'], 'callback_data' => 'admin_back'], ['text' => $key_admin['cancel'], 'callback_data' => 'add_api_cancel']],
                 ]];
                 break;
+            case 'product_service_type_panel':
+                $t = ['keyboard' => [
+                    [
+                        ['text' => $key_admin['product_service_type']['default']],
+                        ['text' => $key_admin['product_service_type']['custom_comments']],
+                        ['text' => $key_admin['product_service_type']['package']],
+                    ],
+                    [['text' => $key_admin['back_admin']], ['text' => $key_admin['back_admin_before']]],
+                ]];
+                break;
             case 'status':
                 $res = $data[0];
                 $section_status = $data[1];
@@ -1460,6 +1561,15 @@ trait keyboard_admin
                     'inline_keyboard' => [
                         [['text' => $key_admin['sort_asc'], 'callback_data' => 'adminch2_key_ASC'], ['text' => $key_admin['sort_desc'], 'callback_data' => 'adminch2_key_DESC']],
                         [['text' => $key_admin['back_to_menu'], 'callback_data' => 'adminch2_key_back']]
+                    ]
+                ];
+                break;
+            case 'ok_recepit_panel':
+                $t = [
+                    'keyboard' => [
+                        [['text' => $key_admin['ok_admin']]],
+                        [['text' => $key_admin['edit_amount']]],
+                        [['text' => $key_admin['back_admin']]]
                     ]
                 ];
                 break;

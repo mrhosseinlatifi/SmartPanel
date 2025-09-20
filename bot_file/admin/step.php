@@ -261,7 +261,7 @@ function admin_steps()
                 case 'discount':
                     $text = convertnumber($text);
                     $text = str_replace('-', '', $text);
-                    if ($text >= 0) {
+                    if ($text >= 0 && $text <= 100) {
                         user_set_data(['discount' => $text], $id);
                         admin_data(['step' => 'userinfo_2', 'data[JSON]' => ['user_id' => $id]]);
                         sm_admin(['userinfo_15', $text], ['userinfo_panel']);
@@ -418,6 +418,10 @@ function admin_steps()
                     admin_data(['step' => 'settings_edit', 'data' => 'usd_rate']);
                     sm_admin(['usd_rate_1', $settings['usd_rate']], ['back_panel']);
                     break;
+                case $key_admin['starz_rate']:
+                    admin_data(['step' => 'settings_edit', 'data' => 'starz_rate']);
+                    sm_admin(['starz_rate_1', $settings['starz_rate']], ['back_panel']);
+                    break;
                 case $key_admin['settings']:
                 case $key_admin['back_to_settings']:
                     check_allow('settings');
@@ -495,9 +499,18 @@ function admin_steps()
                         }
                         break;
                     case 'usd_rate':
-                        if (is_numeric($text)) {
+                        if (is_numeric($text) && $text >= 1) {
                             admin_step('settings');
                             update_option('usd_rate', $text);
+                            sm_admin(['ok_settings_edit', $text], ['settings', in_array($fid, admins)]);
+                        } else {
+                            sm_admin(['send_int']);
+                        }
+                        break;
+                    case 'starz_rate':
+                        if (is_numeric($text) && $text >= 1) {
+                            admin_step('settings');
+                            update_option('starz_rate', $text);
                             sm_admin(['ok_settings_edit', $text], ['settings', in_array($fid, admins)]);
                         } else {
                             sm_admin(['send_int']);
@@ -938,7 +951,7 @@ function admin_steps()
                                         break;
                                 }
                                 admin_step('apis');
-                                sm_admin(['delete_api_ok_prodcut'], ['api_panel']);
+                                sm_admin(['delete_api_ok_product'], ['api_panel']);
                             }
                             break;
                     }
@@ -1054,17 +1067,32 @@ function admin_steps()
             $admin_data = json_decode($admin['data'], true);
             if ($text == $key_admin['back_admin_before']) {
                 admin_step('add_payment_2');
-                $result = array_diff(scandir(ROOTPATH . '/payment'), ['.', '..', 'index.php', 'error_log', '.htaccess']);
+                $result = array_diff(scandir(ROOTPATH . '/payment'), ['.', '..', 'index.php', 'error_log', '.htaccess','show.php']);
                 sm_admin(['add_payment_2'], ['payment_file', $result, $db]);
             } else {
-                $insert_data = ['name' => $admin_data['name'], 'file' => $admin_data['file'], 'code' => $text];
-                $db->insert('payment_gateways', $insert_data);
-                $result = $db->id();
-                if ($result) {
-                    admin_step('payments');
-                    sm_admin(['add_payment_ok'], ['payment_key']);
-                } else {
-                    sm_admin(['error_add_payment_4']);
+                $admin_data['code'] = $text;
+                admin_data(['step' => 'add_payment_4', 'data[JSON]' => $admin_data]);
+                sm_admin(['type_payment'], ['type_payment']);
+            }
+            break;
+        case 'add_payment_4':
+            $admin_data = json_decode($admin['data'], true);
+            if ($text == $key_admin['back_admin_before']) {
+                admin_data(['step' => 'add_payment_3']);
+                sm_admin(['add_payment_3'], ['back_panel']);
+            } else {
+                # Add to db
+                if (in_array($text, array_values($key_admin['payment_type']))) {
+                    $str = array_search($text, $key_admin['payment_type']);
+                    $insert_data = ['name' => $admin_data['name'], 'file' => $admin_data['file'], 'code' => $admin_data['code'], 'data[JSON]' => ['percent_fee' => 0, 'max_fee' => 0], 'type' => $str];
+                    $db->insert('payment_gateways', $insert_data);
+                    $result = $db->id();
+                    if ($result) {
+                        admin_step('payments');
+                        sm_admin(['add_payment_ok'], ['payment_key']);
+                    } else {
+                        sm_admin(['error_add_payment_4']);
+                    }
                 }
             }
             break;
@@ -1112,6 +1140,24 @@ function admin_steps()
                         admin_data(['step' => "edit_payment_3", 'data[JSON]' => $admin_data]);
                         sm_admin(['edit_payment_4'], ['ok_cancel_admin_panel']);
                         break;
+                    case $key_admin['payment_edit_4']:
+                        # Type
+                        $admin_data['type'] = 'type';
+                        admin_data(['step' => "edit_payment_3", 'data[JSON]' => $admin_data]);
+                        sm_admin(['type_payment'], ['type_payment']);
+                        break;
+                    case $key_admin['payment_edit_5']:
+                        # percent fee
+                        $admin_data['type'] = 'percent_fee';
+                        admin_data(['step' => "edit_payment_3", 'data[JSON]' => $admin_data]);
+                        sm_admin(['percent_fee_payment'], ['back_panel']);
+                        break;
+                    case $key_admin['payment_edit_6']:
+                        # max fee
+                        $admin_data['type'] = 'max_fee';
+                        admin_data(['step' => "edit_payment_3", 'data[JSON]' => $admin_data]);
+                        sm_admin(['max_fee_payment'], ['back_panel']);
+                        break;
                 }
             }
             break;
@@ -1126,10 +1172,8 @@ function admin_steps()
             } else {
                 switch ($admin_data['type']) {
                     case 'name':
-
                         if (!$db->has('payment_gateways', ['name' => $text])) {
                             if (strlen($text) <= 130) {
-
                                 $db->update('payment_gateways', ['name' => $text], ['id' => $admin_data['id']]);
                                 admin_data(['step' => "edit_payment_2", 'data[JSON]' => ['id' => $admin_data['id']]]);
                                 sm_admin(['ok_payment_edit'], ['payment_edit_key']);
@@ -1152,6 +1196,40 @@ function admin_steps()
                             sm_admin(['ok_payment_delete'], ['payment_key']);
                         }
                         break;
+                    case 'type':
+                        if (in_array($text, array_values($key_admin['payment_type']))) {
+                            $str = array_search($text, $key_admin['payment_type']);
+                            $db->update('payment_gateways', ['type' => $str], ['id' => $admin_data['id']]);
+                            admin_data(['step' => "edit_payment_2", 'data[JSON]' => ['id' => $admin_data['id']]]);
+                            sm_admin(['ok_payment_edit'], ['payment_edit_key']);
+                        }
+                        break;
+                    case 'percent_fee':
+                        $text = convertnumber($text);
+                        if (is_numeric($text) and $text >= 0) {
+                            $payment_gateways = $db->get('payment_gateways', '*', ['id' => $admin_data['id']]);
+                            $decode = json_decode($payment_gateways['data'], true);
+                            $decode['percent_fee'] = $text;
+                            $db->update('payment_gateways', ['data[JSON]' => $decode], ['id' => $admin_data['id']]);
+                            admin_data(['step' => "edit_payment_2", 'data[JSON]' => ['id' => $admin_data['id']]]);
+                            sm_admin(['ok_payment_edit'], ['payment_edit_key']);
+                        } else {
+                            sm_admin(['error_edit_payment_4']);
+                        }
+                        break;
+                    case 'max_fee':
+                        $text = convertnumber($text);
+                        if (is_numeric($text) and $text >= 0) {
+                            $payment_gateways = $db->get('payment_gateways', '*', ['id' => $admin_data['id']]);
+                            $decode = json_decode($payment_gateways['data'], true);
+                            $decode['max_fee'] = $text;
+                            $db->update('payment_gateways', ['data[JSON]' => $decode], ['id' => $admin_data['id']]);
+                            admin_data(['step' => "edit_payment_2", 'data[JSON]' => ['id' => $admin_data['id']]]);
+                            sm_admin(['ok_payment_edit'], ['payment_edit_key']);
+                        } else {
+                            sm_admin(['error_edit_payment_4']);
+                        }
+                        break;
                 }
             }
             break;
@@ -1162,8 +1240,26 @@ function admin_steps()
             } else {
                 if (in_array($text, array_values($key_admin['payment_option']))) {
                     $str = array_search($text, $key_admin['payment_option']);
-                    admin_data(['step' => 'payment_edit_setting_2', 'data[JSON]' => ['type' => $str]]);
-                    sm_admin(['payment_edit_setting_2', $settings[$str]], ['back_panel']);
+                    if ($str === 'kyc_media') {
+                        admin_data(['step' => 'payment_edit_kyc_media']);
+                        sm_admin(['kyc_media'], ['kyc_media_type']);
+                    } else {
+                        admin_data(['step' => 'payment_edit_setting_2', 'data[JSON]' => ['type' => $str]]);
+                        sm_admin(['payment_edit_setting_2', $settings[$str]], ['back_panel']);
+                    }
+                }
+            }
+            break;
+        case 'payment_edit_kyc_media':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('payment_edit_setting');
+                sm_admin(['payment_edit_setting'], ['payment_option']);
+            } else {
+                if (in_array($text, array_values($key_admin['kyc_media_type']))) {
+                    $str = array_search($text, $key_admin['kyc_media_type']);
+                    update_option('kyc_media', $str);
+                    admin_step('payment_edit_setting');
+                    sm_admin(['ok_payment_edit_setting'], ['payment_option']);
                 }
             }
             break;
@@ -1384,7 +1480,25 @@ function admin_steps()
                 admin_data(['step' => 'ch_channel_2', 'data[JSON]' => ['en' => $str, 'fa' => $text]]);
                 $channel = get_option($str, 0);
                 if ($channel != 0) {
-                    if ($str == 'channel_main' or $str == 'channel_lock') {
+                    if ($str == 'channel_lock') {
+                        $de = json_decode($channel, true);
+                        if (isset($de['0'])) {
+                            foreach ($de as $row) {
+                                $tx .= '@' . $row . "\n";
+                                $id = '@' . $row;
+                                $g = $bot->bot('GetChat', ['chat_id' => $id]);
+                                if ($g['result']['type'] == 'channel') {
+                                    $name .= $g['result']['title'] . "\n";
+                                } else {
+                                    $name = null;
+                                }
+                            }
+                        } else {
+                            $tx = $media_admin->atext('error_channel_1');
+                            $name = null;
+                        }
+                    } elseif ($str == 'channel_main') {
+
                         $tx = '@' . $channel;
                         $g = $bot->bot('GetChat', ['chat_id' => $tx]);
                         if ($g['result']['type'] == 'channel') {
@@ -1417,7 +1531,53 @@ function admin_steps()
                 sm_admin(['channels_1'], ['channel_key']);
             } else {
                 $admin_data = json_decode($admin['data'], 1);
-                if ($admin_data['en'] == 'channel_main' or $admin_data['en'] == 'channel_lock') {
+                if ($admin_data['en'] == 'channel_lock') {
+                    if (isset($forward_from_chat) and $for_type == 'channel') {
+                        $channel = get_option('channel_lock', 0);
+                        if ($channel == 0) {
+                            $channel = [];
+                        } else {
+                            $channel = json_decode($channel, true);
+                        }
+
+                        if (in_array($for_user_name, $channel)) {
+                            $channel = array_filter($channel, function ($ch) use ($for_user_name) {
+                                return $ch != $for_user_name;
+                            });
+                            $message = 'delete_edit_channel';
+                        } else {
+                            @$check = $bot->check_join($numberId, $for_id);
+                            if ($check == 'administrator') {
+                                $channel[] = $for_user_name;
+                                $message = 'ok_edit_channel';
+                            } else {
+                                sm_admin(['error_channel_3']);
+                                return;
+                            }
+                        }
+
+                        $db->update('setting_options', ['option_value[JSON]' => array_values($channel)], ['option_key' => 'channel_lock']);
+                        admin_step('channels');
+                        sm_admin([$message, '@' . $for_user_name, $admin_data['fa']], ['channel_key']);
+                    } else {
+                        $channel = get_option('channel_lock', 0);
+                        if ($channel != 0) {
+                            $channel = json_decode($channel, true);
+                            $text = trim($text, '@');
+                            if (in_array($text, $channel)) {
+                                $channel = array_filter($channel, function ($ch) use ($text) {
+                                    return $ch != $text;
+                                });
+                                $message = 'delete_edit_channel';
+                                $db->update('setting_options', ['option_value[JSON]' => array_values($channel)], ['option_key' => 'channel_lock']);
+                                admin_step('channels');
+                                sm_admin([$message, '@' . $text, $admin_data['fa']], ['channel_key']);
+                                return;
+                            }
+                        }
+                        sm_admin(['error_channel_4']);
+                    }
+                } elseif ($admin_data['en'] == 'channel_main') {
                     if (isset($forward_from_chat) and $for_type == 'channel') {
                         @$check = $bot->check_join($numberId, $for_id);
                         if ($check == 'administrator') {
@@ -1586,7 +1746,11 @@ function admin_steps()
 
                     break;
                 case $key_admin['display_product']:
-                    sm_admin(['display_product'], ['display_prodcuts']);
+                    sm_admin(['display_product'], ['display_products']);
+                    break;
+                case $key_admin['patterns']:
+                    admin_step('patterns');
+                    sm_admin(['patterns_1'], ['patterns_panel']);
                     break;
             }
             break;
@@ -1610,7 +1774,7 @@ function admin_steps()
                         update_option('display_products', js($category));
                         admin_step('products');
                         $bot->delete_msg($fid, $message_id);
-                        edt_admin(['display_product'], ['display_prodcuts', true], $admin_data['msgid']);
+                        edt_admin(['display_product'], ['display_products', true], $admin_data['msgid']);
                     } else {
                         sm_admin(['error_display_format']);
                     }
@@ -1630,7 +1794,7 @@ function admin_steps()
                         update_option('display_sub_category', js($category));
                         admin_step('products');
                         $bot->delete_msg($fid, $message_id);
-                        edt_admin(['display_product'], ['display_prodcuts', true], $admin_data['msgid']);
+                        edt_admin(['display_product'], ['display_products', true], $admin_data['msgid']);
                     } else {
                         sm_admin(['error_display_format']);
                     }
@@ -1650,7 +1814,7 @@ function admin_steps()
                         update_option('display_category', js($category));
                         admin_step('products');
                         $bot->delete_msg($fid, $message_id);
-                        edt_admin(['display_product'], ['display_prodcuts', true], $admin_data['msgid']);
+                        edt_admin(['display_product'], ['display_products', true], $admin_data['msgid']);
                     } else {
                         sm_admin(['error_display_format']);
                     }
@@ -1662,7 +1826,7 @@ function admin_steps()
                         update_option('display_products', js($category));
                         admin_step('products');
                         $bot->delete_msg($fid, $message_id);
-                        edt_admin(['display_product'], ['display_prodcuts', true], $admin_data['msgid']);
+                        edt_admin(['display_product'], ['display_products', true], $admin_data['msgid']);
                     } else {
                         sm_admin(['error_display_format']);
                     }
@@ -1674,7 +1838,7 @@ function admin_steps()
                         update_option('display_sub_category', js($category));
                         admin_step('products');
                         $bot->delete_msg($fid, $message_id);
-                        edt_admin(['display_product'], ['display_prodcuts', true], $admin_data['msgid']);
+                        edt_admin(['display_product'], ['display_products', true], $admin_data['msgid']);
                     } else {
                         sm_admin(['error_display_format']);
                     }
@@ -1686,7 +1850,7 @@ function admin_steps()
                         update_option('display_category', js($category));
                         admin_step('products');
                         $bot->delete_msg($fid, $message_id);
-                        edt_admin(['display_product'], ['display_prodcuts', true], $admin_data['msgid']);
+                        edt_admin(['display_product'], ['display_products', true], $admin_data['msgid']);
                     } else {
                         sm_admin(['error_display_format']);
                     }
@@ -1991,12 +2155,13 @@ function admin_steps()
                                         'service' => 0,
                                         'category_id' => $btn['id'],
                                         'ordering' => $ordering,
+                                        'type' => 'default',
                                     ]);
                                     $insert = $db->id();
                                     if ($insert) {
                                         $admin_data['id'] = $insert;
-                                        admin_data(['step' => 'add_product_6', 'data[JSON]' => $admin_data]);
-                                        sm_admin(['product_add_5', $btn['id'], $name_product, $price, $min, $max], ['skip_back_panel', 0]);
+                                        admin_data(['step' => 'add_product_type', 'data[JSON]' => $admin_data]);
+                                        sm_admin(['product_add_type'], ['product_service_type_panel']);
                                     } else {
                                         sm_admin(['product_add_error_1']);
                                     }
@@ -2060,6 +2225,7 @@ function admin_steps()
                                                         'service' => $id,
                                                         'category_id' => $btn['id'],
                                                         'ordering' => $ordering,
+                                                        'type' => 'default',
                                                     ]);
                                                     $insert = $db->id();
                                                     if ($insert) {
@@ -2140,6 +2306,26 @@ function admin_steps()
                         sm_admin(['product_add_error_9']);
                     }
                 }
+            }
+            break;
+        case 'add_product_type':
+            $admin_data = json_decode($admin['data'], 1);
+            if ($text == $key_admin['back_admin_before']) {
+                // Go back to product creation
+                admin_step('add_product_5');
+                $btn = $db->get('categories', '*', ['id' => $admin_data['category_id']]);
+                $product = $db->get('products', '*', ['id' => $admin_data['id']]);
+                sm_admin(['product_add_5', $btn['id'], json_decode($product['name'], true), $product['price'], $product['min'], $product['max']], ['skip_back_panel', 0]);
+            } elseif (in_array($text, array_values($key_admin['product_service_type']))) {
+                $service_type = array_search($text, $key_admin['product_service_type']);
+                $db->update('products', ['type' => $service_type], ['id' => $admin_data['id']]);
+                
+                admin_data(['step' => 'add_product_6', 'data[JSON]' => $admin_data]);
+                $btn = $db->get('categories', '*', ['id' => $admin_data['category_id']]);
+                $product = $db->get('products', '*', ['id' => $admin_data['id']]);
+                sm_admin(['product_add_5', $btn['id'], json_decode($product['name'], true), $product['price'], $product['min'], $product['max']], ['skip_back_panel', 0]);
+            } else {
+                sm_admin(['product_add_error_type']);
             }
             break;
         case 'add_product_6':
@@ -2448,6 +2634,12 @@ function admin_steps()
                                     admin_data(['step' => 'edit_info_2', 'data[JSON]' => $admin_data]);
                                     sm_admin(['edit_info', 'info', 0], ['back_panel']);
                                     break;
+                                case $key_admin['product_edit_option']['pattern']:
+                                    $admin_data['type_edit'] = 'pattern';
+                                    admin_data(['step' => 'edit_info_2', 'data[JSON]' => $admin_data]);
+                                    $patterns = $db->select('pattern', 'type', []);
+                                    sm_admin(['edit_info', 'pattern', 0], ['pattern_select_panel', $patterns]);
+                                    break;
                                 case $key_admin['product_edit_option']['api']:
                                     $admin_data['type_edit'] = 'api';
                                     admin_data(['step' => 'edit_info_2', 'data[JSON]' => $admin_data]);
@@ -2469,6 +2661,11 @@ function admin_steps()
                                     $admin_data['type_edit'] = 'service';
                                     admin_data(['step' => 'edit_info_2', 'data[JSON]' => $admin_data]);
                                     sm_admin(['edit_info', 'service', 0], ['back_panel']);
+                                    break;
+                                case $key_admin['product_edit_option']['type']:
+                                    $admin_data['type_edit'] = 'type';
+                                    admin_data(['step' => 'edit_info_2', 'data[JSON]' => $admin_data]);
+                                    sm_admin(['edit_info', 'type', 0], ['product_service_type_panel']);
                                     break;
                             }
                         }
@@ -2611,6 +2808,15 @@ function admin_steps()
                         $db->update('products', ['info' => $text], ['id' => $id]);
                         $true = true;
                         break;
+                    case 'pattern':
+                        // Expect one of existing pattern types
+                        if ($db->has('pattern', ['type' => $text])) {
+                            $db->update('products', ['pattern' => $text], ['id' => $id]);
+                            $true = true;
+                        } else {
+                            sm_admin(['error_edit_product_5']);
+                        }
+                        break;
                     case 'api':
                         if ($text == $key_admin['no_api']) {
                             $db->update('products', ['api' => 'noapi', 'service' => 0], ['id' => $id]);
@@ -2625,7 +2831,7 @@ function admin_steps()
                         }
                         break;
                     case 'discount':
-                        if (is_numeric($text) and $text >= 0 and $text <= 100) {
+                        if (is_numeric($text) and $text >= -100 and $text <= 100) {
                             $db->update('products', ['discount' => $text], ['id' => $id]);
                             $true = true;
                         } else {
@@ -2643,7 +2849,15 @@ function admin_steps()
                     case 'service':
                         $db->update('products', ['service' => $text], ['id' => $id]);
                         $true = true;
-
+                        break;
+                    case 'type':
+                        if (in_array($text, array_values($key_admin['product_service_type']))) {
+                            $service_type = array_search($text, $key_admin['product_service_type']);
+                            $db->update('products', ['type' => $service_type], ['id' => $id]);
+                            $true = true;
+                        } else {
+                            sm_admin(['error_edit_product_type']);
+                        }
                         break;
                 }
 
@@ -2889,23 +3103,227 @@ function admin_steps()
             }
 
             break;
-        case 'value':
-            # code...
+        case 'patterns':
+            switch ($text) {
+                case $key_admin['add_pattern']:
+                    admin_step('add_pattern');
+                    sm_admin(['add_pattern_1'], ['back_panel']);
+                    break;
+                case $key_admin['edit_pattern']:
+                    admin_step('edit_pattern_1');
+                    $patterns = $db->select('pattern', 'type', []);
+                    sm_admin(['edit_pattern_1'], ['pattern_select_panel', $patterns]);
+                    break;
+                case $key_admin['back_admin_before']:
+                    admin_step('products');
+                    sm_admin(['products_1'], ['products_panel']);
+                    break;
+            }
             break;
-        case 'value':
-            # code...
+
+        case 'add_pattern':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('patterns');
+                sm_admin(['patterns_1'], ['patterns_panel']);
+            } else {
+                if (preg_match("/^[a-zA-Z0-9$-\/:-?@{-~!\"^_`\[\]]+$/", $text)) {
+                    if (!$db->has('pattern', ['type' => $text])) {
+                        $admin_data['type'] = $text;
+                        admin_data(['step' => 'add_pattern_2', 'data[JSON]' => $admin_data]);
+                        sm_admin(['add_pattern_2'], ['back_panel']);
+                    } else {
+                        sm_admin(['add_pattern_error_2', $text]);
+                    }
+                } else {
+                    sm_admin(['add_pattern_error_1']);
+                }
+            }
             break;
-        case 'value':
-            # code...
+        case 'add_pattern_2':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('add_pattern');
+                sm_admin(['add_pattern_1'], ['back_panel']);
+            } else {
+                $admin_data = json_decode($admin['data'], true);
+                $text = removeWhiteSpace($text);
+                $admin_data['text'] = $text;
+                admin_data(['step' => 'add_pattern_3', 'data[JSON]' => $admin_data]);
+                sm_admin(['add_pattern_3'], ['back_panel']);
+            }
             break;
-        case 'value':
-            # code...
+        case 'add_pattern_3':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('add_pattern');
+                sm_admin(['add_pattern_1'], ['back_panel']);
+            } else {
+                $admin_data = json_decode($admin['data'], true);
+
+                // check regex is valid
+                set_error_handler(function () {}, E_WARNING); // جلوگیری از نمایش warning
+                $isValid = @preg_match($text, "") !== false;
+                restore_error_handler();
+
+                if (!$isValid) {
+                    sm_admin(['add_pattern_error_4']);
+                    return;
+                }
+
+                $data_insert = [
+                    'type'    => $admin_data['type'],
+                    'pattern' => $text,
+                    'text'    => $admin_data['text'],
+                ];
+                $db->insert('pattern', $data_insert);
+                admin_data(['step' => 'patterns', 'data' => 'none']);
+                sm_admin(['add_pattern_ok'], ['patterns_panel']);
+            }
+
             break;
-        case 'value':
-            # code...
+        case 'edit_pattern_1':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('patterns');
+                sm_admin(['patterns_1'], ['patterns_panel']);
+            } else {
+                if ($db->has('pattern', ['type' => $text])) {
+                    $pattern = $db->get('pattern', '*', ['type' => $text]);
+                    admin_data(['step' => 'edit_pattern_2', 'data[JSON]' => ['id' => $pattern['id'], 'type' => $pattern['type']]]);
+                    sm_admin(['edit_pattern_info', $pattern], ['edit_pattern_panel']);
+                }
+            }
             break;
-        case 'value':
-            # code...
+        case 'edit_pattern_2':
+            if ($text == $key_admin['back_admin_before']) {
+                admin_step('edit_pattern_1');
+                $patterns = $db->select('pattern', 'type', []);
+                sm_admin(['edit_pattern_1'], ['pattern_select_panel', $patterns]);
+            } else {
+                $admin_data = json_decode($admin['data'], true);
+                switch ($text) {
+                    case $key_admin['pattern_text']:
+                        $admin_data['type_edit'] = 'text';
+                        admin_data(['step' => 'edit_pattern_3', 'data[JSON]' => $admin_data]);
+                        sm_admin(['edit_pattern_3'], ['back_panel']);
+                        break;
+                    case $key_admin['pattern_regex']:
+                        $admin_data['type_edit'] = 'regex';
+                        admin_data(['step' => 'edit_pattern_3', 'data[JSON]' => $admin_data]);
+                        sm_admin(['edit_pattern_4'], ['back_panel']);
+                        break;
+                    case $key_admin['delete_pattern']:
+                        // check if type is default cant be delete
+                        if ($admin_data['type'] == 'default') {
+                            sm_admin(['delete_pattern_error_2']);
+                            return;
+                        }
+                        $db->delete('pattern', ['id' => $admin_data['id']]);
+                        admin_data(['step' => 'patterns', 'data' => 'none']);
+                        sm_admin(['delete_pattern_ok'], ['patterns_panel']);
+                        break;
+                    default:
+                        # code...
+                        break;
+                }
+            }
+            break;
+        case 'edit_pattern_3':
+            $admin_data = json_decode($admin['data'], true);
+            if ($text == $key_admin['back_admin_before']) {
+                $pattern = $db->get('pattern', '*', ['id' => $admin_data['id']]);
+                admin_data(['step' => 'edit_pattern_2', 'data[JSON]' => ['id' => $admin_data['id'], 'type' => $admin_data['type']]]);
+                sm_admin(['edit_pattern_info', $pattern], ['edit_pattern_panel']);
+            } else {
+                switch ($admin_data['type_edit']) {
+                    case 'text':
+                        $text = removeWhiteSpace($text);
+                        admin_data(['step' => 'edit_pattern_2', 'data[JSON]' => ['id' => $admin_data['id'], 'type' => $admin_data['type']]]);
+                        $db->update('pattern', ['text' => $text], ['id' => $admin_data['id']]);
+                        $pattern = $db->get('pattern', '*', ['id' => $admin_data['id']]);
+                        sm_admin(['edit_pattern_updated', $pattern], ['edit_pattern_panel']);
+                        break;
+                    case 'regex':
+                        // check regex is valid
+                        set_error_handler(function () {}, E_WARNING); // جلوگیری از نمایش warning
+                        $isValid = @preg_match($text, "") !== false;
+                        restore_error_handler();
+
+                        if (!$isValid) {
+                            sm_admin(['edit_pattern_error_4']);
+                            return;
+                        }
+                        $db->update('pattern', ['pattern' => $text], ['id' => $admin_data['id']]);
+                        admin_data(['step' => 'edit_pattern_2', 'data[JSON]' => ['id' => $admin_data['id'], 'type' => $admin_data['type']]]);
+
+                        $pattern = $db->get('pattern', '*', ['id' => $admin_data['id']]);
+                        sm_admin(['edit_pattern_updated', $pattern], ['edit_pattern_panel']);
+                        break;
+
+                    default:
+                        # code...
+                        break;
+                }
+            }
+            break;
+        case 'send_reason_receipt':
+            $decode = json_decode($admin['data'], true);
+            $invoice = $db->get('transactions', '*', ['id' => $decode['id']]);
+            $userId = $invoice['user_id'];
+
+            sm_to_user(['receipt_nok', $text, $invoice['id']], null, $userId);
+            admin_data(['step' => 'none', 'data' => 'none']);
+            sm_admin(['send_up_receipt_ok'], ['home', $access]);
+            break;
+        case 'send_up_receipt':
+            $invoice = $db->get('transactions', '*', ['id' => $admin['data']]);
+            $userId = $invoice['user_id'];
+            $text = convertnumber($text);
+            if (is_numeric($text)) {
+                admin_data(['step' => 'send_up_receipt_2', 'data[JSON]' => ['amount' => $text, 'invoice' => $invoice['id']]]);
+                sm_admin(['send_up_receipt_check', $text], ['ok_recepit_panel']);
+            }
+            break;
+        case 'send_up_receipt_2':
+            $decodeadmin = json_decode($admin['data'], true);
+            switch ($text) {
+                case $key_admin['ok_admin']:
+                    $amount = $decodeadmin['amount'];
+
+                    $invoice = $db->get('transactions', '*', ['id' => $decodeadmin['invoice']]);
+                    $userId = $invoice['user_id'];
+                    $name = $bot->getChatMember($userId)['user']['first_name'];
+                    $user1 = $db->get('users_information', '*', ['user_id' => $userId]);
+                    $decode = json_decode($invoice['data'], true);
+                    $decode['amountAdmin'] = $amount;
+                    $decode['old_amount'] = $invoice['amount'];
+                    // up balance
+                    user_set_data(['balance[+]' => $amount, 'amount_paid[+]' => $amount], $userId);
+                    // ref
+                    if ($user1["referral_id"] > 0 && !text_contains($user1["referral_id"], 'off') && $section_status['main']['free'] && $section_status['free']['gift_payment'] && $fid != $user1["referral_id"]) {
+                        $gifi = (($amount * $settings['gift_payment']) / 100);
+
+                        $usResult = $db->get('users_information', '*', ['user_id' => $user1["referral_id"]]);
+                        $old_balance = $usResult['balance'];
+                        $new_balance = $old_balance + $gifi;
+                        insertTransaction('gift', $user1["referral_id"], $old_balance, $new_balance, $gifi, 'GiftPayment');
+
+                        $db->update('users_information', ['gift[+]' => $gifi, 'gift_payment[+]' => $gifi], ['user_id' => $user1["referral_id"]]);
+                        $bot->sm($user1["referral_id"], $media->text('refral_gift_payment', [$userId, $name, $amount, $gifi]));
+                    }
+
+                    $new = $user1['balance'] + $amount;
+                    $db->update('transactions', ['amount' => $amount, 'data[JSON]' => $decode], ['id' => $invoice['id']]);
+
+                    sm_to_user(['receipt_up', $amount, $new], null, $userId);
+                    admin_data(['step' => 'none', 'data' => 'none']);
+                    sm_admin(['send_up_receipt_ok'], ['home', $access]);
+                    break;
+                case $key_admin['edit_amount']:
+                    admin_data(['step' => 'send_up_receipt', 'data' => $decodeadmin['invoice']]);
+                    sm_admin(['send_up_receipt'], ['back_panel_all']);
+                    break;
+                default:
+                    # code...
+                    break;
+            }
             break;
         default:
             sm_admin(['error']);

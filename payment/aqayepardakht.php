@@ -46,7 +46,7 @@ if ($type === 'get') {
                         'tracking_code' => $trackid,
                         'getway' => $paymentEn,
                     ], ['id' => $code]);
-                    header('Location: ' . AQAYEPARDAKHT_PAYMENT_URL . $trackid);
+                    redirect_payment(AQAYEPARDAKHT_PAYMENT_URL . $trackid);
                 } else {
                     $msg = $result['response']['code'];
                     sm_channel('channel_errors', ['error_getway_get', $paymentEn, $msg]);
@@ -58,7 +58,7 @@ if ($type === 'get') {
         case 3:
             if ($payment['getway'] == $paymentEn) {
                 $trackid = $payment['tracking_code'];
-                header('Location: ' . AQAYEPARDAKHT_PAYMENT_URL . $payment['tracking_code']);
+                redirect_payment(AQAYEPARDAKHT_PAYMENT_URL . $trackid);
             }
             break;
 

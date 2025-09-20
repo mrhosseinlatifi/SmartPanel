@@ -176,8 +176,10 @@ function admin_data_global()
             $bef = $now - $page;
             $result = null;
             $c = 0;
-            $result = $db->select('transactions', '*', ['user_id' => $id, 'ORDER' => ['id' => 'DESC'], 'LIMIT' => [$now, $page], 'type' => 'payment']);
-            $c = $db->count('transactions', ['id' => $id, 'type[!]' => 'log']) ?? 0;
+            // All payment related transaction types
+            $payment_types = ['payment', 'payment_offline'];
+            $result = $db->select('transactions', '*', ['user_id' => $id, 'ORDER' => ['id' => 'DESC'], 'LIMIT' => [$now, $page], 'type' => $payment_types]);
+            $c = $db->count('transactions', ['user_id' => $id, 'type' => $payment_types]) ?? 0;
             edt_admin(['userinfo_payments', $result, $id, $nex, $page, $c], ['userinfo_data_page', 'adminpayment', $c, $id, $nex, $bef]);
             alert_admin(['none']);
             break;
@@ -192,9 +194,19 @@ function admin_data_global()
             $bef = $now - $page;
             $result = null;
             $c = 0;
-            $find = ['log', 'gift', 'gift_payout', 'gift_move', 'managment', 'send_balance', 'orders', 'orders_back', 'receive_balance'];
-            $result = $db->select('transactions', '*', ['user_id' => $id, 'ORDER' => ['id' => 'DESC'], 'LIMIT' => [$now, $page], 'type' => $find]);
-            $c = $db->count('transactions', ['user_id' => $id, 'type' => $find]);
+            $balance_log_types = [
+                'gift',          
+                'gift_code',     
+                'gift_payout',   
+                'gift_move',     
+                'managment',     
+                'send_balance',  
+                'receive_balance',
+                'orders',        
+                'orders_back'    
+            ];
+            $result = $db->select('transactions', '*', ['user_id' => $id, 'ORDER' => ['id' => 'DESC'], 'LIMIT' => [$now, $page], 'type' => $balance_log_types]);
+            $c = $db->count('transactions', ['user_id' => $id, 'type' => $balance_log_types]);
             edt_admin(['userinfo_trs', $result, $id, $nex, $page, $c], ['userinfo_data_page', 'admintrans', $c, $id, $nex, $bef]);
             alert_admin(['none']);
             break;
@@ -280,8 +292,8 @@ function admin_data_global()
             $number_order = number_format($db->count('orders')) ?: 0;
             $order_cheack_api = number_format($db->count('orders', ['api[!]' => 'noapi', 'status' => ['pending', 'in progress']])) ?: 0;
             $order_cheack_no_api = number_format($db->count('orders', ['api' => 'noapi', 'status' => 'pending'])) ?: 0;
-            $number_payment = number_format($db->count('transactions', ['status' => ['OK', 100], 'type' => ['payment']])) ?: 0;
-            $number_payment_creted = number_format($db->count('transactions', 'id', ['type' => ['payment']])) ?: 0;
+            $number_payment = number_format($db->count('transactions', ['status' => ['OK', 100], 'type' => ['payment', 'payment_offline']])) ?: 0;
+            $number_payment_creted = number_format($db->count('transactions', 'id', ['type' => ['payment', 'payment_offline']])) ?: 0;
 
             $ba1 = ($db->sum('users_information', 'balance') > 0) ? $db->sum('users_information', 'balance') : 0;
             $users_balance = number_format($ba1) ?: 0;
@@ -289,7 +301,7 @@ function admin_data_global()
             $ba2 = ($db->sum('users_information', 'gift') > 0) ? $db->sum('users_information', 'gift') : 0;
             $users_gift_balance = number_format($ba2) ?: 0;
 
-            $ba3 = ($db->sum('transactions', 'amount', ['status' => 1, 'type' => 'payment']) > 0) ? $db->sum('transactions', 'amount', ['status' => 1, 'type' => 'payment']) : 0;
+            $ba3 = ($db->sum('transactions', 'amount', ['status' => 1, 'type' => ['payment', 'payment_offline']]) > 0) ? $db->sum('transactions', 'amount', ['status' => 1, 'type' => ['payment', 'payment_offline']]) : 0;
             $amount_paid = number_format($ba3) ?: 0;
 
             $cron = $settings['last_cron_send'];
@@ -344,6 +356,66 @@ function admin_data_global()
             edt_admin(['status'], ['status', $section_status['main'], $section_status]);
             alert_admin(['update_status']);
             break;
+        case text_starts_with($data, 'verifyreceipt-'):
+            check_allow('verifyreceipt', 'sub');
+            $str = str_replace('verifyreceipt-', '', $data);
+            list($type, $id) = explode('-', $str);
+            $invoice = $db->get('transactions', '*', ['id' => $id]);
+            if ($invoice['status'] == 2) {
+                $amount = $invoice['amount'];
+                $userId = $invoice['user_id'];
+                $name = $bot->getChatMember($userId)['user']['first_name'];
+                $user1 = $db->get('users_information', '*', ['user_id' => $userId]);
+                $decode = json_decode($invoice['data'], true);
+                $decode['admin'] = $fid;
+
+                switch ($type) {
+                    case 'ok':
+                        // up balance
+                        user_set_data(['balance[+]' => $amount, 'amount_paid[+]' => $amount], $userId);
+                        // ref
+                        if ($user1["referral_id"] > 0 && !text_contains($user1["referral_id"], 'off') && $section_status['main']['free'] && $section_status['free']['gift_payment'] && $fid != $user1["referral_id"]) {
+                            $gifi = (($amount * $settings['gift_payment']) / 100);
+
+                            $usResult = $db->get('users_information', '*', ['user_id' => $user1["referral_id"]]);
+                            $old_balance = $usResult['balance'];
+                            $new_balance = $old_balance + $gifi;
+                            insertTransaction('gift', $user1["referral_id"], $old_balance, $new_balance, $gifi, 'GiftPayment');
+
+                            $db->update('users_information', ['gift[+]' => $gifi, 'gift_payment[+]' => $gifi], ['user_id' => $user1["referral_id"]]);
+                            $bot->sm($user1["referral_id"], $media->text('refral_gift_payment', [$userId, $name, $amount, $gifi]));
+                        }
+
+                        $new = $user1['balance'] + $amount;
+                        $db->update('transactions', ['status' => 1, 's_date' => time(), 'data[JSON]' => $decode], ['id' => $invoice['id']]);
+
+                        sm_to_user(['receipt_up', $amount, $new], null, $userId);
+
+                        edk_admin(['receipt_check']);
+
+                        break;
+                    case 'nok':
+                        $db->update('transactions', ['status' => 0, 's_date' => time(), 'data[JSON]' => $decode], ['id' => $invoice['id']]);
+
+                        admin_data(['step' => 'send_reason_receipt', 'data[JSON]' => ['id' => $invoice['id'], 'type' => 1]]);
+                        edk_admin(['receipt_check']);
+                        sm_admin(['send_reason_receipt'], ['back_panel_all']);
+                        break;
+                    case 'edit':
+                        $db->update('transactions', ['status' => 1, 's_date' => time(), 'data[JSON]' => $decode], ['id' => $invoice['id']]);
+
+                        admin_data(['step' => 'send_up_receipt', 'data' => $invoice['id']]);
+                        edk_admin(['receipt_check']);
+                        sm_admin(['send_up_receipt'], ['back_panel_all']);
+                        break;
+                    default:
+                        # code...
+                        break;
+                }
+            } else {
+                alert_admin(['checked_transaction']);
+                edk_admin(['receipt_check']);
+            }
         default:
             # code...
             break;

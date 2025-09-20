@@ -46,6 +46,9 @@ $key['join_channel'] = "☑️ عضویت در کانال";
 $key['ozv'] = "✅ عضو شدم";
 $key['payment_offline'] = "💳 کارت به کارت";
 $key['payment_online'] = "💸 پرداخت آنلاین";
+$key['crypto_payment'] = "💰 پرداخت با ارز دیجیتال";
+$key['starz_payment'] = "⭐️ پرداخت با استارز";
+$key['send_receipt'] = "📤 ارسال فیش پرداخت";
 $key['change_gift_balance'] = "🔄 تبدیل درآمد به موجودی";
 $key['withdraw_balance'] = "💰 برداشت موجودی";
 $key['balance'] = "💵 موجودی 💵";
@@ -68,6 +71,8 @@ $key['prev_page'] = '⬅️ صفحه قبل';
 $key['move_balance'] = '💰 انتقال موجودی';
 $key['charge_code'] = '💎 ثبت کد شارژ';
 $key['link_payment'] = '👇🏻لینک پرداخت👇🏻';
+$key['fast_link'] = '🔗 لینک سریع محصول';
+$key['reorder'] = '🔄 سفارش مجدد';
 $key['support_panel'] = ['🔍 | پیگیری سفارشات', '💸 | پیگیری تراکنش ها', '👨‍💻 | ارتباط با مدیریت', '✳️ | سایر موارد', '⭕️ | پیشنهاد،انتقاد و شکایت'];
 $key['gift_code'] = '🎁 اعمال کد تخفیف';
 $key['back_to_payment'] = '💵 برگشت به پرداخت';
@@ -79,7 +84,7 @@ trait user_keyboard
 {
     function keys($keys, $data = null)
     {
-        global $key, $key_admin, $section_status, $admin, $settings;
+        global $key, $key_admin, $section_status, $admin, $settings, $idbot;
         switch ($keys) {
             case 'home':
                 if ($section_status['main']['free']) {
@@ -265,6 +270,7 @@ trait user_keyboard
             case 'product_info':
                 $result = $data;
                 $t[] = [['text' => $key['fast_order'], 'callback_data' => 'price_info_product_order_' . $result['id']]];
+                $t[] = [['text' => $key['fast_link'], 'url' => 'https://t.me/' . $idbot . '?start=product_' . $result['id']]];
 
                 $t[] = [['text' => $key['back_price'], 'callback_data' => 'price_info_product_back_' . $result['category_id']], ['text' => $key['close_key'], 'callback_data' => 'close']];
                 $t = ['inline_keyboard' => $t];
@@ -306,19 +312,22 @@ trait user_keyboard
                 $t = ['inline_keyboard' => $t];
                 break;
             case 'lock_channel':
-                $channel = $data[0];
-                if (isset($data[1])) {
-                    $referral_id = $data[1];
-                    $t = ['inline_keyboard' => [
-                        [['text' => $key['join_channel'], 'url' => "https://t.me/" . $channel]],
-                        [['text' => $key['ozv'], 'callback_data' => 'ref_join' . $referral_id]]
-                    ]];
-                } else {
-                    $t = ['inline_keyboard' => [
-                        [['text' => $key['join_channel'], 'url' => "https://t.me/" . $channel]],
-                        [['text' => $key['ozv'], 'callback_data' => 'ozv']]
-                    ]];
+                $channels = $data['0'];
+                $keyboard = [];
+
+                foreach ($channels as $ch) {
+                    $keyboard[] = [['text' => $key['join_channel'] . " $ch", 'url' => "https://t.me/" . $ch]];
                 }
+
+                if (isset($data[1]) && is_numeric($data[1])) {
+                    $referral_id = $data[1];
+                    $keyboard[] = [['text' => $key['ozv'], 'callback_data' => 'ref_join' . $referral_id]];
+                } else {
+                    $keyboard[] = [['text' => $key['ozv'], 'callback_data' => 'ozv']];
+                }
+
+                $t = ['inline_keyboard' => $keyboard];
+
                 break;
 
             case 'status_order_inline':
@@ -334,7 +343,7 @@ trait user_keyboard
                 break;
             case 'payment_gateways':
                 $result = $data['0'];
-                $amount = $data['1'];
+                $amount = number_format($data['1']);
                 $domin = $data['2'];
                 $code = $data['3'];
                 $t[] = [['text' => $this->text('link_payment'), 'callback_data' => 'fyk']];
@@ -360,9 +369,23 @@ trait user_keyboard
                 if ($section_status['payment']['gift_charge']) {
                     $t[] = [['text' => $key['charge_code']]];
                 }
+                if ($status['payment']['crypto_payment']) {
+                    $t[] = [['text' => $key['crypto_payment']]];
+                }
+                if ($status['payment']['starz_payment']) {
+                    $t[] = [['text' => $key['starz_payment']]];
+                }
                 $t = row_chunk($t, [2]);
                 $t[] = [['text' => $key['back']]];
                 $t = ['keyboard' => $t];
+                break;
+            case 'send_receipt':
+                $t = [
+                    'inline_keyboard' => [
+                        [['text' => number_format($data) . ' تومان', 'callback_data' => 'fyk']],
+                        [['text' => $key['send_receipt'], 'callback_data' => 'send_receipt_' . $data]],
+                    ]
+                ];
                 break;
             case 'gift':
                 $t = [
@@ -397,6 +420,13 @@ trait user_keyboard
                     'keyboard' => [
                         [['text' => $key['ok_move_balance']]],
                         [['text' => $key['back']]],
+                    ],
+                ];
+                break;
+            case 'reorder_link':
+                $t = [
+                    'inline_keyboard' => [
+                        [['text' => $key['reorder'], 'url' => 'https://t.me/' . $idbot . '?start=product_' . $data]],
                     ],
                 ];
                 break;

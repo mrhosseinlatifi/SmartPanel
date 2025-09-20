@@ -15,7 +15,7 @@ require ROOTPATH . "/media/index.php";
 if (!get_option('cron_order_lock', 1)) {
 	update_option('cron_order_lock', 1);
 	$show_channel = get_option('channel_main', 0);
-	$settings['channel_errors'] = get_option('channel_errors',0);
+	$settings['channel_errors'] = get_option('channel_errors', 0);
 	// send pendign orders
 	$api = new api();
 	$media = new media;
@@ -44,6 +44,9 @@ if (!get_option('cron_order_lock', 1)) {
 				if ($res_api['result']) {
 					foreach ($res_api['data'] as $order => $val) {
 						$fd = $db->get('orders', '*', ['code_api' => $order, 'api' => $api_multi['name']]);
+						if (empty($fd) || !is_array($fd)) {
+							continue;
+						}
 						$user_id = $fd['user_id'];
 						if (isset($val['status'])) {
 							switch ($val['status']) {
@@ -87,7 +90,13 @@ if (!get_option('cron_order_lock', 1)) {
 									break;
 							}
 						} else {
-							$decode_data = json_decode($fd['extra_data'], true);
+							$decode_data = [];
+							if (!empty($fd['extra_data'])) {
+								$tmpDecode = json_decode((string)$fd['extra_data'], true);
+								if (is_array($tmpDecode)) {
+									$decode_data = $tmpDecode;
+								}
+							}
 							$decode_data['error_check'] = 'Error';
 							$db->update('orders', ['status' => 'error', 'extra_data[JSON]' => $decode_data], ['id' => $fd['id']]);
 						}
@@ -171,13 +180,20 @@ if (!get_option('cron_order_lock', 1)) {
 			if ($api_info) {
 				$link = $order['link'];
 				$count = $order['count'];
-				$decode_data = json_decode($order['extra_data'], true);
+				$decode_data = [];
+				if (!empty($order['extra_data'])) {
+					$tmpDecode = json_decode((string)$order['extra_data'], true);
+					if (is_array($tmpDecode)) {
+						$decode_data = $tmpDecode;
+					}
+				}
 				$user_id = $order['user_id'];
-				$service = $decode_data['product']['service_id'];
+				$service = isset($decode_data['product']['service_id']) ? $decode_data['product']['service_id'] : 0;
+				$comments = isset($decode_data['comments']) ? $decode_data['comments'] : null;
 				// check second time status is pending
 				$check_order = $db->get('orders', 'status', ['id' => $order['id']]);
 				if ($check_order == 'pending') {
-					$add_info = $api->add_order($api_info, $service, $link, $count);
+					$add_info = $api->add_order($api_info, $service, $link, $count, $comments);
 					if ($add_info['result']) {
 						$db->update('orders', ['code_api' => $add_info['order']], ['id' => $order['id']]);
 					} else {
@@ -190,7 +206,7 @@ if (!get_option('cron_order_lock', 1)) {
 						$db->update('orders', ['status' => 'error', 'extra_data[JSON]' => $decode_data], ['id' => $order['id']]);
 						$db->update('users_information', ['balance[+]' => $order['price'], 'amount_spent[-]' => $order['price']], ['user_id' => $user_id]);
 						sm_user(['order_cancel', $order, $show_channel], null, $user_id);
-						sm_channel('channel_errors', ['order_add_error', $decode_data['error']]);
+						sm_channel('channel_errors', ['order_add_error', $order, $decode_data['error']]);
 					}
 				}
 			}

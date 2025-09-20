@@ -1,11 +1,8 @@
 <?php
 
-// define('BITPAY_REQUEST_URL', 'https://bitpay.ir/payment/gateway-send');         // Request payment token
-// define('BITPAY_VERIFY_URL', 'https://bitpay.ir/payment/gateway-result-second'); // Verify payment
-// define('BITPAY_PAYMENT_URL', 'https://bitpay.ir/payment/gateway-NUMBER-get');   // Redirect to payment page
-define('BITPAY_REQUEST_URL', 'https://bitpay.ir/payment-test/gateway-send');         // Request payment token
-define('BITPAY_VERIFY_URL', 'https://bitpay.ir/payment-test/gateway-result-second'); // Verify payment
-define('BITPAY_PAYMENT_URL', 'https://bitpay.ir/payment-test/gateway-NUMBER-get');   // Redirect to payment page
+define('BITPAY_REQUEST_URL', 'https://bitpay.ir/payment/gateway-send');         // Request payment token
+define('BITPAY_VERIFY_URL', 'https://bitpay.ir/payment/gateway-result-second'); // Verify payment
+define('BITPAY_PAYMENT_URL', 'https://bitpay.ir/payment/gateway-NUMBER-get');   // Redirect to payment page
 
 $paymentEn = 'bitpay';
 $paymentFa = 'بیت‌پی';
@@ -41,7 +38,7 @@ if ($type === 'get') {
                     ], ['id' => $code]);
 
                     $url = str_replace('NUMBER', $tracking_code, BITPAY_PAYMENT_URL);
-                    header('Location: ' . $url);
+                    redirect_payment($url);
                     exit;
                 } else {
                     sm_channel('channel_errors', ['error_getway_get', $paymentEn, json_encode($result['response'])]);
@@ -53,7 +50,7 @@ if ($type === 'get') {
         case 3:
             if ($payment['getway'] === $paymentEn) {
                 $url = str_replace('NUMBER', $tracking_code, BITPAY_PAYMENT_URL);
-                header('Location: ' . $url);
+                redirect_payment($url);
                 exit;
             } else {
                 redirect($base_url . '&msg=' . $media->text('error_getway', $paymentEn));
@@ -107,23 +104,8 @@ if ($type === 'get') {
             $db->update('transactions', ['status' => 0], ['id' => $code]);
             $bot->sm($fid, $media->text(['not_pay_payment_card']));
             redirect($base_url);
+            exit;
         }
-    }
-
-    // افزایش موجودی
-    $db->update('users_information', [
-        'balance[+]' => $amount,
-        'amount_paid[+]' => $amount
-    ], ['id' => $fid]);
-
-    // هدیه دعوت
-    if ($user['referral_id'] && $section_status['commission']) {
-        $gift = ($amount * $settings['commission']) / 100;
-        $db->update('users_information', [
-            'gift[+]' => $gift,
-            'commission[+]' => $gift
-        ], ['id' => $user['referral_id']]);
-        $bot->sm($user['referral_id'], $media->text(['refral_gift_payment', $fid, $name, $amount, $gift]));
     }
 
     $db->update('transactions', [
@@ -133,11 +115,7 @@ if ($type === 'get') {
         'type' => 'payment'
     ], ['id' => $code]);
 
-    $bot->sm($fid, $media->text(['ok_payment', $tracking_code, $amount, $user['balance'], $paymentFa, $channels['show']]));
-    $bot->sm($channels['payment'], "#تراکنش جدید بیت‌پی\n کاربر: <a href='tg://user?id=$fid'>$name</a>\nمبلغ: $amount\nکد پیگیری: $tracking_code\nکارت: $card\nIP: " . getip());
-
-    header('Location: https://' . $domin . '/payment/show.php?OK&code=' . $tracking_code . '&idbot=' . $idbot);
-    exit;
+    $result_ok = true;
 }
 
 
