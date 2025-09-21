@@ -624,6 +624,8 @@ function first_data($db, $admin)
         'limit_multi' => 100,
         'min_deposit' => 1000,
         'max_deposit' => 500000,
+        'min_crypto_deposit' => 10000,
+        'max_crypto_deposit' => 1000000,
         'min_move_balance' => 1000,
         'min_kyc' => 100000,
         'daily_limit' => 400000,

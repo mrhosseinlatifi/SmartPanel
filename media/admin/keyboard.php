@@ -251,6 +251,8 @@ $key_admin['payment_type'] = [
 $key_admin['payment_option'] = [
     "min_deposit" => "حداقل واریز 💰",
     "max_deposit" => "حداکثر واریز 💰",
+    "min_crypto_deposit" => "حداقل واریز ارز دیجیتال 🪙",
+    "max_crypto_deposit" => "حداکثر واریز ارز دیجیتال 🪙",
     "min_move_balance" => "حداقل انتقال موجودی 💸",
     "min_kyc" => "حداقل مبلغ احراز کارت 💳",
     "daily_limit" => "حد مجاز تراکنش روزانه 🚫",
@@ -858,6 +860,7 @@ trait keyboard_admin
                 $t = [
                     'keyboard' => [
                         [['text' => $key_admin['payment_option']["min_deposit"]], ['text' => $key_admin['payment_option']["max_deposit"]]],
+                        [['text' => $key_admin['payment_option']["min_crypto_deposit"]], ['text' => $key_admin['payment_option']["max_crypto_deposit"]]],
                         [['text' => $key_admin['payment_option']["min_move_balance"]], ['text' => $key_admin['payment_option']["min_kyc"]]],
                         [['text' => $key_admin['payment_option']["daily_limit"]]],
                         [['text' => $key_admin['payment_option']["kyc_media"]]],

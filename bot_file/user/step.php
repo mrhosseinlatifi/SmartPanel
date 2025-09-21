@@ -234,7 +234,9 @@ function user_step()
                             if ($section_status['payment']['crypto_payment']) {
                                 if ($db->has('payment_gateways', ['status' => 1, 'type' => 'crypto'])) {
                                     user_set_step('crypto_payment_1');
-                                    sm_user(['crypto_payment_amount', $settings['min_deposit'], $settings['max_deposit']], ['back']);
+                                    $min_crypto = $settings['min_crypto_deposit'] ?? $settings['min_deposit'];
+                                    $max_crypto = $settings['max_crypto_deposit'] ?? $settings['max_deposit'];
+                                    sm_user(['crypto_payment_amount', $min_crypto, $max_crypto], ['back']);
                                 } else {
                                     sm_user(['off_crypto_payment'], ['payment', $section_status]);
                                 }
@@ -307,7 +309,9 @@ function user_step()
             case 'crypto_payment_1':
                 $text = convertnumber($text);
                 if (is_numeric($text)) {
-                    if ($text >= $settings['min_deposit'] && $text <= $settings['max_deposit']) {
+                    $min_crypto = $settings['min_crypto_deposit'] ?? $settings['min_deposit'];
+                    $max_crypto = $settings['max_crypto_deposit'] ?? $settings['max_deposit'];
+                    if ($text >= $min_crypto && $text <= $max_crypto) {
                         $result = $db->has('payment_gateways', ['status' => 1, 'type' => 'crypto']);
                         if ($result) {
                             if ($db->has('transactions', ['amount' => $text, 'status' => 2, 'tracking_code' => 0, 'type' => 'payment', 'user_id' => $fid])) {
@@ -344,7 +348,9 @@ function user_step()
                             sm_user(['payment_mistake'], ['home']);
                         }
                     } else {
-                        sm_user(['amount_deposit_wrong', $settings['min_deposit'], $settings['max_deposit']], ['back']);
+                        $min_crypto = $settings['min_crypto_deposit'] ?? $settings['min_deposit'];
+                        $max_crypto = $settings['max_crypto_deposit'] ?? $settings['max_deposit'];
+                        sm_user(['amount_deposit_wrong', $min_crypto, $max_crypto], ['back']);
                     }
                 } else {
                     sm_user(['payment_int']);
