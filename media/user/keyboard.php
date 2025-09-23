@@ -79,6 +79,7 @@ $key['back_to_payment'] = '💵 برگشت به پرداخت';
 $key['fast_order'] = '💎 سفارش محصول 💎';
 $key['panel_admin'] = '‍• پنل مدیریت •';
 $key['ok_move_balance'] = '✅ تایید انتقال';
+$key['identity_verification'] = '🔐 احراز هویت';
 //---------------کیبورد------------------//
 trait user_keyboard
 {
@@ -419,6 +420,14 @@ trait user_keyboard
                 $t = [
                     'keyboard' => [
                         [['text' => $key['ok_move_balance']]],
+                        [['text' => $key['back']]],
+                    ],
+                ];
+                break;
+            case 'daily_limit_with_verify':
+                $t = [
+                    'keyboard' => [
+                        [['text' => $key['identity_verification']]],
                         [['text' => $key['back']]],
                     ],
                 ];

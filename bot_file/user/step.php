@@ -252,7 +252,9 @@ function user_step()
                             if ($section_status['payment']['starz_payment']) {
                                 if (isset($settings['starz_rate']) && $settings['starz_rate'] > 0) {
                                     user_set_step('starz_payment_1');
-                                    sm_user(['starz_payment_amount', $settings['min_deposit'], $settings['max_deposit'], $settings['starz_rate']], ['back']);
+                                    $min_starz = get_option('min_starz_deposit', 1);
+                                    $max_starz = get_option('max_starz_deposit', 2500);
+                                    sm_user(['starz_payment_amount', $min_starz, $max_starz, $settings['starz_rate']], ['back']);
                                 } else {
                                     sm_user(['off_starz_payment'], ['payment', $section_status]);
                                 }
@@ -358,31 +360,32 @@ function user_step()
                 break;
             case 'starz_payment_1':
                 $text = convertnumber($text);
-                if ($text >= $settings['min_deposit'] && $text <= $settings['max_deposit']) {
-                    $amount = $text / $settings['starz_rate'];
-                    $amount = ceil($amount);
-                    if ($amount >= 1) {
-                        $amountIRT = $amount * $settings['starz_rate'];
-                        $da = [
-                            'chat_id' => $fid,
-                            'title' => $key['starz_payment'],
-                            'description' => $media->text('desc_starz', $amountIRT),
-                            'payload' => $fid,
-                            'provider_token' => '',
-                            'currency' => 'XTR',
-                            'prices' => json_encode([
-                                ['label' => 'USD', 'amount' => $amount]
-                            ]),
-                        ];
+                $min_starz = get_option('min_starz_deposit', 1);
+                $max_starz = get_option('max_starz_deposit', 2500);
+                
+                if (is_numeric($text) && $text >= $min_starz && $text <= $max_starz) {
+                    $amount = (int)$text; // تعداد استارز
+                    $amountIRT = $amount * $settings['starz_rate']; // تبدیل به تومان
+                    
+                    $da = [
+                        'chat_id' => $fid,
+                        'title' => $key['starz_payment'],
+                        'description' => $media->text('desc_starz', $amountIRT),
+                        'payload' => $fid,
+                        'provider_token' => '',
+                        'currency' => 'XTR',
+                        'prices' => json_encode([
+                            ['label' => 'Stars', 'amount' => $amount]
+                        ]),
+                    ];
 
-                        $re = $bot->bot('sendInvoice', $da);
-                        if ($re['ok']) {
-                            user_set_step();
-                            sm_user(['starz_payment_help'], ['home']);
-                        }
+                    $re = $bot->bot('sendInvoice', $da);
+                    if ($re['ok']) {
+                        user_set_step();
+                        sm_user(['starz_payment_help'], ['home']);
                     }
                 } else {
-                    sm_user(['amount_deposit_wrong', $settings['min_deposit'], $settings['max_deposit']], ['back']);
+                    sm_user(['starz_amount_wrong', $min_starz, $max_starz], ['back']);
                 }
                 break;
             case 'charge_1':
@@ -827,39 +830,39 @@ function user_step()
                 } else {
                     // Check product type and handle accordingly
                     $result_product = $db->get('products', '*', ['id' => $userdata['product']['product']]);
-                    
+
                     if ($result_product && $result_product['type'] == 'custom_comments') {
                         // For custom_comments, process the comments directly
                         $comments = array_filter(array_map('trim', explode("\n", $text)));
-                        
+
                         if (empty($comments)) {
                             sm_user(['comment_request'], ['back_to_before']);
                             return;
                         }
-                        
+
                         // Check if comment count meets minimum requirement
                         if (count($comments) < $result_product['min']) {
                             sm_user(['comment_min_error', $result_product['min']], ['back_to_before']);
                             return;
                         }
-                        
+
                         // Check if comment count exceeds maximum
                         if (count($comments) > $result_product['max']) {
                             sm_user(['comment_max_error', $result_product['max']], ['back_to_before']);
                             return;
                         }
-                        
+
                         $userdata['comments'] = $comments;
                         $userdata['count'] = count($comments);
-                        
+
                         // Calculate price with discounts
                         $price = $result_product['price'];
-                        
+
                         // Apply product discount: positive = price increase, negative = price decrease
                         if ($result_product['discount']) {
                             $price = $price + (($result_product['price'] / 100) * $result_product['discount']);
                         }
-                        
+
                         // Apply user discount (always reduces price)
                         if ($user['discount']) {
                             $price = $price - (($price / 100) * $user['discount']);
@@ -870,10 +873,10 @@ function user_step()
                         } else {
                             $price_once = price_once($result_product['min'], $result_product['max'], $price, $result_product['type']);
                         }
-                        
+
                         $userdata['product']['price_once'] = $price_once;
                         $userdata['price'] = $price_once * count($comments);
-                        
+
                         // Go to link input step with simplified message
                         $link_text = $db->get('pattern', 'text', ['type' => $result_product['pattern']]);
                         user_set_data(['step' => 'buy5', 'data[JSON]' => $userdata, 'type' => $result_product['type']]);
@@ -1373,19 +1376,23 @@ function user_step()
                 $text = convertnumber($text);
                 if (is_numeric($text)) {
                     if ($text >= $settings['min_deposit'] && $text <= $settings['max_deposit']) {
-                        // بررسی محدودیت تراکنش روزانه برای کاربران غیر احراز هویت شده
                         $limit_check = check_daily_payment_limit($fid, $text, $user['payment_card']);
-                        
+
                         if (!$limit_check['allowed']) {
                             $remaining_formatted = number_format($limit_check['remaining']);
                             $daily_total_formatted = number_format($limit_check['daily_total']);
                             $limit_formatted = number_format($limit_check['limit']);
-                            
-                            sm_user(['daily_limit_exceeded', $limit_formatted, $daily_total_formatted, $remaining_formatted], ['home']);
-                            user_set_step();
+
+                            if ($section_status['payment']['verify_card'] and !$user['payment_card']) {
+                                sm_user(['daily_limit_exceeded', $limit_formatted, $daily_total_formatted, $remaining_formatted,1], ['daily_limit_with_verify']);
+                                user_set_step('daily_limit_exceeded');
+                            } else {
+                                sm_user(['daily_limit_exceeded', $limit_formatted, $daily_total_formatted, $remaining_formatted,0], ['home']);
+                                user_set_step('none');
+                            }
                             break;
                         }
-                        
+
                         if ($section_status['payment']['verify_card'] and !$user['payment_card'] and $text >= $settings['min_kyc']) {
                             user_set_step('verify_card');
                             sm_user(['verify_msg', $settings['text_kyc']], ['back']);
@@ -1522,6 +1529,21 @@ function user_step()
                     sm_user(['send_verify_ok'], ['home']);
                 } else {
                     sm_user(['vetify_just_photo']);
+                }
+                break;
+            case 'daily_limit_exceeded':
+                if ($text == $key['identity_verification']) {
+                    if ($section_status['payment']['verify_card']) {
+                        user_set_step('verify_card');
+                        sm_user(['verify_msg', $settings['text_kyc']], ['back']);
+                    } else {
+                        sm_user(['verify_disabled']);
+                        user_set_step();
+                    }
+                } elseif ($text == $key['back']) {
+                    handleStart('back');
+                } else {
+                    sm_user(['daily_limit_exceeded_help']);
                 }
                 break;
             default:

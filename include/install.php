@@ -302,12 +302,12 @@ function table($db)
             "DEFAULT 0",
         ],
         'min' => [
-            'INT',
+            'BIGINT',
             'NOT NULL',
             "DEFAULT 1",
         ],
         'max' => [
-            'INT',
+            'BIGINT',
             'NOT NULL',
             "DEFAULT 1",
         ],
@@ -664,6 +664,8 @@ function first_data($db, $admin)
         'cron_order_lock' => 0,
         'delay_time_sms' => 300,
         'starz_rate' => 1000,
+        'min_starz_deposit' => 1,
+        'max_starz_deposit' => 2500,
     ];
 
 

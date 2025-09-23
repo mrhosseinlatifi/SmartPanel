@@ -414,14 +414,6 @@ function admin_steps()
                     admin_data(['step' => 'settings_edit', 'data' => 'DIFF_TIME']);
                     sm_admin(['DIFF_TIME_1', $settings['DIFF_TIME']], ['back_panel']);
                     break;
-                case $key_admin['usd_rate']:
-                    admin_data(['step' => 'settings_edit', 'data' => 'usd_rate']);
-                    sm_admin(['usd_rate_1', $settings['usd_rate']], ['back_panel']);
-                    break;
-                case $key_admin['starz_rate']:
-                    admin_data(['step' => 'settings_edit', 'data' => 'starz_rate']);
-                    sm_admin(['starz_rate_1', $settings['starz_rate']], ['back_panel']);
-                    break;
                 case $key_admin['settings']:
                 case $key_admin['back_to_settings']:
                     check_allow('settings');
@@ -493,24 +485,6 @@ function admin_steps()
                         if (is_numeric($text)) {
                             admin_step('settings');
                             update_option('DIFF_TIME', $text);
-                            sm_admin(['ok_settings_edit', $text], ['settings', in_array($fid, admins)]);
-                        } else {
-                            sm_admin(['send_int']);
-                        }
-                        break;
-                    case 'usd_rate':
-                        if (is_numeric($text) && $text >= 1) {
-                            admin_step('settings');
-                            update_option('usd_rate', $text);
-                            sm_admin(['ok_settings_edit', $text], ['settings', in_array($fid, admins)]);
-                        } else {
-                            sm_admin(['send_int']);
-                        }
-                        break;
-                    case 'starz_rate':
-                        if (is_numeric($text) && $text >= 1) {
-                            admin_step('settings');
-                            update_option('starz_rate', $text);
                             sm_admin(['ok_settings_edit', $text], ['settings', in_array($fid, admins)]);
                         } else {
                             sm_admin(['send_int']);
@@ -1067,7 +1041,7 @@ function admin_steps()
             $admin_data = json_decode($admin['data'], true);
             if ($text == $key_admin['back_admin_before']) {
                 admin_step('add_payment_2');
-                $result = array_diff(scandir(ROOTPATH . '/payment'), ['.', '..', 'index.php', 'error_log', '.htaccess','show.php']);
+                $result = array_diff(scandir(ROOTPATH . '/payment'), ['.', '..', 'index.php', 'error_log', '.htaccess', 'show.php']);
                 sm_admin(['add_payment_2'], ['payment_file', $result, $db]);
             } else {
                 $admin_data['code'] = $text;
@@ -1467,10 +1441,44 @@ function admin_steps()
                 sm_admin(['payment_edit_setting'], ['payment_option']);
             } else {
                 $admin_data = json_decode($admin['data'], true);
-                if (is_numeric($text) && $text > 0) {
-                    update_option($admin_data['type'], $text);
-                    admin_step('payment_edit_setting');
-                    sm_admin(['ok_payment_edit_setting'], ['payment_option']);
+                $type = $admin_data['type'];
+
+                // Special validation for Stars settings
+                if ($type == 'min_starz_deposit') {
+                    if (is_numeric($text) && $text >= 1) {
+                        $max_starz = get_option('max_starz_deposit', 2500);
+                        if ($text <= $max_starz) {
+                            update_option($type, $text);
+                            admin_step('payment_edit_setting');
+                            sm_admin(['ok_payment_edit_setting'], ['payment_option']);
+                        } else {
+                            sm_admin(['min_more_than_max', $max_starz]);
+                        }
+                    } else {
+                        sm_admin(['send_int_min_one']);
+                    }
+                } elseif ($type == 'max_starz_deposit') {
+                    if (is_numeric($text) && $text >= 1) {
+                        $min_starz = get_option('min_starz_deposit', 1);
+                        if ($text >= $min_starz) {
+                            update_option($type, $text);
+                            admin_step('payment_edit_setting');
+                            sm_admin(['ok_payment_edit_setting'], ['payment_option']);
+                        } else {
+                            sm_admin(['max_less_than_min', $min_starz]);
+                        }
+                    } else {
+                        sm_admin(['send_int_min_one']);
+                    }
+                } else {
+                    // Default validation for other payment settings
+                    if (is_numeric($text) && $text > 0) {
+                        update_option($type, $text);
+                        admin_step('payment_edit_setting');
+                        sm_admin(['ok_payment_edit_setting'], ['payment_option']);
+                    } else {
+                        sm_admin(['send_int']);
+                    }
                 }
             }
             break;
@@ -2319,7 +2327,7 @@ function admin_steps()
             } elseif (in_array($text, array_values($key_admin['product_service_type']))) {
                 $service_type = array_search($text, $key_admin['product_service_type']);
                 $db->update('products', ['type' => $service_type], ['id' => $admin_data['id']]);
-                
+
                 admin_data(['step' => 'add_product_6', 'data[JSON]' => $admin_data]);
                 $btn = $db->get('categories', '*', ['id' => $admin_data['category_id']]);
                 $product = $db->get('products', '*', ['id' => $admin_data['id']]);

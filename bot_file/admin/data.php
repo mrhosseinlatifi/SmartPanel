@@ -554,7 +554,7 @@ function admin_data_step()
                                 $max = $product['max'];
                                 $desc = removeWhiteSpace($product['desc']);
                                 $ser_id = $product['service'];
-                                
+
                                 // Get product type from API if available, otherwise use default
                                 $product_type = 'default';
                                 if (isset($product['type']) && !empty($product['type'])) {
@@ -657,7 +657,7 @@ function admin_data_step()
                             $max = $product['max'];
                             $desc = removeWhiteSpace($product['desc']);
                             $ser_id = $product['service'];
-                            
+
                             // Get product type from API if available, otherwise use default
                             $product_type = 'default';
                             if (isset($product['type']) && !empty($product['type'])) {
@@ -811,7 +811,7 @@ function admin_data_step()
                                     $max = $value['max'];
                                     $info = removeWhiteSpace($value['desc']);
                                     $ser_id = $value['service'];
-                                    
+
                                     // Get product type from API if available, otherwise use default
                                     $product_type = 'default';
                                     if (isset($value['type']) && !empty($value['type'])) {
@@ -928,7 +928,7 @@ function admin_data_step()
                                     $max = $value['max'];
                                     $info = removeWhiteSpace($value['desc']);
                                     $ser_id = $value['service'];
-                                    
+
                                     // Get product type from API if available, otherwise use default
                                     $product_type = 'default';
                                     if (isset($value['type']) && !empty($value['type'])) {
@@ -980,12 +980,12 @@ function admin_data_step()
                                         continue;
                                     }
 
-                                    
+
                                     $data_p = $products[$value['service']];
                                     $s = [];
 
                                     $s['status'] = 1;
-                                    
+
                                     if ($p_s['name']) {
                                         $name_product = mb_substr(removeWhiteSpace($data_p['name']), 0, 130);
                                         $text_en = js($name_product);
@@ -1018,7 +1018,7 @@ function admin_data_step()
                                     if ($p_s['info']) {
                                         $s['info'] = removeWhiteSpace($data_p['desc']);
                                     }
-                                    
+
                                     // Update product type from API if available
                                     if (isset($data_p['type']) && !empty($data_p['type'])) {
                                         $api_type = strtolower(trim($data_p['type']));

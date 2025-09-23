@@ -95,8 +95,6 @@ $key_admin['tikket'] = 'تعداد تیکت هرکاربر 📤';
 $key_admin['float_number'] = 'تعداد اعشار 🔢';
 $key_admin['edit_spam'] = 'ویرایش مقادیر انتی اسپم 🔐';
 $key_admin['DIFF_TIME'] = 'اختلاف ساعت ⏰';
-$key_admin['usd_rate'] = 'قیمت دلار 💵';
-$key_admin['starz_rate'] = 'قیمت استارز 💵';
 
 /** Spam Panel */
 $key_admin['time_spam'] = 'زمان بلاک اسپم ⏳';
@@ -256,6 +254,10 @@ $key_admin['payment_option'] = [
     "min_move_balance" => "حداقل انتقال موجودی 💸",
     "min_kyc" => "حداقل مبلغ احراز کارت 💳",
     "daily_limit" => "حد مجاز تراکنش روزانه 🚫",
+    "usd_rate" => "قیمت دلار 💵",
+    "starz_rate" => "قیمت استارز ⭐️",
+    "min_starz_deposit" => "حداقل استارز 🔻",
+    "max_starz_deposit" => "حداکثر استارز 🔺",
     "kyc_media" => "روش احراز کارت 🔐",
 ];
 
@@ -424,7 +426,10 @@ $key_admin['delete_off_categories'] = "حذف دسته‌بندی‌های غی�
 $key_admin['delete_off_subcategories'] = "حذف زیردسته‌های غیرفعال 🔴";
 $key_admin['delete_empty_categories'] = "حذف دسته‌های خالی 📂";
 $key_admin['cancel'] = "لغو عملیات ❌";
-$key_admin['edit_amount'] = "ویرایش مبلغ";
+$key_admin['edit_amount'] = "✏️ ویرایش مبلغ";
+$key_admin['receipt_check_ok'] = "✅ تایید شد";
+$key_admin['receipt_check_nok'] = "❌ رد شده";
+$key_admin['receipt_check_edit'] = "📝 تایید شد و مبلغ ویرایش شد";
 //---------------------------------//
 trait keyboard_admin
 {
@@ -524,7 +529,8 @@ trait keyboard_admin
                 $t = [
                     'keyboard' => [
                         [['text' => $key_admin['payment_status']], ['text' => $key_admin['payment_edit']]],
-                        [['text' => $key_admin['payment_add']], ['text' => $key_admin['payment_discount']], ['text' => $key_admin['payment_edit_setting']]],
+                        [['text' => $key_admin['payment_add']], ['text' => $key_admin['payment_discount']]],
+                        [['text' => $key_admin['payment_edit_setting']]],
                         [['text' => $key_admin['back_admin']]],
                     ]
                 ];
@@ -640,7 +646,6 @@ trait keyboard_admin
                     $t = [
                         'keyboard' => [
                             [['text' => $key_admin['tikket']], ['text' => $key_admin['sms']]],
-                            [['text' => $key_admin['starz_rate']], ['text' => $key_admin['usd_rate']]],
                             [['text' => $key_admin['edit_spam']], ['text' => $key_admin['float_number']], ['text' => $key_admin['DIFF_TIME']]],
                             [['text' => $key_admin['add_admin']], ['text' => $key_admin['view_admins']], ['text' => $key_admin['del_admin']]],
                             [['text' => $key_admin['back_admin']]],
@@ -863,6 +868,8 @@ trait keyboard_admin
                         [['text' => $key_admin['payment_option']["min_crypto_deposit"]], ['text' => $key_admin['payment_option']["max_crypto_deposit"]]],
                         [['text' => $key_admin['payment_option']["min_move_balance"]], ['text' => $key_admin['payment_option']["min_kyc"]]],
                         [['text' => $key_admin['payment_option']["daily_limit"]]],
+                        [['text' => $key_admin['payment_option']["usd_rate"]], ['text' => $key_admin['payment_option']["starz_rate"]]],
+                        [['text' => $key_admin['payment_option']["min_starz_deposit"]], ['text' => $key_admin['payment_option']["max_starz_deposit"]]],
                         [['text' => $key_admin['payment_option']["kyc_media"]]],
                         [['text' => $key_admin['back_admin']], ['text' => $key_admin['back_admin_before']]],
                     ]
@@ -1576,8 +1583,26 @@ trait keyboard_admin
                     ]
                 ];
                 break;
-            case 'value':
-                # code...
+            case 'receipt_check':
+                if ($data == 'OK') {
+                    $t = [
+                        'inline_keyboard' => [
+                            [['text' => $key_admin['receipt_check_ok'], 'callback_data' => 'fyk']]
+                        ]
+                    ];
+                } elseif ($data == 'NOK') {
+                    $t = [
+                        'inline_keyboard' => [
+                            [['text' => $key_admin['receipt_check_nok'], 'callback_data' => 'fyk']]
+                        ]
+                    ];
+                } elseif ($data == 'EDIT') {
+                    $t = [
+                        'inline_keyboard' => [
+                            [['text' => $key_admin['receipt_check_edit'], 'callback_data' => 'fyk']]
+                        ]
+                    ];
+                }
                 break;
             case 'remove':
                 $t = ['remove_keyboard' => true];

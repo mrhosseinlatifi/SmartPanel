@@ -195,15 +195,15 @@ function admin_data_global()
             $result = null;
             $c = 0;
             $balance_log_types = [
-                'gift',          
-                'gift_code',     
-                'gift_payout',   
-                'gift_move',     
-                'managment',     
-                'send_balance',  
+                'gift',
+                'gift_code',
+                'gift_payout',
+                'gift_move',
+                'managment',
+                'send_balance',
                 'receive_balance',
-                'orders',        
-                'orders_back'    
+                'orders',
+                'orders_back'
             ];
             $result = $db->select('transactions', '*', ['user_id' => $id, 'ORDER' => ['id' => 'DESC'], 'LIMIT' => [$now, $page], 'type' => $balance_log_types]);
             $c = $db->count('transactions', ['user_id' => $id, 'type' => $balance_log_types]);
@@ -391,30 +391,31 @@ function admin_data_global()
 
                         sm_to_user(['receipt_up', $amount, $new], null, $userId);
 
-                        edk_admin(['receipt_check']);
+                        edk_admin(['receipt_check', 'OK'],$message_id,$cid);
 
                         break;
                     case 'nok':
                         $db->update('transactions', ['status' => 0, 's_date' => time(), 'data[JSON]' => $decode], ['id' => $invoice['id']]);
 
                         admin_data(['step' => 'send_reason_receipt', 'data[JSON]' => ['id' => $invoice['id'], 'type' => 1]]);
-                        edk_admin(['receipt_check']);
+                        edk_admin(['receipt_check', 'NOK'],$message_id,$cid);
                         sm_admin(['send_reason_receipt'], ['back_panel_all']);
                         break;
                     case 'edit':
                         $db->update('transactions', ['status' => 1, 's_date' => time(), 'data[JSON]' => $decode], ['id' => $invoice['id']]);
 
                         admin_data(['step' => 'send_up_receipt', 'data' => $invoice['id']]);
-                        edk_admin(['receipt_check']);
+                        edk_admin(['receipt_check', 'EDIT'],$message_id,$cid);
                         sm_admin(['send_up_receipt'], ['back_panel_all']);
                         break;
                     default:
-                        # code...
+                        
                         break;
                 }
             } else {
                 alert_admin(['checked_transaction']);
-                edk_admin(['receipt_check']);
+                $st = str_replace(['0','1'],['NOK','OK'],$invoice['status']);
+                edk_admin(['receipt_check',$st],$message_id,$cid);
             }
         default:
             # code...
