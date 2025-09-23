@@ -59,7 +59,8 @@ function setupWebhook($bot, $ip, $random_code)
             "edited_channel_post",
             "callback_query",
             "chat_member",
-            "my_chat_member"
+            "my_chat_member",
+            "pre_checkout_query"
         ])
     ]);
 }
