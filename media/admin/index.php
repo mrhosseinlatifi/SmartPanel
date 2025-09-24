@@ -740,6 +740,7 @@ $date";
                 $file = $payment['file'];
                 $status = off($payment['status']);
                 $ip = off($payment['ip']);
+                $type = $payment['type'];
                 $payment_data = json_decode($payment['data'], true);
                 $t = "ℹ️ اطلاعات فعلی:
 وضعیت درگاه: {$status}
@@ -750,6 +751,8 @@ $date";
 {$code}
 فایل درگاه: {$file}
 محدودیت IP: {$ip}
+نوع درگاه : {$type}
+
 بخش مورد نظر را انتخاب کنید";
                 break;
             case 'edit_payment_2':
