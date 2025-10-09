@@ -385,7 +385,7 @@ $tt
                 $product = $decode['product'];
                 $category = implode("\n", $decode['category']);
                 $error = $data[1];
-                $t = "یک سفارش به دلیل خطا به وب سرویس ارسال نشد.\nهزینه به کاربر عودت داده شد.\nمتن خطا : " . $error."\n\nجزئیات سفارش : \nمحصول : $product\nدسته بندی : $category\nتعداد : " . $order['count'] . "\nلینک : " . $order['link'] . "\nکد پیگیری ربات : " . $order['code'];
+                $t = "یک سفارش به دلیل خطا به وب سرویس ارسال نشد.\nهزینه به کاربر عودت داده شد.\nمتن خطا : " . $error."\n\nجزئیات سفارش : \nمحصول : $product\nدسته بندی : $category\nتعداد : " . $order['count'] . "\nلینک : " . $order['link'] . "\nکد پیگیری ربات : " . $order['id'];
                 break;
             case 'ok_move_balance':
                 $amount = $data[0];

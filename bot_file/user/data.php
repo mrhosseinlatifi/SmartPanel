@@ -320,7 +320,13 @@ function user_data()
 				$code = $getTr['id'];
 				$text = $getTr['amount'];
 
-				$result = $db->select('payment_gateways', '*', ['status' => 1]);
+				$decode = json_decode($getTr['data'], true);
+				$paymentType = 'IRT';
+				if (isset($decode['payment_type'])) {
+					$paymentType = $decode['payment_type'];
+				}
+
+				$result = $db->select('payment_gateways', '*', ['status' => 1, 'type' => $paymentType]);
 
 				edt_user(['payment_text', $user, $code, $text], ['payment_gateways', $result, $text, $domin, $code]);
 				user_set_step();

@@ -317,9 +317,14 @@ function user_step()
                         $result = $db->has('payment_gateways', ['status' => 1, 'type' => 'crypto']);
                         if ($result) {
                             if ($db->has('transactions', ['amount' => $text, 'status' => 2, 'tracking_code' => 0, 'type' => 'payment', 'user_id' => $fid])) {
-                                $code = $db->get('transactions', 'id', ['amount' => $text, 'status' => 2, 'tracking_code' => 0, 'type' => 'payment', 'user_id' => $fid]);
+                                $getTr = $db->get('transactions', ['id', 'data'], ['amount' => $text, 'status' => 2, 'tracking_code' => 0, 'type' => 'payment', 'user_id' => $fid]);
+                                $code = $getTr['id'];
                                 if ($code) {
                                     $result = $db->select('payment_gateways', '*', ['status' => 1, 'type' => 'crypto']);
+
+                                    $decode = json_decode($getTr['data'], true);
+                                    $decode['payment_type'] = 'crypto';
+                                    $db->update('transactions', ['data[JSON]' => $decode], ['id' => $code]);
 
                                     sm_user(['payment_text', $user, $code, $text], ['payment_gateways', $result, $text, $domin, $code]);
                                     user_set_step();
@@ -330,7 +335,7 @@ function user_step()
                                     sm_user(['payment_mistake'], ['home']);
                                 }
                             } else {
-                                $code = add_tranaction('payment', $fid, $text);
+                                $code = add_tranaction('payment', $fid, $text, ['payment_type' => 'crypto']);
 
                                 if ($code) {
                                     $result = $db->select('payment_gateways', '*', ['status' => 1, 'type' => 'crypto']);
@@ -362,11 +367,11 @@ function user_step()
                 $text = convertnumber($text);
                 $min_starz = get_option('min_starz_deposit', 1);
                 $max_starz = get_option('max_starz_deposit', 2500);
-                
+
                 if (is_numeric($text) && $text >= $min_starz && $text <= $max_starz) {
                     $amount = (int)$text; // تعداد استارز
                     $amountIRT = $amount * $settings['starz_rate']; // تبدیل به تومان
-                    
+
                     $da = [
                         'chat_id' => $fid,
                         'title' => $key['starz_payment'],
@@ -1384,10 +1389,10 @@ function user_step()
                             $limit_formatted = number_format($limit_check['limit']);
 
                             if ($section_status['payment']['verify_card'] and !$user['payment_card']) {
-                                sm_user(['daily_limit_exceeded', $limit_formatted, $daily_total_formatted, $remaining_formatted,1], ['daily_limit_with_verify']);
+                                sm_user(['daily_limit_exceeded', $limit_formatted, $daily_total_formatted, $remaining_formatted, 1], ['daily_limit_with_verify']);
                                 user_set_step('daily_limit_exceeded');
                             } else {
-                                sm_user(['daily_limit_exceeded', $limit_formatted, $daily_total_formatted, $remaining_formatted,0], ['home']);
+                                sm_user(['daily_limit_exceeded', $limit_formatted, $daily_total_formatted, $remaining_formatted, 0], ['home']);
                                 user_set_step('none');
                             }
                             break;
@@ -1400,9 +1405,14 @@ function user_step()
                             $result = $db->has('payment_gateways', ['status' => 1, 'type' => 'IRT']);
                             if ($result) {
                                 if ($db->has('transactions', ['amount' => $text, 'status' => 2, 'tracking_code' => 0, 'type' => 'payment', 'user_id' => $fid])) {
-                                    $code = $db->get('transactions', 'id', ['amount' => $text, 'status' => 2, 'tracking_code' => 0, 'type' => 'payment', 'user_id' => $fid]);
+                                    $getTr = $db->get('transactions', ['id', 'data'], ['amount' => $text, 'status' => 2, 'tracking_code' => 0, 'type' => 'payment', 'user_id' => $fid]);
+                                    $code = $getTr['id'];
                                     if ($code) {
                                         $result = $db->select('payment_gateways', '*', ['status' => 1, 'type' => 'IRT']);
+
+                                        $decode = json_decode($getTr['data'], true);
+                                        $decode['payment_type'] = 'IRT';
+                                        $db->update('transactions', ['data[JSON]' => $decode], ['id' => $code]);
 
                                         sm_user(['payment_text', $user, $code, $text], ['payment_gateways', $result, $text, $domin, $code]);
                                         user_set_step();
@@ -1417,7 +1427,7 @@ function user_step()
                                         sm_user(['payment_mistake'], ['home']);
                                     }
                                 } else {
-                                    $code = add_tranaction('payment', $fid, $text);
+                                    $code = add_tranaction('payment', $fid, $text, ['payment_type' => 'IRT']);
 
                                     if ($code) {
                                         $result = $db->select('payment_gateways', '*', ['status' => 1, 'type' => 'IRT']);
@@ -1466,7 +1476,13 @@ function user_step()
 
                         $code = $getTr['id'];
 
-                        $result = $db->select('payment_gateways', '*', ['status' => 1]);
+                        $paymentType = 'IRT';
+                        if (isset($decode['payment_type'])) {
+                            $paymentType = $decode['payment_type'];
+                        }
+
+                        $result = $db->select('payment_gateways', '*', ['status' => 1, 'type' => $paymentType]);
+
                         $bot->delete_msg($fid, $message_id);
                         edt_user(['payment_text', $user, $code, $getTr['amount'], $text, $decodecode['amount'], $decodecode['max']], ['payment_gateways', $result, $getTr['amount'], $domin, $code], $fid, $user['link']);
                         user_set_step();
