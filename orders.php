@@ -36,9 +36,9 @@ if (!get_option('cron_order_lock', 1)) {
 			if ($ord_multi_check) {
 				foreach ($ord_multi_check as $co) {
 					$now = (time() - $co['date']) / 86400;
-					if ($now <= 15) {
+					// if ($now <= 15) {
 						$ids[] = $co['code_api'];
-					}
+					// }
 				}
 				$res_api = $api->status_multi($api_multi, $ids);
 				if ($res_api['result']) {
