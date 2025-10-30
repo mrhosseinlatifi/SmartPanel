@@ -145,7 +145,7 @@ if (!get_option('cron_order_lock', 1)) {
 		'api[!]' => $checked_apis,
 		'OR' => ['status' => ['pending', 'in progress']],
 		'LIMIT' => get_option('limit', 100),
-		'code_api[!]' => 0
+		'code_api[!]' => '0'
 	]);
 
 	if ($orders_single_check) {
@@ -223,7 +223,7 @@ if (!get_option('cron_order_lock', 1)) {
 	$result_add_order = $db->select("orders", '*', [
 		'status'   => 'pending',
 		'api[!]'   => 'noapi',
-		'code_api' => 0,
+		'code_api' => '0',
 		'LIMIT'    => 50
 	]);
 
