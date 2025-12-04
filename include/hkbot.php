@@ -14,10 +14,17 @@ class hkbot
 	{
 		$url = $this->url . '/' . $method;
 		$response = $this->sendRequest($url, $data);
+		if ($response === false) {
+			return ['ok' => false, 'result' => null, 'desc' => 'Network connection error. Please check your internet connection and try again.'];
+		}
+		if (!is_array($response)) {
+			return ['ok' => false, 'result' => null, 'desc' => 'Invalid response from Telegram API'];
+		}
 		if (isset($response['ok']) && $response['ok'] == 1) {
 			return $response;
 		} else {
-			return ['ok' => false, 'desc' => $response['description']];
+			$description = isset($response['description']) ? $response['description'] : 'Unknown error';
+			return ['ok' => false, 'result' => null, 'desc' => $description];
 		}
 	}
 
@@ -97,9 +104,17 @@ class hkbot
 			'chat_id' => $userId,
 			'user_id' => $userId
 		);
-		$result = $this->bot('getChatMember', $data)['result'];
-		$result['user']['first_name'] = str_replace(['>', '/', '<'], '', $result['user']['first_name']);
-		if (isset($result['user']['last_name'])) {
+		$response = $this->bot('getChatMember', $data);
+		if (!isset($response['result']) || !is_array($response['result'])) {
+			return ['user' => ['first_name' => 'Unknown', 'last_name' => '']];
+		}
+		$result = $response['result'];
+		if (isset($result['user']['first_name'])) {
+			$result['user']['first_name'] = str_replace(['>', '/', '<'], '', $result['user']['first_name']);
+		} else {
+			$result['user']['first_name'] = 'Unknown';
+		}
+		if (isset($result['user']['last_name']) && $result['user']['last_name'] !== null) {
 			$result['user']['last_name'] = str_replace(['>', '/', '<'], '', $result['user']['last_name']);
 		}
 		return $result;
@@ -133,23 +148,47 @@ class hkbot
 	private function sendRequest($url, $data)
 	{
 		$connection = curl_init($url);
+		if ($connection === false) {
+			error_log("Bot Class Curl Error : Failed to initialize curl");
+			return false;
+		}
+		
 		$options = array(
 			CURLOPT_POST => 1,
 			CURLOPT_POSTFIELDS => $data,
 			CURLOPT_RETURNTRANSFER => 1,
-			CURLOPT_IPRESOLVE => CURL_IPRESOLVE_WHATEVER
+			CURLOPT_IPRESOLVE => CURL_IPRESOLVE_WHATEVER,
+			CURLOPT_CONNECTTIMEOUT => 10,
+			CURLOPT_TIMEOUT => 30,
+			CURLOPT_SSL_VERIFYPEER => true,
+			CURLOPT_SSL_VERIFYHOST => 2
 		);
 		curl_setopt_array($connection, $options);
 		$response = curl_exec($connection);
 		$error = curl_error($connection);
+		$httpCode = curl_getinfo($connection, CURLINFO_HTTP_CODE);
 		curl_close($connection);
 
 		if ($error) {
-			error_log("Bot Class Curl Error : " . $error);
+			$errorMsg = "Bot Class Curl Error : " . $error;
+			if (strpos($error, 'getaddrinfo') !== false) {
+				$errorMsg .= " (DNS resolution failed)";
+			}
+			error_log($errorMsg);
 			return false;
-		} else {
-			$decodedResponse = json_decode($response, true);
-			return $decodedResponse;
 		}
+		
+		if ($response === false || empty($response)) {
+			error_log("Bot Class Curl Error : Empty or invalid response (HTTP Code: " . $httpCode . ")");
+			return false;
+		}
+		
+		$decodedResponse = json_decode($response, true);
+		if ($decodedResponse === null && json_last_error() !== JSON_ERROR_NONE) {
+			error_log("Bot Class Curl Error : JSON decode failed - " . json_last_error_msg() . " (Response: " . substr($response, 0, 200) . ")");
+			return false;
+		}
+		
+		return $decodedResponse;
 	}
 }

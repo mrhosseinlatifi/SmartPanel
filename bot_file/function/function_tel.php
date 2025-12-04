@@ -861,11 +861,11 @@ function updateLastMessage($lastMsg, $admin = false)
 
         if ($isBlocked && $lastMsgTime <= $currentTime) {
             $lastMsg['block'] = 0;
-            $lastMsg['last_msg'] = $currentTime + $settings['s_spam'];
+            $lastMsg['last_msg'] = floor($currentTime + $settings['s_spam']);
         } elseif (!$isBlocked && $lastMsgTime <= $currentTime) {
-            $lastMsg['last_msg'] = $currentTime + $settings['s_spam'];
+            $lastMsg['last_msg'] = floor($currentTime + $settings['s_spam']);
         } elseif (!$isBlocked && $lastMsgTime > $currentTime) {
-            $lastMsg['last_msg'] = $currentTime + $settings['s_block'];
+            $lastMsg['last_msg'] = floor($currentTime + $settings['s_block']);
             $lastMsg['block'] = 1;
             sm_user(['spam', $settings['s_block']]);
         } else {

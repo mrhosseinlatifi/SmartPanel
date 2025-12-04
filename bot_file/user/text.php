@@ -103,7 +103,6 @@ function user_text()
                                         handleStart('start');
                                     } else {
                                         $db->insert('users_information', ['user_id' => $fid, 'step' => 'oknum', 'referral_id' => $referral_id . 'off', 'join_date' => time()]);
-                                        sm_user(['ok_commission', $settings['gift_payment'], $referral_id, $fid], null, $referral_id);
                                         sm_user(['referral_authentication'], ['request_contact']);
                                         StartGift($fid);
                                     }
