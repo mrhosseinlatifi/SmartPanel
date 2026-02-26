@@ -62,22 +62,21 @@ function admin_steps()
                         $file_id = null;
                         $caption = '';
 
-                        $true = true;
+                        $true = false;
 
-                        foreach ($types as $i) {
-                            if (isset($update['message'][$i])) {
-                                $type = $update['message'][$i];
+                        foreach ($types as $type) {
+                            if (isset($update['message'][$type])) {
+                                $file = $update['message'][$type];
                                 $caption = $update['message']['caption'] ?? '';
-                                $file_id = ($i == 'photo') ? end($type)['file_id'] : $type['file_id'];
+                                $file_id = ($type == 'photo') ? end($file)['file_id'] : $type['file_id'];
+                                $true = true;
                                 break;
-                            } else {
-                                $true = false;
                             }
                         }
 
                         if ($true) {
-                            $send = str_replace($types, ['sendvideo', 'sendphoto', 'sendaudio', 'sendvoice', 'senddocument'], $i);
-                            $data_send = ['step' => 'sendall', 'info[JSON]' => ['send' => $send, 'file_id' => $file_id, 'type_file' => $i, 'caption' => $caption], 'user' => '0', 'admin' => $fid];
+                            $send = str_replace($types, ['sendvideo', 'sendphoto', 'sendaudio', 'sendvoice', 'senddocument'], $type);
+                            $data_send = ['step' => 'sendall', 'info[JSON]' => ['send' => $send, 'file_id' => $file_id, 'type_file' => $type, 'caption' => $caption], 'user' => '0', 'admin' => $fid];
                             $db->insert('jobs', $data_send);
                             admin_step('sendall');
                             sm_admin(['sendall_5'], ['send_panel']);
