@@ -15,19 +15,20 @@ require_once ROOTPATH . "/include/domin.php";
  * @param float $max_fee حداکثر کارمزد (0 = بدون محدودیت)
  * @return float کارمزد محاسبه شده
  */
-function calculateGatewayCommission($amount, $percent_fee, $max_fee = 0) {
-    if ($percent_fee <= 0) {
-        return 0;
-    }
-    
-    $commission = ($amount * $percent_fee) / 100;
-    
-    // اعمال حداکثر کارمزد در صورت تعریف
-    if ($max_fee > 0 && $commission > $max_fee) {
-        $commission = $max_fee;
-    }
-    
-    return $commission;
+function calculateGatewayCommission($amount, $percent_fee, $max_fee = 0)
+{
+  if ($percent_fee <= 0) {
+    return 0;
+  }
+
+  $commission = ($amount * $percent_fee) / 100;
+
+  // اعمال حداکثر کارمزد در صورت تعریف
+  if ($max_fee > 0 && $commission > $max_fee) {
+    $commission = $max_fee;
+  }
+
+  return $commission;
 }
 
 $bot = new hkbot(Token);
@@ -56,7 +57,11 @@ if (isset($_GET['file'])) {
               case 'get':
                 $code = $_GET['code'];
                 // result transactions
-                $payment = $db->get('transactions', '*', ['id' => $code]);
+                $payment = $db->get('transactions', '*', ['id' => $code, 'type' => 'payment', 'status' => [2, 3]]);
+                if (!$payment) {
+                  echo "<title>@$idbot</title><h1 style='text-align: center;margin-top:30px'>" . $media->text('time_payment_end', $result_payment['file']) . "</h1>";
+                  exit;
+                }
                 $fid = $payment['user_id'];
                 $user = $db->get('users_information', '*', ['user_id' => $fid]);
                 $original_amount = $payment['amount'];
@@ -65,7 +70,7 @@ if (isset($_GET['file'])) {
                 $date = $payment['date'];
                 $name = $bot->getChatMember($fid)['user']['first_name'];
                 $decode_data = json_decode($payment['data'], true);
-                
+
                 // محاسبه کارمزد درگاه و اضافه کردن به مبلغ
                 $gateway_data = json_decode($result_payment['data'], true);
                 $percent_fee = isset($gateway_data['percent_fee']) ? floatval($gateway_data['percent_fee']) : 0;
@@ -90,7 +95,11 @@ if (isset($_GET['file'])) {
               case 'back':
                 $code = $_GET['code'];
                 // result transactions
-                $payment = $db->get('transactions', '*', ['id' => $code]);
+                $payment = $db->get('transactions', '*', ['id' => $code, 'type' => 'payment', 'status' => 3]);
+                if (!$payment) {
+                  echo "<title>@$idbot</title><h1 style='text-align: center;margin-top:30px'>" . $media->text('time_payment_end', $result_payment['file']) . "</h1>";
+                  exit;
+                }
                 $fid = $payment['user_id'];
                 $user = $db->get('users_information', '*', ['user_id' => $fid]);
                 $original_amount = $payment['amount'];
@@ -99,7 +108,7 @@ if (isset($_GET['file'])) {
                 $date = $payment['date'];
                 $name = $bot->getChatMember($fid)['user']['first_name'];
                 $decode_data = json_decode($payment['data'], true);
-                
+
                 // محاسبه کارمزد درگاه و اضافه کردن به مبلغ
                 $gateway_data = json_decode($result_payment['data'], true);
                 $percent_fee = isset($gateway_data['percent_fee']) ? floatval($gateway_data['percent_fee']) : 0;
@@ -160,7 +169,7 @@ if (isset($_GET['file'])) {
                         header('Location: https://' . $domin . '/payment/show.php?OK&code=' . $tracking_code . '&idbot=' . $idbot);
                       } else {
                         if (!$result_ipn) {
-                          $db->update('transactions', ['status' => 0], ['id' => $code]);
+                          $db->update('transactions', ['status' => 0], ['id' => $code, 'type' => 'payment']);
 
                           $bot->sm($fid, $media->text('cancel_payment', $result_payment['file']));
                           $base_url = 'https://' . $domin . '/payment/show.php?NOK&idbot=' . $idbot . '&msg=' . $media->text('error', $paymentEn);

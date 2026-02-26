@@ -574,7 +574,7 @@ function user_step()
 
                 if ($text == $key['back_to_before']) {
 
-                    unset($userdata['category'][count($userdata['category']) - 1]);
+                    array_pop($userdata['category']);
                     $userdata['now'] -= 1;
                     if ($userdata['now'] < 0) {
                         handleStart('back');
@@ -689,7 +689,7 @@ function user_step()
 
                 if ($text == $key['back_to_before']) {
 
-                    unset($userdata['category'][count($userdata['category']) - 1]);
+                    array_pop($userdata['category']);
                     $userdata['now'] -= 1;
                     if ($userdata['now'] == '0') {
                         $idc = null;

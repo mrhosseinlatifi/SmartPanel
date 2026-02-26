@@ -63,6 +63,7 @@ if ($type === 'get') {
                         'data[JSON]' => $decode_data,
                         'tracking_code' => $trackid,
                         'getway' => $paymentEn,
+                        'type' => 'payment'
                     ], ['id' => $code]);
 
                     redirect_payment($result['response']['result']['url']);
@@ -118,7 +119,8 @@ if ($type === 'get') {
                             $db->update('transactions', [
                                 'status' => 1,
                                 'tracking_code' => $tracking_code,
-                                'getway' => $paymentEn
+                                'getway' => $paymentEn,
+                                'type' => 'payment'
                             ], ['id' => $code]);
 
                             $result_ok = true;
@@ -136,6 +138,7 @@ if ($type === 'get') {
                                 'status' => 1,
                                 'tracking_code' => $tracking_code,
                                 'getway' => $paymentEn,
+                                'type' => 'payment'
                             ], ['id' => $code]);
 
                             $result_ok = true;
@@ -153,6 +156,7 @@ if ($type === 'get') {
                                 'status' => 1,
                                 'tracking_code' => $tracking_code,
                                 'getway' => $paymentEn,
+                                'type' => 'payment'
                             ], ['id' => $code]);
 
                             $result_ok = true;
@@ -193,7 +197,8 @@ if ($type === 'get') {
                                 $db->update('transactions', [
                                     'status' => 1,
                                     'tracking_code' => $tracking_code,
-                                    'getway' => $paymentEn
+                                    'getway' => $paymentEn,
+                                    'type' => 'payment'
                                 ], ['id' => $code]);
 
                                 $result_ok = true;
@@ -210,6 +215,7 @@ if ($type === 'get') {
                                     'status' => 1,
                                     'tracking_code' => $tracking_code,
                                     'getway' => $paymentEn,
+                                    'type' => 'payment'
                                 ], ['id' => $code]);
 
                                 $result_ok = true;
@@ -227,6 +233,7 @@ if ($type === 'get') {
                                     'status' => 1,
                                     'tracking_code' => $tracking_code,
                                     'getway' => $paymentEn,
+                                    'type' => 'payment'
                                 ], ['id' => $code]);
 
                                 $result_ok = true;

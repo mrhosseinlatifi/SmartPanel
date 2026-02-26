@@ -45,6 +45,7 @@ if ($type === 'get') {
                         'data[JSON]' => $decode_data,
                         'tracking_code' => $trackid,
                         'getway' => $paymentEn,
+                        'type' => 'payment'
                     ], ['id' => $code]);
                     redirect_payment(AQAYEPARDAKHT_PAYMENT_URL . $trackid);
                 } else {
@@ -93,8 +94,9 @@ if ($type === 'get') {
             $db->update('transactions', [
                 'status' => 1,
                 'tracking_code' => $tracking_code,
-                'getway' => $paymentEn
-            ], ['id' => $code]);
+                'getway' => $paymentEn,
+                'type' => 'payment'
+            ], ['id' => $code, 'type' => 'payment']);
 
             $result_ok = true;
         }

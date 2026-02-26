@@ -53,6 +53,7 @@ if ($type === 'get') {
                         'data[JSON]' => $decode_data,
                         'tracking_code' => $trackid,
                         'getway' => $paymentEn,
+                        'type' => 'payment'
                     ], ['id' => $code]);
 
 
@@ -108,20 +109,21 @@ if ($type === 'get') {
                     if ($hmac === $recived_hmac && $step == '3') {
                         $url = $url_2 . $request_data['payment_id'];
                         $result = sendCurlRequest($url);
-                        
-                
+
                         $status = $result['response']['payment_status'];
                         $tracking_code = $result['response']['payment_id'];
-                        
-                        if ($status === 'finished' && !$db->has('transactions', ['tracking_code' => $tracking_code, 'type' => 'payment', 'getway' => $paymentEn ])) {
+
+                        if ($status === 'finished' && !$db->has('transactions', ['tracking_code' => $tracking_code, 'type' => 'payment', 'getway' => $paymentEn])) {
                             $result_ok = true;
                             $db->update('transactions', [
                                 'status' => 1,
                                 'tracking_code' => $tracking_code,
-                                'getway' => $paymentEn
+                                'getway' => $paymentEn,
+                                'type' => 'payment'
                             ], ['id' => $code]);
-
                         }
+                    } else {
+                        $result_ipn = true;
                     }
                 }
                 break;
@@ -131,9 +133,12 @@ if ($type === 'get') {
                     $np_id = $_GET['NP_id'] ?? 0;
                     $url = $url_2 . $np_id;
                     $result = sendCurlRequest($url);
+
                     $status = $result['response']['payment_status'];
                     $tracking_code = $result['response']['payment_id'];
-                    
+
+
+
                     if (
                         $status === 'finished' &&
                         !$db->has('transactions', ['tracking_code' => $tracking_code, 'type' => 'payment', 'getway' => $paymentEn])
@@ -142,20 +147,26 @@ if ($type === 'get') {
                         $db->update('transactions', [
                             'status' => 1,
                             'tracking_code' => $tracking_code,
-                            'getway' => $paymentEn
+                            'getway' => $paymentEn,
+                            'type' => 'payment'
                         ], ['id' => $code]);
-
                     } else {
-                        $check_array = ['sending', 'processing', 'waiting', 'creating'];
+                        $check_array = ['sending', 'processing', 'waiting', 'creating', 'confirmed'];
                         if (in_array($status, $check_array)) {
                             $result_ipn = true;
                         }
+                    }
+                } else {
+                    // If payment is finished but already recorded as confirmed in DB,
+                    // avoid re-sending bot messages: redirect user to success page.
+                    if ($step == '1') {
+                        header('Location: https://' . $domin . '/payment/show.php?OK&code=' . $payment['tracking_code'] . '&idbot=' . $idbot);
+                        exit;
                     }
                 }
                 break;
 
             case 'NOK':
-                
                 break;
         }
     }
@@ -164,6 +175,7 @@ if ($type === 'get') {
 /**
  * Function to handle cURL requests
  */
+
 function sendCurlRequest($url, $data = [])
 {
     $headers = [

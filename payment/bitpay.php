@@ -34,7 +34,8 @@ if ($type === 'get') {
                         'status' => 3,
                         'tracking_code' => $tracking_code,
                         'getway' => $paymentEn,
-                        'data[JSON]' => ['ip' => getip(), 'payment' => $paymentEn]
+                        'data[JSON]' => ['ip' => getip(), 'payment' => $paymentEn],
+                        'type' => 'payment'
                     ], ['id' => $code]);
 
                     $url = str_replace('NUMBER', $tracking_code, BITPAY_PAYMENT_URL);
@@ -83,7 +84,7 @@ if ($type === 'get') {
     $response = $result['response'];
 
     if (!isset($response->status) || $response->status != 1) {
-        $db->update('transactions', ['status' => 0], ['id' => $code]);
+        $db->update('transactions', ['status' => 0], ['id' => $code, 'type' => 'payment']);
         $bot->sm($fid, $media->text(['error_payment']));
         redirect($base_url);
     }
@@ -101,7 +102,7 @@ if ($type === 'get') {
             substr($card, 0, 6) !== substr($user['payment_card'], 0, 6) ||
             substr($card, -4) !== substr($user['payment_card'], -4)
         ) {
-            $db->update('transactions', ['status' => 0], ['id' => $code]);
+            $db->update('transactions', ['status' => 0], ['id' => $code, 'type' => 'payment']);
             $bot->sm($fid, $media->text(['not_pay_payment_card']));
             redirect($base_url);
             exit;
@@ -113,7 +114,7 @@ if ($type === 'get') {
         'tracking_code' => $tracking_code,
         'getway' => $paymentEn,
         'type' => 'payment'
-    ], ['id' => $code]);
+    ], ['id' => $code, 'type' => 'payment']);
 
     $result_ok = true;
 }

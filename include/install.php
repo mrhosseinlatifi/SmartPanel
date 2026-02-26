@@ -631,7 +631,6 @@ function first_data($db, $admin)
         'daily_limit' => 400000,
         'channel_main' => 0,
         'channel_lock' => 0,
-        'channel_lock' => 0,
         'channel_transaction' => $admin,
         'channel_payment_offline' => $admin,
         'channel_ads' => 0,

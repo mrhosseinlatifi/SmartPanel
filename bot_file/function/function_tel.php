@@ -1067,10 +1067,12 @@ function add_tranaction($type, $id, $amount, $data = [])
 function check_daily_payment_limit($user_id, $amount, $payment_card)
 {
     global $db;
-    
+
     $daily_limit = get_option('daily_limit', 200000);
-    
-    if ($payment_card && $payment_card !== '0' && $payment_card !== 'wait') {
+
+    if ((!empty($payment_card) && $payment_card !== '0' && $payment_card !== 'wait')
+        || $daily_limit === 0 || $daily_limit === '0'
+    ) {
         return [
             'allowed' => true,
             'daily_total' => 0,
@@ -1078,43 +1080,43 @@ function check_daily_payment_limit($user_id, $amount, $payment_card)
             'remaining' => 0
         ];
     }
-    
+
     $today_start = strtotime('today');
     $today_end = strtotime('tomorrow') - 1;
-    
-     $transactions = $db->select('transactions', ['amount', 'getway'], [
-         'user_id' => $user_id,
-         'type' => 'payment',
-         'status' => 1,
-         'date[>=]' => $today_start,
-         'date[<=]' => $today_end
-     ]);
-     
-     $daily_total = 0;
-     if ($transactions) {
-         foreach ($transactions as $transaction) {
-             $gateway_type = 'IRT';
-             
-             if ($transaction['getway'] && $transaction['getway'] !== 'offline') {
-                 $gateway_info = $db->get('payment_gateways', 'type', ['file' => $transaction['getway']]);
-                 if ($gateway_info) {
-                     $gateway_type = $gateway_info;
-                 }
-             }
-             
-             if ($gateway_type === 'IRT') {
-                 $daily_total += (int)$transaction['amount'];
-             }
-         }
-     }
-     
-     $daily_total = (int)$daily_total;
-     $amount = (int)$amount;
-     
-     $new_total = $daily_total + $amount;
+
+    $transactions = $db->select('transactions', ['amount', 'getway'], [
+        'user_id' => $user_id,
+        'type' => 'payment',
+        'status' => 1,
+        'date[>=]' => $today_start,
+        'date[<=]' => $today_end
+    ]);
+
+    $daily_total = 0;
+    if ($transactions) {
+        foreach ($transactions as $transaction) {
+            $gateway_type = 'IRT';
+
+            if ($transaction['getway'] && $transaction['getway'] !== 'offline') {
+                $gateway_info = $db->get('payment_gateways', 'type', ['file' => $transaction['getway']]);
+                if ($gateway_info) {
+                    $gateway_type = $gateway_info;
+                }
+            }
+
+            if ($gateway_type === 'IRT') {
+                $daily_total += (int)$transaction['amount'];
+            }
+        }
+    }
+
+    $daily_total = (int)$daily_total;
+    $amount = (int)$amount;
+
+    $new_total = $daily_total + $amount;
     $allowed = $new_total <= $daily_limit;
     $remaining = max(0, $daily_limit - $daily_total);
-    
+
     return [
         'allowed' => $allowed,
         'daily_total' => $daily_total,
