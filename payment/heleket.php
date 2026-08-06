@@ -114,16 +114,14 @@ if ($type === 'get') {
                         $tracking_code = $request_data['uuid'];
 
                         if ($payment_status === 'paid') {
-                            $is_duplicate = $db->has('transactions', ['tracking_code' => $tracking_code, 'type' => 'payment', 'getway' => $paymentEn, 'status' => 1]);
-
-                            if (!$is_duplicate) {
+                            $stmt = $db->update('transactions', [
+                                'status' => 1,
+                                'tracking_code' => $tracking_code,
+                                'getway' => $paymentEn,
+                                'type' => 'payment'
+                            ], ['id' => $code, 'status' => 3]);
+                            if ($stmt && $stmt->rowCount() > 0) {
                                 $result_ok = true;
-                                $db->update('transactions', [
-                                    'status' => 1,
-                                    'tracking_code' => $tracking_code,
-                                    'getway' => $paymentEn,
-                                    'type' => 'payment'
-                                ], ['id' => $code]);
                             }
                         } else {
                             $result_ipn = true;
@@ -147,21 +145,18 @@ if ($type === 'get') {
                             $payment_status = $result['response']['result']['status'];
                             $tracking_code = $result['response']['result']['uuid'];
 
-                            $is_duplicate = $db->has('transactions', ['tracking_code' => $tracking_code, 'type' => 'payment', 'getway' => $paymentEn, 'status' => 1]);
-
-                            if (
-                                $payment_status === 'paid' && !$is_duplicate
-                            ) {
-
-                                $result_ok = true;
-                                $db->update('transactions', [
+                            if ($payment_status === 'paid') {
+                                $stmt = $db->update('transactions', [
                                     'status' => 1,
                                     'tracking_code' => $tracking_code,
                                     'getway' => $paymentEn,
                                     'type' => 'payment'
-                                ], ['id' => $code]);
+                                ], ['id' => $code, 'status' => 3]);
+                                if ($stmt && $stmt->rowCount() > 0) {
+                                    $result_ok = true;
+                                }
                             } else {
-                                $check_array = ['confirm_check'];
+                                $check_array = ['process', 'confirm_check', 'check', 'wrong_amount_waiting', 'locked'];
                                 if (in_array($payment_status, $check_array)) {
                                     $result_ipn = true;
                                 }

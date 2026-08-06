@@ -24,9 +24,10 @@ $key['admin_edit_receipt'] = '✅ تایید و ویرایش مبلغ ✅';
 $key['admin_cancel_receipt'] = 'رد رسید ❌';
 trait admin_user_text
 {
-    public function akeys($k, $data = null)
+    public function akeys(string $k, $data = null)
     {
         global $key, $idbot;
+        $t = [];
         switch ($k) {
             case 'admin_support':
                 $fid = $data;
@@ -159,7 +160,7 @@ trait admin_user_text
             return $t;
         }
     }
-    public function atext($tx, $data = null)
+    public function atext(string $tx, $data = null)
     {
         global $idbot;
         switch ($tx) {
@@ -325,8 +326,8 @@ $tt
                 break;
             case 'payment_verify_caption':
                 $fid = $data['0'];
-                $first_name = $data['0'];
-                $caption = $data['0'];
+                $first_name = $data['1'];
+                $caption = $data['2'];
                 $t = "<a href = 'tg://user?id=$fid'>$first_name</a> | #user_$fid\nمتن پیام : \n" . $caption;
                 break;
             case 'sended_pm':

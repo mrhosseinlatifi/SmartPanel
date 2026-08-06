@@ -62,8 +62,8 @@ function user_data()
 			break;
 		case text_starts_with($data, "orderstatus_"):
 			$str = str_replace('orderstatus_', '', $data);
-			if ($db->has('orders', ['code' => $str])) {
-				$res = $db->get('orders', '*', ['code' => $str]);
+			if ($db->has('orders', ['id' => $str, 'user_id' => $fid])) {
+				$res = $db->get('orders', '*', ['id' => $str, 'user_id' => $fid]);
 				alert_user(['result_order_inline', $res]);
 			}
 			break;
@@ -165,15 +165,12 @@ function user_data()
 							$code = $ex['2'];
 							$result_product = $db->get('products', '*', ['status' => 1, 'id' => $code]);
 							if ($result_product) {
-								// Calculate price with discounts
-								$price = $result_product['price'];
-								
-								// Apply product discount: positive = price increase, negative = price decrease
+								$price = product_base_price($result_product);
+
 								if ($result_product['discount']) {
-									$price = $price + (($result_product['price'] / 100) * $result_product['discount']);
+									$price = $price + (($price / 100) * $result_product['discount']);
 								}
-								
-								// Apply user discount (always reduces price)
+
 								if ($user['discount']) {
 									$price = $price - (($price / 100) * $user['discount']);
 								}
@@ -198,7 +195,6 @@ function user_data()
 							$category_id = $ex['2'];
 							$categoryResult = $db->get('categories', '*', ['id' => $category_id]);
 							if ($categoryResult) {
-								# get products
 								$result = get_products(['inline', 'offset' => 0], $categoryResult['id']);
 								if ($result) {
 									$c = $db->count('products', ['status' => 1, 'category_id' => $categoryResult['id']]);
@@ -227,16 +223,13 @@ function user_data()
 							if ($result_product) {
 								$bot->delete_msg($fid, $message_id);
 								
-								// Build category path for proper navigation
 								$userdata = [];
 								$userdata['now'] = 0;
 								$userdata['category'] = [];
 								
-								// Build category hierarchy
 								$category_id = $result_product['category_id'];
 								$category_path = [];
 								
-								// Get full category path
 								while ($category_id) {
 									$category = $db->get('categories', '*', ['id' => $category_id]);
 									if ($category) {
@@ -253,16 +246,13 @@ function user_data()
 								}
 								
 								$userdata['category'] = $category_path;
-								
-								// Calculate price with discounts
-								$price = $result_product['price'];
-								
-								// Apply product discount: positive = price increase, negative = price decrease
+
+								$price = product_base_price($result_product);
+
 								if ($result_product['discount']) {
-									$price = $price + (($result_product['price'] / 100) * $result_product['discount']);
+									$price = $price + (($price / 100) * $result_product['discount']);
 								}
 								
-								// Apply user discount (always reduces price)
 								if ($user['discount']) {
 									$price = $price - (($price / 100) * $user['discount']);
 								}
@@ -279,20 +269,16 @@ function user_data()
 								}
 								$userdata['product'] =  ['product' => $result_product['id'], 'min' => $result_product['min'], 'max' => $result_product['max'], 'price_once' => $price_once, 'pattern' => $result_product['pattern']];
 								
-								// Handle different product types
 								if ($result_product['type'] == 'custom_comments') {
-									// For comment type, show product first, then ask for comments
 									user_set_data(['step' => 'buy3', 'data[JSON]' => $userdata, 'type' => $result_product['type']]);
 									sm_user(['shop4_comments', $result_product, $price, $price_once, $result_product['min'], $result_product['max']], ['back_to_before']);
 								} elseif ($result_product['min'] == 1 && $result_product['max'] == 1) {
-									// For products with min/max = 1, show product info but ask for link directly
 									$userdata['price'] = $price_once;
 									$userdata['count'] = 1;
 									$link_text = $db->get('pattern', 'text', ['type' => $result_product['pattern']]);
 									user_set_data(['step' => 'buy5', 'data[JSON]' => $userdata, 'type' => $result_product['type']]);
 									sm_user(['shop4_direct_link', $result_product, $price, $price_once, $link_text], ['back_to_before']);
 								} else {
-									// Normal flow
 									user_set_data(['step' => 'buy3', 'data[JSON]' => $userdata, 'type' => $result_product['type']]);
 									sm_user(['shop4', $result_product, $price, $price_once, $how_much], ['back_to_before']);
 								}
@@ -315,7 +301,10 @@ function user_data()
 
 			$result = $db->has('payment_gateways', ['status' => 1]);
 			if ($result) {
-				$getTr = $db->get('transactions', '*', ['id' => $code]);
+				$getTr = $db->get('transactions', '*', ['id' => $code, 'user_id' => $fid]);
+				if (!$getTr) {
+					break;
+				}
 				$code = $getTr['id'];
 				$text = $getTr['amount'];
 

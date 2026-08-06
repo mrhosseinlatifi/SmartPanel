@@ -16,13 +16,15 @@ trait main_admin_text
                 $number_user = $data[0];
                 $number_order = $data[1];
                 $users_balance = $data[2];
+                $usd_rate = $data[3];
                 $date = jdate('Y/m/d - H:i:s');
                 $t = "📊 آمار ربات:
 👥 تعداد کاربران: $number_user
 💰 موجودی کاربران: $users_balance
 📝 تعداد سفارشات ثبت شده: $number_order
+💲 نرخ دلار: $usd_rate تومان
 📅 تاریخ مشاهده: $date
-برای دیدن آمار کامل، روی دکمه 'آمار بیشتر' کلیک کنید.
+برای دیدن آمار کامل، روی دکمه 'آمار کلی 📊' کلیک کنید.
 برای دیدن دسترسی‌های خود، دستور /access را وارد کنید.";
                 break;
             case 'more_stats':
@@ -38,8 +40,8 @@ trait main_admin_text
                 $users_balance = $data[9];
                 $users_gift_balance = $data[10];
                 $amount_paid = $data[11];
-                $cron = jdate('Y/m/d , H:i', $data[12]);
-                $cron_done = jdate('Y/m/d , H:i', $data[13]);
+                $usd_rate = $data[12];
+                $usd_mode_label = $data[13] === 'auto' ? '🤖 خودکار' : '✍️ دستی';
                 $version = $data[14];
                 $date = jdate('Y/m/d - H:i:s');
                 $ts = "\n📅 تاریخ مشاهده: $date";
@@ -56,9 +58,20 @@ trait main_admin_text
 💳 تعداد فاکتور ساخته شده: $number_payment_creted
 💳 تعداد فاکتور پرداخت شده: $number_payment
 💵 مبلغ کلی پرداخت شده: $amount_paid
-⏰ آخرین کرون همگانی: $cron
-⏰ آخرین کرون سفارشات: $cron_done
+💲 نرخ دلار: {$usd_rate} تومان ({$usd_mode_label})
 🔄 ورژن ربات: {$version}\n" . $ts;
+                break;
+            case 'cron_status':
+                $cron = $data[0] ? jdate('Y/m/d , H:i', $data[0]) : 'هنوز اجرا نشده';
+                $cron_done = $data[1] ? jdate('Y/m/d , H:i', $data[1]) : 'هنوز اجرا نشده';
+                $cron_auto = $data[2] ? jdate('Y/m/d , H:i', $data[2]) : 'هنوز اجرا نشده';
+                $t = "⏰ زمان اجرای آخرین کرون‌جاب‌ها:
+
+📤 کرون همگانی (send.php): $cron
+📦 کرون سفارشات (orders.php): $cron_done
+⚙️ کرون خودکار — نرخ دلار و... (cron.php): $cron_auto
+
+برای دریافت لینک کرون‌ها: /cron_link";
                 break;
             case 'status':
                 $s = date('s');
@@ -66,14 +79,9 @@ trait main_admin_text
 گزینه‌هایی که دارای (*) هستند، دارای گزینه‌های زیرمجموعه هستند. برای مشاهده، روی اسم آنها کلیک کنید. $s";
                 break;
             case 'sendall_1':
-                $t = "📤 انتخاب کنید:
-اگر می‌خواهید ارسال همگانی را لغو کنید، دستور /cancelall را وارد کنید.
-برای مشاهده پیام در صف، دستور /sendmsg را ارسال کنید.";
+                $t = "📤 انتخاب کنید:";
                 if ($data) {
-                    $t .= "\nبا زدن دستور زیر ارسال همگانی لغو میشود.
-/cancelall
-برای مشاهده پیام در صف دستور زیر را ارسال کنید
-/sendmsg";
+                    $t .= "\n\n⏳ یک ارسال همگانی در صف/در حال اجراست.\nبرای مشاهده وضعیت، لغو یا توقف آن، روی دکمه «📊 وضعیت ارسال همگانی» بزنید.";
                 }
                 break;
             case 'sendall_2':
@@ -94,8 +102,15 @@ trait main_admin_text
                 break;
             case 'sendall_6':
                 $t = "⏳ یک پیام در صف ارسال است. لطفاً دقایقی دیگر امتحان کنید.
-برای لغو ارسال همگانی، دستور /cancelall را وارد کنید.
-برای مشاهده پیام در صف، دستور /sendmsg را ارسال کنید.";
+برای مشاهده وضعیت، لغو یا توقف آن، روی دکمه «📊 وضعیت ارسال همگانی» بزنید.";
+                break;
+            case 'sendall_album_preview':
+                $count = $data[0] ?? 0;
+                $caption = $data[1] ?? '';
+                $cap_line = $caption ? "\n📝 کپشن: $caption" : '';
+                $t = "📸 آلبوم آماده ارسال:
+🖼 تعداد عکس: {$count}{$cap_line}
+عکس‌های بیشتر ارسال کنید یا دکمه تأیید را بزنید:";
                 break;
             case 'sendall_7':
                 $t = "🔢 عدد فعلی: {$data}
@@ -112,6 +127,47 @@ trait main_admin_text
                 break;
             case 'error_sendall':
                 $t = "لطفا پیام مورد نظر خود را ارسال کنید";
+                break;
+            case 'sendall_status':
+                $type_label = $data[0];
+                $sent = $data[1];
+                $total = $data[2];
+                $remaining = $data[3];
+                $status_label = $data[4];
+                $last = $data[5] ? jdate('Y/m/d H:i', $data[5]) : '-';
+                $percent = $total > 0 ? round(($sent / $total) * 100) : 0;
+                $t = "📊 وضعیت ارسال همگانی
+
+📨 نوع پیام: {$type_label}
+📶 وضعیت: {$status_label}
+✅ ارسال شده: {$sent} از {$total} نفر ({$percent}٪)
+⏳ باقی‌مانده: {$remaining} نفر
+🕐 آخرین فعالیت: {$last}";
+                break;
+            case 'sendall_status_empty':
+                $t = "در حال حاضر هیچ ارسال همگانی در صف یا در حال اجرا نیست.";
+                break;
+            case 'sendall_preview_sent':
+                $t = "✅ نمونه پیام برای شما ارسال شد.";
+                break;
+            case 'sendall_paused':
+                $t = "⏸ ارسال متوقف شد. با دکمه «ادامه ارسال» می‌توانید آن را از سرجای متوقف‌شده ادامه دهید.";
+                break;
+            case 'sendall_resumed':
+                $t = "▶️ ارسال ادامه یافت.";
+                break;
+            case 'sendall_cancelled':
+                $t = "❌ ارسال همگانی به طور کامل لغو شد.";
+                break;
+            case 'sendall_album_added':
+                $count = $data;
+                $t = "✅ آلبوم {$count} عکسه به صف همگانی اضافه شد.";
+                break;
+            case 'sendall_photo_added':
+                $t = "✅ عکس به صف همگانی اضافه شد.";
+                break;
+            case 'sendall_album_cancelled':
+                $t = "❌ ارسال آلبوم لغو شد.";
                 break;
             case 'userinfo_1':
                 $t = "🔍 لطفاً آیدی شخص مورد نظر یا شماره همراه آن را وارد کنید:";
@@ -392,7 +448,6 @@ trait main_admin_text
 ";
                                 break;
                             default:
-                                // Handle unknown transaction types
                                 $type_name = $row['type'];
                                 $tx .= "❓ نوع تراکنش: {$type_name} | مبلغ: {$row['amount']}
 📅 {$date}
@@ -427,12 +482,59 @@ trait main_admin_text
                 $q = $data[1];
                 $t = "💰 {$q} تومان به کاربر {$id} اضافه کردم.";
                 break;
-            case 'order_info_1':
-                $t = "🔍 کد پیگیری ربات یا وب سرویس آن را ارسال کنید:";
+            case 'channels_panel':
+                $t = "📋 <b>تنظیمات کانال‌ها</b>";
+                $t .= "\nبرای ویرایش یا حذف از دکمه‌های زیر استفاده کنید.";
+                $t .= "\n علامت ✅ به معنی تنظیم کانال و علامت ❌ به معنی تنظیم نبودن کانال می‌باشد.";
                 break;
-            case 'channels_1':
-                $t = "🔒 انتخاب کنید:
-برای امنیت بیشتر، اعطای دسترسی ارسال پیام برای انجام فعالیت ربات کافی می‌باشد.";
+
+            case 'ch_lock_panel':
+                $la = $data ?: [];
+                if (empty($la)) {
+                    $t = "🔒 <b>کانال‌های جوین اجباری</b>\n\nهیچ کانالی تنظیم نشده.\nبرای افزودن، دکمه ➕ را بزنید.";
+                } else {
+                    $t = "🔒 <b>کانال‌های جوین اجباری</b>\n\n";
+                    foreach ($la as $i => $u) {
+                        $t .= ($i + 1) . ". @{$u}\n";
+                    }
+                    $t .= "\nبرای حذف هر کانال روی ❌ بزنید.";
+                }
+                break;
+
+            case 'ch_set_prompt':
+                $ck = $data;
+                $labels = [
+                    'channel_main'            => '📢 کانال اصلی',
+                    'channel_transaction'     => '💰 تراکنشات',
+                    'channel_payment_offline' => '💳 کارت به کارت',
+                    'channel_ads'             => '📢 تبلیغاتی',
+                    'channel_order_api'       => '🛍 سفارشات API',
+                    'channel_order_noapi'     => '🛍 سفارشات دستی',
+                    'channel_support'         => '💬 پشتیبانی',
+                    'channel_kyc'             => '🔐 احراز هویت',
+                    'channel_gift_transaction'=> '💸 برداشت هدیه',
+                    'channel_errors'          => '❌ خطاها',
+                ];
+                $cl = $labels[$ck] ?? $ck;
+                $cv = get_option($ck, 0);
+                $cv_str = ($cv && $cv != '0') ? "\nمقدار فعلی: <code>{$cv}</code>\n" : '';
+                if ($ck === 'channel_main') {
+                    $t = "✏️ <b>ویرایش {$cl}</b>{$cv_str}\n@یوزرنیم کانال را ارسال کنید یا یک پست از کانال فوروارد کنید.";
+                } else {
+                    $t = "✏️ <b>ویرایش {$cl}</b>{$cv_str}\nیک پست از کانال مورد نظر فوروارد کنید.\n(ربات باید ادمین کانال باشد)\n\nیا آیدی عددی کانال را مستقیم ارسال کنید.";
+                }
+                break;
+
+            case 'ch_lock_add_prompt':
+                $t = "➕ <b>افزودن کانال جوین اجباری</b>\n\nیک پست از کانال مورد نظر فوروارد کنید.\n(ربات باید ادمین کانال باشد)";
+                break;
+
+            case 'ch_saved':
+                $t = "✅ ذخیره شد.";
+                break;
+
+            case 'ch_deleted':
+                $t = "🗑 حذف شد.";
                 break;
             case 'products_1':
                 $t = "🛍 انتخاب کنید:";
@@ -586,6 +688,12 @@ https://site.com/api/v1";
             case 'not_found_api':
                 $t = "❌ هیچ وب سرویسی ثبت نشده است.";
                 break;
+            case 'not_found_order':
+                $t = "❌ سفارش با شناسه {$data} یافت نشد.";
+                break;
+            case 'error_text_admin_home':
+                $t = "❌ دستور شما ناشناخته است، لطفا از منوی ربات استفاده کنید.";
+                break;
             case 'edit_api':
                 $t = "🔄 وب سرویس مورد نظر خود را برای ویرایش انتخاب کنید:";
                 break;
@@ -644,7 +752,8 @@ $date";
                 $t = "🔄 انتخاب کنید:
 مقادیر فعلی:
 تعداد سفارش بررسی: {$data['0']}
-تعداد سفارش بررسی چندگانه: {$data['1']}";
+تعداد سفارش بررسی چندگانه: {$data['1']}
+مدت زمان نامشخص شدن سفارش: {$data['2']} روز";
                 break;
             case 'edit_api_setting_2':
                 $t = "🔢 مقدار جدید را برای $data وارد کنید:";
@@ -653,7 +762,8 @@ $date";
                 $t = "✅ انجام شد.
 مقادیر فعلی:
 تعداد سفارش بررسی: {$data['0']}
-تعداد سفارش بررسی چندگانه: {$data['1']}";
+تعداد سفارش بررسی چندگانه: {$data['1']}
+مدت زمان نامشخص شدن سفارش: {$data['2']} روز";
                 break;
             case 'payment_status':
                 $t = "💳 درگاه مورد نظر خود را انتخاب کنید:";
@@ -691,6 +801,9 @@ $date";
                 break;
             case 'error_edit_payment_3':
                 $t = "❌ یک درگاه به این اسم وجود دارد.";
+                break;
+            case 'error_edit_payment_4':
+                $t = "❌ لطفاً یک عدد معتبر (بزرگتر یا مساوی صفر) وارد کنید.";
                 break;
             case 'not_user':
                 $t = "❌ کاربر ارسالی در ربات عضو نمی‌باشد.";
@@ -801,33 +914,75 @@ $date";
             case 'ok_payment_edit_setting':
                 $t = "✅ انجام شد.";
                 break;
-            case 'channel_edit_1':
-                $text = $data[0];
-                $tx = $data[1];
+            case 'rate_panel_1':
+                $usd_rate_raw  = (float)($data[0] ?? 0);
+                $usd_auto      = (int)($data[1] ?? 0);
+                $interval      = (int)($data[2] ?? 60);
+                $last          = ((int)($data[3] ?? 0)) > 0 ? jdate('Y/m/d H:i', $data[3]) : 'هرگز';
+                $auto_starz    = (int)($data[5] ?? 0);
+                $starz_usd_raw = (float)($data[6] ?? 0);
+
+                $usd_rate   = number_format($usd_rate_raw);
+                $starz_rate = number_format((float)($data[4] ?? 0));
+                $starz_usd  = number_format($starz_usd_raw, 4);
+
+                $usd_mode_txt   = $usd_auto ? "🤖 خودکار (هر {$interval} دقیقه)" : "✍️ دستی";
+                $starz_mode_txt = $auto_starz ? "🤖 خودکار (بر اساس نرخ دلار)" : "✍️ دستی";
+
+                $starz_conv_line = "";
+                if ($auto_starz) {
+                    $starz_converted = number_format(round($starz_usd_raw * $usd_rate_raw));
+                    $starz_conv_line = "\n💱 تبدیل‌شده: {$starz_usd} دلار × {$usd_rate} = {$starz_converted} تومان";
+                }
+
+                $t = "💱 تنظیمات نرخ دلار و استارز
+
+💵 قیمت دلار: {$usd_rate} تومان
+🔄 دریافت: {$usd_mode_txt}
+📅 آخرین بروزرسانی: {$last}
+━━━━━━━━━━━━━
+⭐️ قیمت استارز: {$starz_rate} تومان
+🔄 محاسبه: {$starz_mode_txt}
+💱 هر استارز: {$starz_usd} دلار{$starz_conv_line}
+
+👇 برای تغییر، روی دکمه‌ها بزنید:";
+                break;
+            case 'rate_ask_usd':
+                $t = "💵 قیمت دلار را به تومان وارد کنید:\n\nمقدار فعلی: {$data} تومان";
+                break;
+            case 'rate_ask_starz':
+                $t = "⭐️ قیمت هر عدد استارز را به تومان وارد کنید:\n\nمقدار فعلی: {$data} تومان";
+                break;
+            case 'rate_ask_starz_usd':
+                $t = "💱 قیمت هر عدد استارز را به دلار وارد کنید:\n\nمقدار فعلی: {$data} دلار";
+                break;
+            case 'rate_ask_interval':
+                $t = "⏱ بازه بروزرسانی خودکار نرخ دلار را به دقیقه وارد کنید:\n(بین ۵ تا ۱۴۴۰ دقیقه)\n\nمقدار فعلی: {$data} دقیقه";
+                break;
+            case 'ch_detail_text':
+                $ch_key = $data[0];
+                $val    = $data[1];
                 $name = $data[2];
-                $t = "📢 آیدی کانال فعلی:
-$text
-$tx
-$name
-برای تغییر، یک پیام از چنل مورد نظر برای ربات فوروارد کنید.
-برای افزودن کانال برای جوین اجباری پیام از چنل مورد نظر برای ربات فوروارد کنید.
-برای حذف یک کانال از جوین اجباری یک پیام از کانال مورد نظر برای ربات فوروارد کنید. و یا ایدی کانال را ارسال کنید";
-                break;
-            case 'ok_edit_channel':
-                $id = $data[0];
-                $name = $data[1];
-                $t = "✅ آیدی: {$id} برای: {$name} ثبت شد.";
-                break;
-            case 'delete_edit_channel':
-                $id = $data[0];
-                $name = $data[1];
-                $t = "✅ آیدی: {$id} برای {$name} حذف شد.";
-                break;
-            case 'error_channel_1':
-                $t = "❌ ثبت نشده.";
-                break;
-            case 'error_channel_2':
-                $t = "❌ دستور ناشناخته.";
+                $ch_info = [
+                    'channel_main'             => ['label' => '📢 کانال اصلی',        'desc' => 'پیام‌های موفقیت سفارش و اطلاعات عمومی در این کانال ارسال می‌شود.'],
+                    'channel_transaction'      => ['label' => '💰 تراکنشات',           'desc' => 'تراکنش‌های مالی کاربران (شارژ، خرید) در این کانال ثبت می‌شود.'],
+                    'channel_payment_offline'  => ['label' => '💳 کارت به کارت',       'desc' => 'درخواست‌های پرداخت کارت‌به‌کارت در این کانال ارسال می‌شود.'],
+                    'channel_ads'              => ['label' => '📢 تبلیغاتی',           'desc' => 'پیام موفقیت خرید با تبلیغاتی به این کانال ارسال می‌شود.'],
+                    'channel_order_api'        => ['label' => '🛍 سفارشات API',        'desc' => 'سفارشاتی که از طریق وب‌سرویس ثبت می‌شوند در این کانال نمایش داده می‌شوند.'],
+                    'channel_order_noapi'      => ['label' => '🛍 سفارشات دستی',      'desc' => 'سفارشاتی که به‌صورت دستی (بدون وب‌سرویس) ثبت می‌شوند اینجا نمایش داده می‌شوند.'],
+                    'channel_support'          => ['label' => '💬 پشتیبانی',           'desc' => 'تیکت‌های پشتیبانی کاربران در این کانال ارسال می‌شود.'],
+                    'channel_kyc'              => ['label' => '🔐 احراز هویت',         'desc' => 'درخواست‌های احراز هویت کاربران (تصویر کارت) اینجا ارسال می‌شود.'],
+                    'channel_gift_transaction' => ['label' => '💸 برداشت هدیه',        'desc' => 'درخواست‌های برداشت از کیف پول هدیه در این کانال ثبت می‌شوند.'],
+                    'channel_errors'           => ['label' => '‼️ خطاها',             'desc' => 'خطاهای سیستمی و خطاهای ثبت سفارش در این کانال لاگ می‌شوند.'],
+                ];
+                $info    = $ch_info[$ch_key] ?? ['label' => $ch_key, 'desc' => ''];
+                $current = ($val && $val != '0') ? (is_numeric($val) ? "آیدی عددی: <code>{$val}</code>" : "@{$val}") : '❌ تنظیم نشده';
+                $t = "📌 {$info['label']}
+
+ℹ️ {$info['desc']}
+🪧 {$name}
+
+📍 وضعیت فعلی: {$current}";
                 break;
             case 'error_channel_3':
                 $t = "❌ ابتدا ربات را داخل چنل ادمین کرده و سپس یک پست فوروارد کنید.";
@@ -907,9 +1062,6 @@ $name
                 break;
             case 'edit_code_error_10':
                 $t = "❌ وجود ندارد.";
-                break;
-            case 'edit_code_error_11':
-                $t = "❌ هیچ کدی ثبت نشده است.";
                 break;
             case 'cr_code_2':
                 $t = "🔄 لطفاً نوع کد خود را انتخاب کنید:
@@ -1027,10 +1179,12 @@ $name
 نام محصول (اختیاری)
 حداقل (اختیاری)
 حداکثر (اختیاری)
+قیمت دلاری (اختیاری)
 
 در صورت وارد نکردن موارد اختیاری، از وب سرویس دریافت می‌شود.
+قیمت دلاری فقط زمانی قابل ارسال است که حداقل و حداکثر هم وارد شده باشند؛ در این صورت خط ششم قیمت دلاری محصول است و حالت دلاری آن روشن می‌شود.
 
-هر کدام از موارد را در یک خط و جمع خط‌ها 2 و حداکثر 5 شود.
+هر کدام از موارد را در یک خط و جمع خط‌ها 2 و حداکثر 6 شود.
 
 مثال:
 
@@ -1043,8 +1197,11 @@ $name
 قیمت
 حداقل
 حداکثر
+قیمت دلاری (اختیاری)
 
-هر کدام از موارد را در یک خط و جمع خط‌ها 5 شود.
+در صورت ارسال خط ششم، آن قیمت دلاری محصول در نظر گرفته می‌شود و حالت دلاری آن روشن می‌شود.
+
+هر کدام از موارد را در یک خط و جمع خط‌ها 5 و در صورت داشتن قیمت دلاری 6 شود.
 
 مثال:
 
@@ -1060,9 +1217,12 @@ $name
 قیمت
 حداقل
 حداکثر
+قیمت دلاری (اختیاری)
 
 هر کدام از موارد را در یک خط
-و جمع خط‌ها 4 شود.
+و جمع خط‌ها 4 و در صورت داشتن قیمت دلاری 5 شود.
+
+اگر قیمت دلاری وارد شود، حالت دلاری محصول روشن می‌شود و قیمت آن بر اساس نرخ دلار روز محاسبه می‌شود.
 
 مثال:
 
@@ -1071,6 +1231,33 @@ $name
 100
 10000";
                 }
+                break;
+            case 'product_add_preview':
+                $p = $data[0];
+                $cat = $data[1];
+                $name_show = json_decode($p['name']);
+                $cat_name = getCategoryHierarchy($cat['id']);
+                $t = "📋 پیش‌نمایش محصول — قبل از ثبت بررسی کنید:
+
+نام: <code>{$name_show}</code>
+دسته‌بندی:
+{$cat_name}
+قیمت: <code>" . number_format((float) $p['price']) . "</code> تومان";
+                if (!empty($p['is_usd'])) {
+                    $t .= "
+قیمت دلاری: <code>" . number_format((float) $p['price_usd'], 4) . "</code> دلار (حالت دلاری روشن ✅)";
+                }
+                $t .= "
+حداقل: <code>{$p['min']}</code>
+حداکثر: <code>{$p['max']}</code>";
+                if (($p['api'] ?? 'noapi') !== 'noapi') {
+                    $t .= "
+وب سرویس: " . json_decode($p['api']) . "
+ایدی سرویس: <code>{$p['service']}</code>";
+                }
+                $t .= "
+
+برای ثبت نهایی تایید کنید، یا اطلاعات را دوباره ارسال کنید:";
                 break;
             case 'product_add_5':
                 $category = getCategoryHierarchy($data[0]);
@@ -1102,7 +1289,7 @@ $name
                 $t = "❌ حداکثر تعداد کاراکتر مجاز برای اسم 130 عدد است. لطفاً نام کمتری وارد کنید.";
                 break;
             case 'product_add_error_5':
-                $t = "❌ موارد خواسته شده را در 4 خط ارسال کنید.";
+                $t = "❌ موارد خواسته شده را در 4 خط (یا 5 خط در صورت داشتن قیمت دلاری) ارسال کنید.";
                 break;
             case 'product_add_error_6':
                 $t = "❌ محصول در وب سرویس مورد نظر یافت نشد.";
@@ -1111,7 +1298,25 @@ $name
                 $t = "❌ خطا در دریافت اطلاعات از وب سرویس.";
                 break;
             case 'product_add_error_8':
-                $t = "❌ موارد را در 5 خط ارسال کنید.";
+                $t = "❌ موارد را در تعداد خط درست ارسال کنید (حداکثر 6 خط در صورت داشتن قیمت دلاری).";
+                break;
+            case 'product_add_confirmed_alert':
+                $t = "✅ محصول ثبت شد.";
+                break;
+            case 'product_preview_expired':
+                $t = "⌛️ این پیش‌نمایش دیگر معتبر نیست.";
+                break;
+            case 'product_add_retry_wait':
+                $t = "🔄 در انتظار ارسال مجدد اطلاعات محصول...";
+                break;
+            case 'update_api_product_ok':
+                $t = "✅ محصول با موفقیت اضافه شد.";
+                break;
+            case 'update_api_product_nok':
+                $t = "❌ محصول اضافه نشد.";
+                break;
+            case 'update_api_product_error_1':
+                $t = "❌ خطا در پردازش محصول.";
                 break;
             case 'product_add_error_9':
                 $t = "❌ وب سرویس انتخابی یافت نشد.";
@@ -1203,7 +1408,6 @@ $data
                     $confirm = "محصول دستی می‌باشد";
                 }
                 
-                // Get product type display
                 $product_type_display = '';
                 switch ($product['type']) {
                     case 'default':
@@ -1225,6 +1429,17 @@ $data
                 $product['final_price'] = $product['price'] + (($product['price'] / 100) * $product['discount']);
                 $category_by = getCategoryHierarchy($product['category_id']);
 
+                $usd_line = '';
+                if (!empty($product['is_usd'])) {
+                    $usd_rate_now = (float) get_option('usd_rate', 0);
+                    $usd_final = round(((float) $product['price_usd']) * $usd_rate_now);
+                    $usd_line = "\n\n💵 حالت دلاری: ✅ روشن
+قیمت دلاری: " . number_format((float) $product['price_usd'], 4) . " دلار
+قیمت نهایی برای کاربر: " . number_format($usd_final) . " تومان (بر اساس نرخ دلار فعلی: " . number_format($usd_rate_now) . ")";
+                } elseif (!empty($product['price_usd'])) {
+                    $usd_line = "\n\n💵 حالت دلاری: ❌ خاموش (قیمت دلاری ثبت‌شده: " . number_format((float) $product['price_usd'], 4) . " دلار، فعلاً استفاده نمی‌شود)";
+                }
+
                 $date = ($data['1']) ? "\n" . jdate('Y/m/d H:i:s') : null;
                 $t = "ℹ️ اطلاعات فعلی محصول:
 اسم: {$product['name']}
@@ -1233,7 +1448,7 @@ $data
 
 قیمت: {$product['price']}
 تخفیف: {$product['discount']}
-قیمت نهایی: {$product['final_price']}
+قیمت نهایی: {$product['final_price']}{$usd_line}
 
 حداقل: {$product['min']}
 حداکثر: {$product['max']}
@@ -1259,6 +1474,17 @@ $data
                         break;
                     case 'price':
                         $t = "💰 قیمت مورد نظر خود را ارسال کنید:";
+                        break;
+                    case 'price_usd':
+                        $r_prod = $data['1'];
+                        $cur_usd = number_format((float) ($r_prod['price_usd'] ?? 0), 4);
+                        $usd_status = !empty($r_prod['is_usd']) ? '✅ روشن' : '❌ خاموش';
+                        $t = "💵 قیمت دلاری محصول را ارسال کنید:
+
+مقدار فعلی: {$cur_usd} دلار
+وضعیت دلاری این محصول: {$usd_status}
+
+⚠️ این عدد فقط زمانی برای کاربر محاسبه می‌شود که وضعیت «دلاری» محصول روشن باشد (از دکمه کنار بروزرسانی در صفحه اطلاعات محصول). در آن حالت، قیمت نهایی = این عدد × نرخ دلار فعلی ربات.";
                         break;
                     case 'min':
                         $t = "🔢 محدوده مورد نظر خود را ارسال کنید:";
@@ -1325,8 +1551,38 @@ $data
             case 'update_api_1':
                 $t = "🔄 وب سرویس مورد نظر خود را انتخاب کنید:";
                 break;
+            case 'update_api_info_1':
+                $t = "📂 افزودن تمامی دسته بندی ها به صورت خودکار\n\nربات تمام دسته‌بندی‌های موجود در وب‌سرویس را بررسی می‌کند و دسته‌هایی که در ربات وجود ندارند را اضافه می‌کند.\n\n⚠️ محصول اضافه نمی‌شود، فقط دسته‌بندی‌ها.";
+                break;
+            case 'update_api_info_2':
+                $t = "🛍 افزودن تمامی محصولات به صورت خودکار\n\nربات محصولات وب‌سرویس را بررسی می‌کند و فقط محصولاتی که دسته‌بندی‌شان در ربات وجود دارد را اضافه می‌کند.\n\n⚠️ محصولات تکراری مجدداً اضافه نمی‌شوند.";
+                break;
+            case 'update_api_info_3':
+                $t = "📂 انتخاب و افزودن دسته بندی ها به صورت انتخابی\n\nلیست دسته‌بندی‌های وب‌سرویس نشان داده می‌شود. می‌توانید دسته‌های مورد نظر را یکی یکی انتخاب و اضافه کنید.\n\n⚠️ محصول اضافه نمی‌شود، فقط دسته‌بندی‌ها.";
+                break;
+            case 'update_api_info_4':
+                $t = "🛍 انتخاب و افزودن محصولات به صورت انتخابی\n\nلیست محصولات وب‌سرویس نشان داده می‌شود. می‌توانید محصولات مورد نظر را یکی یکی انتخاب کنید و به دسته‌بندی دلخواه اضافه کنید.\n\n⚠️ دسته‌بندی از قبل باید در ربات وجود داشته باشد.";
+                break;
+            case 'update_api_info_5':
+                $t = "📦 افزودن تمامی محصولات و دسته بندی ها\n\nتمام دسته‌بندی‌ها و محصولات وب‌سرویس که در ربات وجود ندارند به صورت کامل و خودکار اضافه می‌شوند.\n\n⚠️ این گزینه ممکن است تعداد زیادی محصول اضافه کند.";
+                break;
+            case 'update_api_info_6':
+                $t = "🔄 بروزرسانی محصولات فعلی\n\nمحصولات موجود در ربات با اطلاعات جدید وب‌سرویس بروز می‌شوند (قیمت، اسم، توضیحات و محدوده سفارش بر اساس تنظیمات انتخاب‌شده).\n\n💡 اگر گزینه «محدوده سفارش» روشن باشد، محصولاتی که در وب‌سرویس حذف شده‌اند خاموش می‌شوند و آن‌هایی که هنوز هستند روشن می‌مانند.";
+                break;
+            case 'update_api_info_7':
+                $t = "📦 افزودن یک دسته انتخابی و محصولاتش بصورت خودکار\n\nیک دسته‌بندی از لیست وب‌سرویس انتخاب می‌کنید. اگر دسته در ربات وجود نداشت ایجاد می‌شود، سپس تمام محصولات آن دسته که در ربات نیستند اضافه می‌شوند.";
+                break;
             case 'update_api_2':
-                $t = "🔄 انتخاب کنید:";
+                $t = "🔄 تنظیمات عملیات را انتخاب کنید، سپس تایید کنید:";
+                break;
+            case 'update_api_2_type6':
+                $t = "🔄 تنظیمات بروزرسانی محصولات فعلی را انتخاب کنید، سپس تایید کنید:
+
+💡 روش قیمت:
+📈 فقط افزایش — اگر قیمت جدید وب‌سرویس از قیمت فعلی محصول کمتر بود، قیمت تغییر نمی‌کند (قیمت هرگز کاهش پیدا نمی‌کند).
+🔄 همیشه بروز — قیمت همیشه با نرخ جدید وب‌سرویس جایگزین می‌شود، چه بیشتر چه کمتر.
+
+💡 تبدیل دلار به تومان: اگر روشن باشد، قیمت دریافتی از وب‌سرویس بر اساس نرخ دلار فعلی ربات به تومان تبدیل می‌شود.";
                 break;
             case 'update_api_wait':
                 $t = "⏳ در حال انجام عملیات، لطفاً صبر کنید...";
@@ -1342,6 +1598,21 @@ $data
                     case '6':
                         $t = "✅ تعداد {$data['1']} محصول به‌روز شد و تعداد {$data['2']} محصول به دلیل غیرفعال شدن در وب سرویس خاموش شد.";
                         break;
+                    case '7':
+                        if (isset($data['2']) && $data['2'] == 1) {
+                            if ($data['1'] > 0) {
+                                $t = "⚠️ این دسته‌بندی قبلاً وجود داشت و {$data['1']} محصول جدید به آن اضافه شد.";
+                            } else {
+                                $t = "⚠️ این دسته‌بندی قبلاً وجود داشت و محصول جدیدی اضافه نشد.";
+                            }
+                        } else {
+                            if ($data['1'] > 0) {
+                                $t = "✅ تعداد {$data['1']} محصول برای دسته‌بندی انتخاب‌شده اضافه شد.";
+                            } else {
+                                $t = "✅ دسته‌بندی اضافه شد، اما محصول جدیدی برای افزودن یافت نشد.";
+                            }
+                        }
+                        break;
                     default:
                         # code...
                         break;
@@ -1349,6 +1620,18 @@ $data
                 break;
             case 'update_api_add_category_1':
                 $t = "🔄 نوع این دسته‌بندی را مشخص کنید:";
+                break;
+            case 'update_report_link':
+                $report_url = $data[0];
+                $variant = $data[1] ?? 'update';
+                if ($variant === 'category') {
+                    $title = "📊 گزارش دسته «{$data[2]}»:";
+                } elseif ($variant === 'final') {
+                    $title = "📊 گزارش نهایی:";
+                } else {
+                    $title = "📊 گزارش بروزرسانی:";
+                }
+                $t = "{$title}\n{$report_url}";
                 break;
             case 'delete_all_1':
                 $t = "❌ عملیات فوق را تایید می‌کنید؟
@@ -1371,21 +1654,26 @@ $data";
                 $t = "⏰ مقدار فعلی: {$data}
 اختلاف ساعت را به عدد و ساعت وارد کنید:";
                 break;
-            case 'usd_rate_1':
-                $t = "💵 مقدار فعلی: {$data}
-نرخ تبدیل به دلار به تومان را وارد کنید:";
+            case 'usd_rate_interval_error':
+                $t = "❌ مقدار نامعتبر است. عدد بین {$data[0]} تا {$data[1]} وارد کنید.";
                 break;
-            case 'starz_rate_1':
-                $t = "💵 مقدار فعلی: {$data}
-قیمت هر یک عدد استارز را به تومان وارد کنید ";
+            case 'usd_rate_updated':
+                $t = "✅ نرخ دلار با موفقیت بروزرسانی شد: " . number_format($data) . " تومان";
                 break;
-            case 'min_starz_deposit_1':
-                $t = "🔻 مقدار فعلی: {$data}
-حداقل تعداد استارز قابل شارژ را وارد کنید (حداقل ۱ عدد):";
+            case 'usd_rate_auto_notify':
+                $new_rate = $data[0];
+                $old_rate = $data[1];
+                $auto_starz = $data[2];
+                $starz_rate = $data[3];
+                $starz_line = $auto_starz ? "\n⭐️ قیمت استارز: " . number_format($starz_rate) . " تومان" : '';
+                $t = "💵 نرخ دلار بروزرسانی شد\n\n"
+                    . "نرخ جدید: " . number_format($new_rate) . " تومان\n"
+                    . "نرخ قبلی: " . number_format($old_rate) . " تومان"
+                    . $starz_line
+                    . "\n\n🕐 " . jdate('Y/m/d H:i');
                 break;
-            case 'max_starz_deposit_1':
-                $t = "🔺 مقدار فعلی: {$data}
-حداکثر تعداد استارز قابل شارژ را وارد کنید:";
+            case 'usd_rate_update_failed':
+                $t = "❌ خطا در دریافت نرخ دلار از منبع خارجی. لطفاً دوباره تلاش کنید.";
                 break;
             case 'send_int_min_one':
                 $t = "❌ لطفاً عدد صحیح بیشتر از ۱ وارد کنید.";
@@ -1399,14 +1687,17 @@ $data";
             case 'last_cron':
                 $cron = $data['0'];
                 $cron_done = $data['1'];
+                $cron_auto = $data['2'];
                 $t = "⏰ آخرین کرون همگانی: $cron
 ⏰ آخرین کرون سفارشات: $cron_done
+⏰ آخرین کرون خودکار: $cron_auto
 برای دریافت لینک کرون‌ها: /cron_link";
                 break;
             case 'cron_link':
-                $se = type_text($data['0'], 'c');
+                $se  = type_text($data['0'], 'c');
                 $se2 = type_text($data['1'], 'c');
-                $t = $se . "\n================\n" . $se2;
+                $se3 = type_text($data['2'], 'c');
+                $t = "📤 کرون همگانی:\n$se\n================\n📦 کرون سفارشات:\n$se2\n================\n⚙️ کرون خودکار (نرخ دلار و...):\n$se3";
                 break;
             case 'access_tx':
                 $t = "🔐 دسترسی‌های شما از پنل مدیریت:";
@@ -1534,9 +1825,6 @@ $data";
             case 'add_pattern_error_2':
                 $t = "❌ پترن با نام $data وجود دارد.";
                 break;
-            case 'add_pattern_error_3':
-                $t = "❌ خطا در افزودن پترن.";
-                break;
             case 'add_pattern_error_4':
             case 'edit_pattern_error_4':
                 $t = "❌ Regex معتبر نیست.";
@@ -1546,10 +1834,16 @@ $data";
                 break;
             case 'edit_pattern_info':
                 $pattern = $data;
-                $t = "ℹ️ اطلاعات فعلی پترن:
+                $regex = htmlspecialchars($pattern['pattern'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+$t = "ℹ️ اطلاعات فعلی پترن:
 نام: {$pattern['type']}
+
 متن دریافت لینک: {$pattern['text']}
-Regex دریافت لینک: <code>{$pattern['pattern']}</code>
+
+Regex دریافت لینک:
+<pre>{$regex}</pre>
+
 انتخاب کنید:";
                 break;
             case 'edit_pattern_3':
@@ -1566,16 +1860,6 @@ Regex دریافت لینک: <code>{$pattern['pattern']}</code>
 Regex دریافت لینک: <code>{$pattern['pattern']}</code>
 انتخاب کنید:";
                 break;
-            case 'edit_pattern_error_1':
-                $t = "❌ هیچ پترنی یافت نشد.";
-                break;
-            case 'edit_pattern_error_2':
-                $t = "❌ پترن $data یافت نشد.";
-                break;
-            case 'delete_pattern_1':
-                $t = "❌ پترن مورد نظر خود را برای حذف انتخاب کنید:
-توجه: پترن default قابل حذف نیست.";
-                break;
             case 'delete_pattern_confirm':
                 $t = "❌ آیا از حذف پترن $data اطمینان دارید؟
 این عملیات غیرقابل بازگشت است.";
@@ -1583,14 +1867,8 @@ Regex دریافت لینک: <code>{$pattern['pattern']}</code>
             case 'delete_pattern_ok':
                 $t = "✅ پترن با موفقیت حذف شد.";
                 break;
-            case 'delete_pattern_error_1':
-                $t = "❌ هیچ پترنی برای حذف یافت نشد.";
-                break;
             case 'delete_pattern_error_2':
                 $t = "❌ پترن default قابل حذف نیست.";
-                break;
-            case 'delete_pattern_error_3':
-                $t = "❌ پترن $data یافت نشد.";
                 break;
             case 'send_reason_receipt':
                 $t = "دلیل رد کردن پرداخت رو ارسال کن:";
@@ -1616,6 +1894,9 @@ Regex دریافت لینک: <code>{$pattern['pattern']}</code>
                 break;
             case 'checked_transaction':
                 $t = "❌ تراکنش قبلا بررسی شده است.";
+                break;
+            case 'dot_text':
+                $t = ".";
                 break;
             default:
                 $t = 'انتخاب کنید ❌';

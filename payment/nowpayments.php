@@ -106,21 +106,23 @@ if ($type === 'get') {
                     $sorted_request_json = json_encode($request_data, JSON_UNESCAPED_SLASHES);
                     $hmac = hash_hmac("sha512", $sorted_request_json, now_ipn);
 
-                    if ($hmac === $recived_hmac && $step == '3') {
+                    if (hash_equals($hmac, $recived_hmac) && $step == '3') {
                         $url = $url_2 . $request_data['payment_id'];
                         $result = sendCurlRequest($url);
 
                         $status = $result['response']['payment_status'];
                         $tracking_code = $result['response']['payment_id'];
 
-                        if ($status === 'finished' && !$db->has('transactions', ['tracking_code' => $tracking_code, 'type' => 'payment', 'getway' => $paymentEn])) {
-                            $result_ok = true;
-                            $db->update('transactions', [
+                        if ($status === 'finished' && ($result['response']['invoice_id'] ?? null) == $payment['tracking_code']) {
+                            $stmt = $db->update('transactions', [
                                 'status' => 1,
                                 'tracking_code' => $tracking_code,
                                 'getway' => $paymentEn,
                                 'type' => 'payment'
-                            ], ['id' => $code]);
+                            ], ['id' => $code, 'status' => 3]);
+                            if ($stmt && $stmt->rowCount() > 0) {
+                                $result_ok = true;
+                            }
                         }
                     } else {
                         $result_ipn = true;
@@ -131,27 +133,28 @@ if ($type === 'get') {
             case 'OK':
                 if ($step == '3') {
                     $np_id = $_GET['NP_id'] ?? 0;
+                    if (!$np_id) { break; }
                     $url = $url_2 . $np_id;
                     $result = sendCurlRequest($url);
 
                     $status = $result['response']['payment_status'];
                     $tracking_code = $result['response']['payment_id'];
 
-
-
                     if (
                         $status === 'finished' &&
-                        !$db->has('transactions', ['tracking_code' => $tracking_code, 'type' => 'payment', 'getway' => $paymentEn])
+                        ($result['response']['invoice_id'] ?? null) == $payment['tracking_code']
                     ) {
-                        $result_ok = true;
-                        $db->update('transactions', [
+                        $stmt = $db->update('transactions', [
                             'status' => 1,
                             'tracking_code' => $tracking_code,
                             'getway' => $paymentEn,
                             'type' => 'payment'
-                        ], ['id' => $code]);
+                        ], ['id' => $code, 'status' => 3]);
+                        if ($stmt && $stmt->rowCount() > 0) {
+                            $result_ok = true;
+                        }
                     } else {
-                        $check_array = ['sending', 'processing', 'waiting', 'creating', 'confirmed'];
+                        $check_array = ['waiting', 'confirming', 'confirmed', 'sending'];
                         if (in_array($status, $check_array)) {
                             $result_ipn = true;
                         }

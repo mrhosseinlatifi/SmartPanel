@@ -65,18 +65,19 @@ function setupWebhook($bot, $ip, $random_code)
     ]);
 }
 
-function validateLicense($idbot, $license, $type_license, $host)
-{
-    $response = verifyLicense($idbot, $license, $type_license, $host);
-    if ($response !== 'verified') {
-        exit('<h1 style="text-align: center;margin-top:30px">کد لایسنس وارد شده معتبر نیست</h1>');
-    }
-}
-
 if (isset($_GET['install']) || ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['install']))) {
+    if (file_exists(ROOTPATH . '/config.php')) {
+        exit('<h1 style="text-align: center;margin-top:30px">ربات قبلا نصب شده است</h1>');
+    }
+
     function input($data)
     {
-        return htmlspecialchars(stripslashes(trim($data)));
+        return stripslashes(trim($data));
+    }
+
+    function phpStringEscape($data)
+    {
+        return addcslashes((string) $data, "'\\");
     }
 
     $dbConfig = [
@@ -96,7 +97,7 @@ if (isset($_GET['install']) || ($_SERVER["REQUEST_METHOD"] === "POST" && isset($
         $db = connectDatabase($dbConfig);
         $db->query("SELECT 1");
 
-        if ($db->query("SHOW TABLES LIKE '" . $dbConfig['prefix'] . "users_information'")->fetch()) {
+        if ($db->query("SHOW TABLES LIKE " . $db->quote($dbConfig['prefix'] . "users_information"))->fetch()) {
             exit('<h1 style="text-align: center;margin-top:30px">ربات قبلا نصب شده است</h1>');
         }
 
@@ -130,21 +131,28 @@ if (isset($_GET['install']) || ($_SERVER["REQUEST_METHOD"] === "POST" && isset($
             ], [
                 $hash_random_code,
                 $type_license,
-                $license,
-                $admin,
-                $Token,
-                $dbConfig['database'],
-                $dbConfig['username'],
-                $dbConfig['password'],
-                $dbConfig['prefix'],
+                phpStringEscape($license),
+                phpStringEscape($admin),
+                phpStringEscape($Token),
+                phpStringEscape($dbConfig['database']),
+                phpStringEscape($dbConfig['username']),
+                phpStringEscape($dbConfig['password']),
+                phpStringEscape($dbConfig['prefix']),
             ], $config));
         } else {
             file_put_contents(ROOTPATH . '/config.php', str_replace(['*SEC*', '*TYPELICENCE*'], [$hash_random_code, $type_license], $config));
         }
         $bot->sm($admin, "ربات با موفقیت نصب شد\n/start را ارسال کنید");
-        unlink(ROOTPATH . '/config-new.php');
-        unlink(ROOTPATH . '/installer.php');
-        echo '<h1 style="text-align: center;margin-top:30px">ربات با موفقیت نصب شد</h1>';
+        $cleanupWarning = '';
+        if (!@unlink(ROOTPATH . '/config-new.php')) {
+            error_log('installer.php: failed to delete config-new.php after install, please delete it manually');
+            $cleanupWarning .= '<p style="text-align:center;color:red">فایل config-new.php حذف نشد، لطفا آن را به صورت دستی پاک کنید.</p>';
+        }
+        if (!@unlink(ROOTPATH . '/installer.php')) {
+            error_log('installer.php: failed to delete installer.php after install, please delete it manually');
+            $cleanupWarning .= '<p style="text-align:center;color:red">فایل installer.php حذف نشد، لطفا آن را به صورت دستی پاک کنید.</p>';
+        }
+        echo '<h1 style="text-align: center;margin-top:30px">ربات با موفقیت نصب شد</h1>' . $cleanupWarning;
     } catch (PDOException $e) {
         exit('<h1 style="text-align: center;margin-top:30px">مشکل در اتصال به دیتابیس</h1><h3>' . $e->getMessage() . '</h3>');
     } catch (Exception $e) {

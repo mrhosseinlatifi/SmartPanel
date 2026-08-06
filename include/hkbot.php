@@ -122,7 +122,6 @@ class hkbot
 
 	public function check_join($chatId, $channelId)
 	{
-		// Check if the channel name has a hyphen
 		if (strpos($channelId, '-') !== false) {
 			$result = $this->bot('getChatMember', [
 				'chat_id' => $channelId,

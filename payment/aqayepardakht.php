@@ -83,22 +83,20 @@ if ($type === 'get') {
         sm_channel('channel_errors', ['curl_payment_error', $paymentEn, $result['error']]);
         redirect($base_url);
     } else {
-        $tracking_code = $_POST['tracking_number'];
-        if (
-            $result['response']['status'] == 'success' &&
-            !$db->has('transactions', ['tracking_code' => $tracking_code, 'type' => 'payment', 'getway' => $paymentEn])
-        ) {
+        if ($result['response']['status'] == 'success') {
+            $tracking_code = $payment['tracking_code'];
+            $card = $_POST['cardnumber'] ?? 0;
 
-            $card = $_POST['cardnumber'];
-
-            $db->update('transactions', [
+            $stmt = $db->update('transactions', [
                 'status' => 1,
                 'tracking_code' => $tracking_code,
                 'getway' => $paymentEn,
                 'type' => 'payment'
-            ], ['id' => $code, 'type' => 'payment']);
+            ], ['id' => $code, 'status' => 3]);
 
-            $result_ok = true;
+            if ($stmt && $stmt->rowCount() > 0) {
+                $result_ok = true;
+            }
         }
     }
 }

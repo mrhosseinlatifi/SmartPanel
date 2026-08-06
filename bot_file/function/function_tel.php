@@ -411,6 +411,25 @@ function edk_admin($keyboard, $megid = null, $id = null)
     return $bot->edit_keyboard($recipient_id, $message_id, $keyboardContent);
 }
 
+function render_rate_panel($msgid = null)
+{
+    $usd_rate   = get_option('usd_rate', 0);
+    $usd_auto   = get_option('usd_rate_mode', 'manual') === 'auto' ? 1 : 0;
+    $interval   = (int) get_option('usd_rate_interval', 60);
+    $last       = (int) get_option('usd_rate_last_update', 0);
+    $starz      = get_option('starz_rate', 0);
+    $auto_starz = (int) get_option('auto_starz_rate', 0);
+    $starz_usd  = get_option('starz_rate_usd', 0);
+
+    $text_args = ['rate_panel_1', $usd_rate, $usd_auto, $interval, $last, $starz, $auto_starz, $starz_usd];
+    $kb_args   = ['rate_panel', $usd_auto, $interval, $auto_starz];
+
+    if ($msgid === null) {
+        return sm_admin($text_args, $kb_args);
+    }
+    return edt_admin($text_args, $kb_args, $msgid);
+}
+
 function alert_admin($text, $force = false)
 {
     global $call_back_id, $bot, $media_admin;
@@ -440,14 +459,14 @@ function sendallmsg($id, $data)
 {
     global $bot;
     if ($data["step"] == "sendall") {
-        $info = json_decode($data['info'], 1);
-        if ($info['send'] == 'sm') {
+        $info = json_decode($data['info'], 1) ?: [];
+        if (($info['send'] ?? '') == 'sm') {
             $bot->sm($id, $info['text']);
         } else {
             $bot->bot($info['send'], ['chat_id' => $id, $info['type_file'] => $info['file_id'], 'caption' => $info['caption']]);
         }
     } elseif ($data["step"] == "fwd") {
-        $info = json_decode($data['info'], 1);
+        $info = json_decode($data['info'], 1) ?: [];
         $bot->bot('forwardmessage', [
             'chat_id' => $id,
             'from_chat_id' => $info['from_chat'],
@@ -458,6 +477,40 @@ function sendallmsg($id, $data)
     }
 }
 
+function render_sendall_status($msgid = null)
+{
+    global $db, $key_admin;
+    $job = $db->get('jobs', '*', ['step[!]' => 'none']);
+
+    if (!$job) {
+        if ($msgid === null) {
+            return sm_admin(['sendall_status_empty'], ['back_panel']);
+        }
+        return edt_admin(['sendall_status_empty'], ['back_panel_inline'], $msgid);
+    }
+
+    $usersCount = $db->count('users_information', ['block' => 0, 'block_bot' => 0]);
+    $sent = (int) $job['user'];
+    $remaining = max(0, $usersCount - $sent);
+    $paused = (int) ($job['paused'] ?? 0);
+    $status_label = $paused ? $key_admin['sendall_status_state']['paused'] : $key_admin['sendall_status_state']['active'];
+
+    if ($job['step'] === 'fwd') {
+        $type_label = $key_admin['sendall_type_label']['fwd'];
+    } else {
+        $info = json_decode($job['info'], true) ?: [];
+        $type_label = $key_admin['sendall_type_label'][$info['send'] ?? ''] ?? $key_admin['sendall_type_label']['default'];
+    }
+
+    $args = ['sendall_status', $type_label, $sent, $usersCount, $remaining, $status_label, (int) $job['last_job']];
+    $kb_args = ['sendall_status_kb', $paused];
+
+    if ($msgid === null) {
+        return sm_admin($args, $kb_args);
+    }
+    return edt_admin($args, $kb_args, $msgid);
+}
+
 function handlePoshtibani2($update)
 {
     global $settings, $update, $bot, $fid, $media, $first_name, $user;
@@ -466,6 +519,8 @@ function handlePoshtibani2($update)
     $caption = '';
     $recipient_id = (isset($settings['channel_support']) && $settings['channel_support'] != 0) ? $settings['channel_support'] : admins['0'];
     $true = false;
+
+    $i = null;
 
     foreach ($types as $i) {
         if (isset($update['message'][$i])) {
@@ -499,7 +554,7 @@ function handlePoshtibani2($update)
 
 function handleStart($type)
 {
-    global $db, $admin, $section_status, $settings, $fid;
+    global $db, $admin, $settings, $fid;
 
     if (!$db->has('users_information', ['user_id' => $fid])) {
         $db->insert('users_information', ['user_id' => $fid, 'step' => 'none', 'join_date' => time()]);
@@ -535,6 +590,10 @@ function js($text)
 
 function removeWhiteSpace($text)
 {
+    if (!is_string($text)) {
+        $text = is_scalar($text) ? (string) $text : '';
+    }
+
     if (empty($text)) {
         return $text;
     }
@@ -578,7 +637,8 @@ function ip_info($ip, $type = 2)
         curl_setopt($c, CURLOPT_URL, "https://api.country.is/" . $ip . "");
         curl_setopt($c, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($c, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($c, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($c, CURLOPT_SSL_VERIFYPEER, 1);
+        curl_setopt($c, CURLOPT_SSL_VERIFYHOST, 2);
         $exec = curl_exec($c);
         curl_close($c);
         $decode = json_decode($exec, 1);
@@ -600,7 +660,8 @@ function curl_get($url)
     $e = curl_error($curl);
     curl_close($curl);
     if ($e) {
-        return $e;
+        error_log('curl_get error for ' . $url . ': ' . $e);
+        return false;
     } else {
         return $resp;
     }
@@ -625,7 +686,8 @@ function curl_post($url, $data = [], $headers = array("Content-Type: application
     $e = curl_error($curl);
     curl_close($curl);
     if ($e) {
-        return $e;
+        error_log('curl_post error for ' . $url . ': ' . $e);
+        return false;
     } else {
         return $resp;
     }
@@ -648,22 +710,20 @@ function redirect_payment($url)
     echo "<noscript><meta http-equiv='refresh' content='0;url=$url'/></noscript>";
 }
 
-function round_up($float, $pow = '500', $dec = -1)
+function round_up($float, $step = 500, $dec = 0)
 {
-    if ($dec == 0) {
-        if ($float < 0) {
-            return floor($float);
-        } else {
-            return ceil($float);
-        }
-    } else {
-        $d = pow($pow, $dec);
-        if ($float < 0) {
-            return floor($float * $d) / $d;
-        } else {
-            return ceil($float * $d) / $d;
-        }
+    if (!is_numeric($float) || !is_numeric($step) || $step == 0) {
+        return $float;
     }
+
+    $float = floatval($float);
+    $step = floatval($step);
+
+    if ($step > 0) {
+        return ceil($float / $step) * $step;
+    }
+
+    return floor($float / abs($step)) * abs($step);
 }
 
 function price_once($min, $max, $price = 0, $type = 'default')
@@ -674,7 +734,6 @@ function price_once($min, $max, $price = 0, $type = 'default')
         if ($min == 1 and $max == 1) {
             return $price;
         } elseif ($type == 'package') {
-            // For package type, return unit price without division
             return $price;
         } else {
             $price = $price / 1000;
@@ -683,17 +742,45 @@ function price_once($min, $max, $price = 0, $type = 'default')
     }
 }
 
+function product_base_price($product)
+{
+    if (!empty($product['is_usd'])) {
+        return (float) ($product['price_usd'] ?? 0) * (float) get_option('usd_rate', 0);
+    }
+    return (float) ($product['price'] ?? 0);
+}
+
 function random_code($r = 8)
 {
     $alf = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
     $key = "";
     for ($i = 0; $i < $r; $i++) {
-        $key .= $alf[rand(0, strlen($alf) - 1)];
+        $key .= $alf[random_int(0, strlen($alf) - 1)];
     }
     return $key;
 }
 
-function text_starts_with($text, string $needle): bool
+function get_cron_token()
+{
+    $token = get_option('cron_token', '');
+    if (!$token) {
+        $token = bin2hex(random_bytes(20));
+        update_option('cron_token', $token);
+    }
+    return $token;
+}
+
+function check_cron_token()
+{
+    $token = get_cron_token();
+    $given = $_GET['token'] ?? '';
+    if (!is_string($given) || !hash_equals($token, $given)) {
+        header('Content-Type: text/plain; charset=utf-8');
+        exit('Access Denied');
+    }
+}
+
+function text_starts_with(?string $text, string $needle): bool
 {
     if (empty($needle) || empty($text)) {
         return false;
@@ -701,7 +788,7 @@ function text_starts_with($text, string $needle): bool
     return str_starts_with($text, $needle);
 }
 
-function text_contains($text, string $needle): bool
+function text_contains(?string $text, string $needle): bool
 {
     if (empty($needle) || empty($text)) {
         return false;
@@ -710,13 +797,20 @@ function text_contains($text, string $needle): bool
 }
 
 
-function check_allow($type, $main = 'main')
+function check_allow(string $type, string $main = 'main')
 {
-    global $access;
+    global $access, $call_back_id;
+
     if (isset($access[$main][$type]) && $access[$main][$type]) {
-    } else {
         return;
     }
+
+    if (!empty($call_back_id)) {
+        alert_admin(['not_access']);
+    } else {
+        sm_admin(['not_access']);
+    }
+    exit;
 }
 
 
@@ -726,19 +820,22 @@ function admin_step($step = 'none')
     $db->update('admins', ['step' => $step], ['user_id' => $fid]);
 }
 
-function admin_data($data)
+function admin_data(array $data)
 {
     global $fid, $db;
     $db->update('admins', $data, ['user_id' => $fid]);
 }
 
-function get_admin($id, $type = 'user_id')
+function get_admin(int|string|null $id, string $type = 'user_id')
 {
     global $db;
+    if ($id === null) {
+        return null;
+    }
     return $db->get('admins', '*', [$type => $id]);
 }
 
-function get_option($option, $defult = 0)
+function get_option(string $option, $defult = 0)
 {
     global $db;
     $get =  $db->get('setting_options', '*', ['option_key' => $option]);
@@ -749,9 +846,10 @@ function get_option($option, $defult = 0)
     }
 }
 
-function update_option($option, $value)
+function update_option(string $option, ?string $value)
 {
     global $db;
+    $value = $value ?? '';
     $get =  $db->get('setting_options', '*', ['option_key' => $option]);
     if ($get) {
         $db->update('setting_options', ['option_value' => $value], ['id' => $get['id']]);
@@ -774,10 +872,10 @@ function flattenArray($array)
     return $result;
 }
 
-function mention_id($id, $name = null)
+function mention_id(string $id, ?string $name = null)
 {
     $name = (isset($name)) ? $name : $id;
-    return "<a href = 'tg://user?id=$id'>$name</a>";
+    return "<a href = 'tg://user?id=$id'>" . escapeHtml($name) . "</a>";
 }
 
 function get_category($data = null, $level = null)
@@ -833,21 +931,14 @@ function get_products($data = null, $level = null)
     return $result;
 }
 
-
-
-function escapeHtml($text)
-{
-    return str_replace(['>', '<'], ['&gt;', '&lt;'], $text);
-}
-
-function updateBlockBotStatus($oldStatus, $newStatus, $tc)
+function updateBlockBotStatus(string $oldStatus, string $newStatus, string $tc)
 {
     if (($oldStatus == 'member' && $newStatus == 'kicked' || $oldStatus == 'kicked' && $newStatus == 'member') && $tc == 'private') {
         user_set_data(['step' => 'none', 'block_bot' => ($newStatus == 'member' ? 0 : 1)]);
     }
 }
 
-function updateLastMessage($lastMsg, $admin = false)
+function updateLastMessage(array $lastMsg, bool $admin = false)
 {
     global $settings;
     $currentTime = time();
@@ -876,14 +967,20 @@ function updateLastMessage($lastMsg, $admin = false)
     user_set_data(['last_msg[JSON]' => $lastMsg]);
 }
 
-function getCategoryHierarchy($categoryId, $array = false)
+function getCategoryHierarchy(string $categoryId, bool $array = false)
 {
     global $db;
     $categoryNames = [];
 
     $currentCategoryId = $categoryId;
+    $visited = [];
 
     while (true) {
+        if (isset($visited[$currentCategoryId])) {
+            break;
+        }
+        $visited[$currentCategoryId] = true;
+
         $currentCategory = $db->get('categories', '*', ['id' => $currentCategoryId]);
 
         $categoryNames[] = '- ' . json_decode($currentCategory['name']);
@@ -905,7 +1002,7 @@ function getCategoryHierarchy($categoryId, $array = false)
 }
 
 
-function processReferral($referral_id, $fid)
+function processReferral(string $referral_id, string $fid)
 {
     global $section_status, $db, $settings;
     $giftReferral = $section_status['free']['gift_referral'];
@@ -956,7 +1053,7 @@ function processReferral($referral_id, $fid)
     }
 }
 
-function orderlist($result)
+function orderlist(array $result)
 {
     global $media;
     $tx = null;
@@ -966,7 +1063,7 @@ function orderlist($result)
     return $tx;
 }
 
-function transactionslist($result)
+function transactionslist(array $result)
 {
     global $media;
     $tx = null;
@@ -976,7 +1073,7 @@ function transactionslist($result)
     return $tx;
 }
 
-function insertTransaction($type, $id, $old, $new, $amount, $type2, $admin = 0)
+function insertTransaction(string $type, string $id, string $old, string $new, string $amount, string $type2, int $admin = 0)
 {
     global $db;
 
@@ -1012,20 +1109,23 @@ function insertTransaction($type, $id, $old, $new, $amount, $type2, $admin = 0)
     }
 }
 
-function get_user($id, $type = 'user_id')
+function get_user(int|string|null $id, string $type = 'user_id')
 {
     global $db;
+    if ($id === null) {
+        return null;
+    }
     return $db->get('users_information', '*', [$type => $id]);
 }
 
-function user_set_step($step = 'none', $id = null)
+function user_set_step(string $step = 'none', ?string $id = null)
 {
     global $db, $fid;
     $fid = ($id == null) ? $fid : $id;
     $db->update('users_information', ['step' => $step], ['user_id' => $fid]);
 }
 
-function user_set_data($data, $id = null)
+function user_set_data(array $data, ?string $id = null)
 {
     global $db, $fid;
     $userId = ($id === null) ? $fid : $id;
@@ -1048,7 +1148,7 @@ function user_set_data($data, $id = null)
     }
 }
 
-function add_tranaction($type, $id, $amount, $data = [])
+function add_tranaction(string $type, string $id, string $amount, array $data = [])
 {
     global $db;
     $db->insert('transactions', [
@@ -1125,39 +1225,6 @@ function check_daily_payment_limit($user_id, $amount, $payment_card)
         'new_total' => $new_total
     ];
 }
-
-function type_text($text, $type = 'none', $href = null)
-{
-    switch ($type) {
-        case 'b':
-            $t = "<b>" . $text . "</b>";
-            break;
-        case 'i':
-            $t = "<i>" . $text . "</i>";
-            break;
-        case 'u':
-            $t = "<u>" . $text . "</u>";
-            break;
-        case 'a':
-            $t = "<a href='" . $href . "'>" . $text . "</a>";
-            break;
-        case 'm':
-            $t = "<a href='tg://user?id=" . $href . "'>" . $text . "</a>";
-            break;
-        case 'c':
-            $t = "<code>" . $text . "</code>";
-            break;
-        case 's':
-            $t = "<tg-spoiler>" . $text . "</tg-spoiler>";
-            break;
-        default:
-            $t = $text;
-            break;
-    }
-    return $t;
-}
-
-
 
 function up_price($price, $percent)
 {
@@ -1255,4 +1322,54 @@ function row_chunk($array = [], $sizes = [])
 function off($off)
 {
     return str_replace([0, 1], ['❌', '✅'], $off ?? '');
+}
+
+
+function escapeHtml($text)
+{
+    return str_replace(['&', '>', '<'], ['&amp;', '&gt;', '&lt;'], $text);
+}
+
+function type_text($text, $type = 'none', $href = null)
+{
+    switch ($type) {
+        case 'b':
+            $t = "<b>" . escapeHtml($text) . "</b>";
+            break;
+        case 'i':
+            $t = "<i>" . escapeHtml($text) . "</i>";
+            break;
+        case 'u':
+            $t = "<u>" . escapeHtml($text) . "</u>";
+            break;
+        case 'a':
+            $t = "<a href='" . $href . "'>" . escapeHtml($text) . "</a>";
+            break;
+        case 'm':
+            $t = "<a href='tg://user?id=" . $href . "'>" . escapeHtml($text) . "</a>";
+            break;
+        case 'c':
+            $t = "<code>" . escapeHtml($text) . "</code>";
+            break;
+        case 's':
+            $t = "<tg-spoiler>" . escapeHtml($text) . "</tg-spoiler>";
+            break;
+        default:
+            $t = $text;
+            break;
+    }
+    return $t;
+}
+
+
+function save_update_log(array $data): string
+{
+    $key = bin2hex(random_bytes(16));
+    $data['key']       = $key;
+    $data['timestamp'] = time();
+    file_put_contents(
+        ROOTPATH . '/temp/ul_' . $key . '.json',
+        json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+    );
+    return $key;
 }

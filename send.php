@@ -8,6 +8,8 @@ require ROOTPATH . "/include/hkbot.php";
 require ROOTPATH . "/include/jdf.php";
 require ROOTPATH . "/media/index.php";
 
+check_cron_token();
+
 // Fetch job
 $job = $db->get('jobs', '*', ['step[!]' => 'none']);
 if (!$job) {
@@ -15,7 +17,15 @@ if (!$job) {
     echo 'No Job';
     exit;
 }
+
+if (!empty($job['paused'])) {
+    update_option('last_cron_send', time());
+    echo 'Paused';
+    exit;
+}
+
 // Load settings
+$settings = [];
 get_settings($settings);
 
 define('DIFF_TIME', $settings['DIFF_TIME']);
@@ -106,13 +116,29 @@ function processForward($db, $settings, $job)
 
 function sendMessage($bot, $db, $user, $info)
 {
-    $response = ($info['send'] === 'sm')
-        ? $bot->sm($user, $info['text'])
-        : $bot->bot($info['send'], [
+    if ($info['send'] === 'sm') {
+        $response = $bot->sm($user, $info['text']);
+    } elseif ($info['send'] === 'sendmediagroup') {
+        $files = $info['files'] ?? [];
+        $media = [];
+        foreach ($files as $i => $f) {
+            $item = ['type' => 'photo', 'media' => $f['file_id']];
+            if ($i === 0 && !empty($info['caption'])) {
+                $item['caption'] = $info['caption'];
+            }
+            $media[] = $item;
+        }
+        $response = $bot->bot('sendMediaGroup', [
+            'chat_id' => $user,
+            'media'   => json_encode($media),
+        ]);
+    } else {
+        $response = $bot->bot($info['send'], [
             'chat_id' => $user,
             $info['type_file'] => $info['file_id'],
             'caption' => $info['caption']
         ]);
+    }
 
     handleBlockedUser($db, $response, $user);
 }

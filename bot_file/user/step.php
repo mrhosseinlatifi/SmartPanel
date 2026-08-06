@@ -73,7 +73,7 @@ function user_step()
                 $last_sms = json_decode($user['last_sms'], 1);
                 $lastmsg = $last_sms['last_sms'];
                 $code = $last_sms['c'];
-                if ($text == $code) {
+                if (hash_equals((string) $code, (string) $text)) {
                     $contactuser = str_replace('off', '', $user['number']);
                     $referral_id = str_replace('off', '', $user['referral_id']);
                     if ($section_status['payment']['authentication']) {
@@ -369,8 +369,8 @@ function user_step()
                 $max_starz = get_option('max_starz_deposit', 2500);
 
                 if (is_numeric($text) && $text >= $min_starz && $text <= $max_starz) {
-                    $amount = (int)$text; // تعداد استارز
-                    $amountIRT = $amount * $settings['starz_rate']; // تبدیل به تومان
+                    $amount = (int)$text;
+                    $amountIRT = $amount * $settings['starz_rate'];
 
                     $da = [
                         'chat_id' => $fid,
@@ -396,32 +396,49 @@ function user_step()
             case 'charge_1':
                 $result = $db->get('gift_code', '*', ['status' => 1, 'code' => $text, 'type' => 'fix']);
                 if ($result) {
-                    $ids = json_decode($result['ids'], true);
+                    $ids = json_decode($result['ids'], true) ?: [];
                     if (!in_array($fid, $ids)) {
-                        // ok_charge_code
-                        $decode = json_decode($result['amount'], true);
-                        $old_balance = $user['balance'];
-                        $new_balance = $user['balance'] + $decode['amount'];
-                        insertTransaction('gift_code', $fid, $old_balance, $new_balance, $decode['amount'], 'charge');
-                        $db->update('users_information', ['balance[+]' => $decode['amount']], ['user_id' => $fid]);
-                        $ids[] = $fid;
-                        if (($result['count'] - 1) == 0) {
-                            $db->update('gift_code', ['status' => 0, 'count' => 0, 'ids[JSON]' => $ids], ['id' => $result['id']]);
+                        $claim = $db->update('gift_code', ['count[-]' => 1], [
+                            'id' => $result['id'],
+                            'status' => 1,
+                            'count[>]' => 0,
+                        ]);
+
+                        if ($claim && $claim->rowCount() > 0) {
+                            $fresh = $db->get('gift_code', '*', ['id' => $result['id']]);
+                            $freshIds = json_decode($fresh['ids'], true) ?: [];
+
+                            if (in_array($fid, $freshIds)) {
+                                $db->update('gift_code', ['count[+]' => 1], ['id' => $result['id']]);
+                                sm_user(['already_charge_code']);
+                                break;
+                            }
+
+                            $decode = json_decode($result['amount'], true);
+                            $old_balance = $user['balance'];
+                            $new_balance = $user['balance'] + $decode['amount'];
+                            insertTransaction('gift_code', $fid, $old_balance, $new_balance, $decode['amount'], 'charge');
+                            $db->update('users_information', ['balance[+]' => $decode['amount']], ['user_id' => $fid]);
+                            $freshIds[] = $fid;
+                            if ($fresh['count'] <= 0) {
+                                $db->update('gift_code', ['status' => 0, 'ids[JSON]' => $freshIds], ['id' => $result['id']]);
+                            } else {
+                                $db->update('gift_code', ['ids[JSON]' => $freshIds], ['id' => $result['id']]);
+                            }
+                            user_set_step();
+                            sm_user(['ok_charge_code', $decode['amount']], ['home']);
                         } else {
-                            $db->update('gift_code', ['count[-]' => 1, 'ids[JSON]' => $ids], ['id' => $result['id']]);
+                            sm_user(['already_charge_code']);
                         }
-                        user_set_step();
-                        sm_user(['ok_charge_code', $decode['amount']], ['home']);
                     } else {
-                        // already_charge_code
                         sm_user(['already_charge_code']);
                     }
                 } else {
-                    // wrong_charge_code
                     sm_user(['wrong_charge_code']);
                 }
                 break;
             case 'move_1':
+                $text = convertnumber($text);
                 if (is_numeric($text) && $text != $fid) {
                     $result = $db->get('users_information', '*', ['user_id' => $text]);
                     if ($result) {
@@ -435,6 +452,7 @@ function user_step()
                 }
                 break;
             case 'move_2':
+                $text = convertnumber($text);
                 if (is_numeric($text)) {
                     if ($user['balance'] >= $text && $settings['min_move_balance'] <= $text) {
                         $decode = json_decode($user['data'], true);
@@ -453,27 +471,35 @@ function user_step()
                 break;
             case 'move_3':
                 if ($text == $key['ok_move_balance']) {
-                    // move_balance
                     $decode = json_decode($user['data'], true);
                     $fid2 = $decode['id'];
                     $amount = $decode['amount'];
                     $sender = $db->get('users_information', '*', ['user_id' => $fid]);
                     $reciver = $db->Get('users_information', '*', ['user_id' => $fid2]);
 
-                    $new_balance = $reciver['balance'] + $amount;
-                    insertTransaction('receive_balance', $reciver['user_id'], $reciver['balance'], $new_balance, $amount, $sender['user_id']);
-                    $db->update('users_information', ['balance[+]' => $amount], ['user_id' => $reciver['user_id']]);
+                    $deduct = $db->update('users_information', ['balance[-]' => $amount], [
+                        'user_id' => $sender['user_id'],
+                        'balance[>=]' => $amount,
+                    ]);
 
-                    $new_balance = $sender['balance'] + $amount;
-                    $db->update('users_information', ['balance[-]' => $amount], ['user_id' => $sender['user_id']]);
-                    insertTransaction('send_balance', $sender['user_id'], $sender['balance'], $new_balance, $amount, $reciver['user_id']);
+                    if ($deduct && $deduct->rowCount() > 0) {
+                        $new_balance = $sender['balance'] - $amount;
+                        insertTransaction('send_balance', $sender['user_id'], $sender['balance'], $new_balance, $amount, $reciver['user_id']);
 
-                    sm_user(['receive_balance', $amount, $sender['user_id']], null, $reciver['user_id']);
+                        $new_balance = $reciver['balance'] + $amount;
+                        $db->update('users_information', ['balance[+]' => $amount], ['user_id' => $reciver['user_id']]);
+                        insertTransaction('receive_balance', $reciver['user_id'], $reciver['balance'], $new_balance, $amount, $sender['user_id']);
 
-                    sm_channel('channel_transaction', ['ok_move_balance', $amount, $sender['user_id'], $reciver['user_id']]);
+                        sm_user(['receive_balance', $amount, $sender['user_id']], null, $reciver['user_id']);
 
-                    user_set_step();
-                    sm_user(['ok_move_balance'], ['home']);
+                        sm_channel('channel_transaction', ['ok_move_balance', $amount, $sender['user_id'], $reciver['user_id']]);
+
+                        user_set_step();
+                        sm_user(['ok_move_balance'], ['home']);
+                    } else {
+                        user_set_step();
+                        sm_user(['move_balance_not_enough', $settings['min_move_balance'], $sender['balance']], ['home']);
+                    }
                 }
                 break;
             case 'free_menu':
@@ -534,18 +560,26 @@ function user_step()
             case 'withdraw_balance_2':
                 $req = $user['data'];
 
-                $old_balance = $user['balance'];
-                $new_balance = $user['balance'] - $req;
+                $old_gift = $user['gift'];
+                $new_gift = $old_gift - $req;
 
-                $db->insert('transactions', ['status' => 2, 'user_id' => $fid, 'type' => 'gift_payout', 'amount' => $req, 'data[JSON]' => ['info' => $text, 'old' => $old_balance, 'new' => $new_balance], 'date' => time(), 'tracking_code' => 0, 'getway' => 'gift']);
-                $code  = $db->id();
-                if (is_numeric($code)) {
-                    user_set_data(['step' => 'none', 'data' => 'none', 'gift[-]' => $req]);
-                    sm_channel('channel_gift_transaction', ['ok_gift_out', $code, $fid, $first_name, $req, $text], ['gifts_payouts', $code]);
-                    sm_user(['ok_withdraw_balance', $code], ['home']);
+                $deduct = $db->update('users_information', ['step' => 'none', 'data' => 'none', 'gift[-]' => $req], [
+                    'user_id' => $fid,
+                    'gift[>=]' => $req,
+                ]);
+
+                if ($deduct && $deduct->rowCount() > 0) {
+                    $db->insert('transactions', ['status' => 2, 'user_id' => $fid, 'type' => 'gift_payout', 'amount' => $req, 'data[JSON]' => ['info' => $text, 'old' => $old_gift, 'new' => $new_gift], 'date' => time(), 'tracking_code' => 0, 'getway' => 'gift']);
+                    $code  = $db->id();
+                    if (is_numeric($code)) {
+                        sm_channel('channel_gift_transaction', ['ok_gift_out', $code, $fid, $first_name, $req, $text], ['gifts_payouts', $code]);
+                        sm_user(['ok_withdraw_balance', $code], ['home']);
+                    } else {
+                        sm_user(['error_withdraw_balance', $code], ['home']);
+                    }
                 } else {
                     user_set_data(['step' => 'none', 'data' => 'none']);
-                    sm_user(['error_withdraw_balance', $code], ['home']);
+                    sm_user(['amount_withdraw_balance_wrong', $settings['min_payment_gift'], $user['gift']]);
                 }
                 break;
             case 'change_gift_balance_1':
@@ -559,9 +593,18 @@ function user_step()
                     try {
                         $old_balance = (int)$user['balance'];
                         $new_balance = $old_balance + $text;
-                        insertTransaction('gift_move', $fid, $old_balance, $new_balance, $text, 'gift');
-                        user_set_data(['step' => 'none', 'data' => 'none', 'gift[-]' => $text, 'balance[+]' => $text]);
-                        sm_user(['ok_gift_balance', $text], ['home']);
+
+                        $moved = $db->update('users_information', ['step' => 'none', 'data' => 'none', 'gift[-]' => $text, 'balance[+]' => $text], [
+                            'user_id' => $fid,
+                            'gift[>=]' => $text,
+                        ]);
+
+                        if ($moved && $moved->rowCount() > 0) {
+                            insertTransaction('gift_move', $fid, $old_balance, $new_balance, $text, 'gift');
+                            sm_user(['ok_gift_balance', $text], ['home']);
+                        } else {
+                            sm_user(['amount_gift_balance_wrong', $settings['min_move_gift'], $user['gift']]);
+                        }
                     } catch (Exception $e) {
                         sm_user(['error_processing']);
                     }
@@ -636,9 +679,7 @@ function user_step()
                             sm_user(['not_category']);
                         }
                     } else {
-                        // Get FindByCategory
                         $name_e = js($text);
-                        // Find category id
                         if ($userdata['now'] == '0') {
                             $idc = null;
                         } else {
@@ -651,7 +692,6 @@ function user_step()
 
                             $result = get_category(['offset' => 0], $result_categorys['id']);
 
-                            // under menu first
                             if ($result) {
                                 $userdata['now'] += 1;
                                 $userdata['category'][] = ["offset" => 0, "id" => $result_categorys['id'], 'name' => $result_categorys['name']];
@@ -674,7 +714,6 @@ function user_step()
 
                                     sm_user(['shop3', $result_categorys['name']], ['shop_keyboard', $result, $c, 'product', -1]);
                                 } else {
-                                    // not category
                                     sm_user(['not_category']);
                                 }
                             }
@@ -693,7 +732,7 @@ function user_step()
                     $userdata['now'] -= 1;
                     if ($userdata['now'] == '0') {
                         $idc = null;
-                        $offset = $userdata['category']['0']['offset'];
+                        $offset = $userdata['category'][0]['offset'] ?? 0;
                         $last_category['name'] = '';
                     } else {
                         $last_category = end($userdata['category']);
@@ -702,7 +741,6 @@ function user_step()
                         $last_category['name'] = '';
                     }
                     $result = get_category(['offset' => $offset], $idc);
-                    // under menu first
                     if ($result) {
 
                         $c = $db->count('categories', ['status' => 1, 'category_id' => $idc]);
@@ -740,7 +778,6 @@ function user_step()
 
                             sm_user(['shop3', $last_category['name']], ['shop_keyboard', $result, $c, 'product', $str]);
                         } else {
-                            // not category
                             sm_user(['not_category']);
                         }
                     } else {
@@ -752,15 +789,12 @@ function user_step()
 
 
                         if ($result_product) {
-                            // Calculate price with discounts
-                            $price = $result_product['price'];
+                            $price = product_base_price($result_product);
 
-                            // Apply product discount: positive = price increase, negative = price decrease
                             if ($result_product['discount']) {
-                                $price = $price + (($result_product['price'] / 100) * $result_product['discount']);
+                                $price = $price + (($price / 100) * $result_product['discount']);
                             }
 
-                            // Apply user discount (always reduces price)
                             if ($user['discount']) {
                                 $price = $price - (($price / 100) * $user['discount']);
                             }
@@ -777,20 +811,16 @@ function user_step()
                             }
                             $userdata['product'] =  ['product' => $result_product['id'], 'min' => $result_product['min'], 'max' => $result_product['max'], 'price_once' => $price_once, 'pattern' => $result_product['pattern']];
 
-                            // Handle different product types
                             if ($result_product['type'] == 'custom_comments') {
-                                // For comment type, show product first, then ask for comments
                                 user_set_data(['step' => 'buy3', 'data[JSON]' => $userdata, 'type' => $result_product['type']]);
                                 sm_user(['shop4_comments', $result_product, $price, $price_once, $result_product['min'], $result_product['max']], ['back_to_before']);
                             } elseif ($result_product['min'] == 1 && $result_product['max'] == 1) {
-                                // For products with min/max = 1, show product info but ask for link directly
                                 $userdata['price'] = $price_once;
                                 $userdata['count'] = 1;
                                 $link_text = $db->get('pattern', 'text', ['type' => $result_product['pattern']]);
                                 user_set_data(['step' => 'buy5', 'data[JSON]' => $userdata, 'type' => $result_product['type']]);
                                 sm_user(['shop4_direct_link', $result_product, $price, $price_once, $link_text], ['back_to_before']);
                             } else {
-                                // Normal flow
                                 user_set_data(['step' => 'buy3', 'data[JSON]' => $userdata, 'type' => $result_product['type']]);
                                 sm_user(['shop4', $result_product, $price, $price_once, $how_much], ['back_to_before']);
                             }
@@ -815,7 +845,6 @@ function user_step()
 
                             sm_user(['shop3', $last_category['name']], ['shop_keyboard', $result, $c, 'product', -1]);
                         } else {
-                            // not category
                             sm_user(['not_category']);
                         }
                     } else {
@@ -833,11 +862,9 @@ function user_step()
                         }
                     }
                 } else {
-                    // Check product type and handle accordingly
                     $result_product = $db->get('products', '*', ['id' => $userdata['product']['product']]);
 
                     if ($result_product && $result_product['type'] == 'custom_comments') {
-                        // For custom_comments, process the comments directly
                         $comments = array_filter(array_map('trim', explode("\n", $text)));
 
                         if (empty($comments)) {
@@ -845,13 +872,11 @@ function user_step()
                             return;
                         }
 
-                        // Check if comment count meets minimum requirement
                         if (count($comments) < $result_product['min']) {
                             sm_user(['comment_min_error', $result_product['min']], ['back_to_before']);
                             return;
                         }
 
-                        // Check if comment count exceeds maximum
                         if (count($comments) > $result_product['max']) {
                             sm_user(['comment_max_error', $result_product['max']], ['back_to_before']);
                             return;
@@ -860,15 +885,12 @@ function user_step()
                         $userdata['comments'] = $comments;
                         $userdata['count'] = count($comments);
 
-                        // Calculate price with discounts
-                        $price = $result_product['price'];
+                        $price = product_base_price($result_product);
 
-                        // Apply product discount: positive = price increase, negative = price decrease
                         if ($result_product['discount']) {
-                            $price = $price + (($result_product['price'] / 100) * $result_product['discount']);
+                            $price = $price + (($price / 100) * $result_product['discount']);
                         }
 
-                        // Apply user discount (always reduces price)
                         if ($user['discount']) {
                             $price = $price - (($price / 100) * $user['discount']);
                         }
@@ -882,12 +904,10 @@ function user_step()
                         $userdata['product']['price_once'] = $price_once;
                         $userdata['price'] = $price_once * count($comments);
 
-                        // Go to link input step with simplified message
                         $link_text = $db->get('pattern', 'text', ['type' => $result_product['pattern']]);
                         user_set_data(['step' => 'buy5', 'data[JSON]' => $userdata, 'type' => $result_product['type']]);
                         sm_user(['shop4_comments_simple', count($comments), $price_once, $userdata['price'], $link_text], ['back_to_before']);
                     } elseif ($result_product && $result_product['min'] == 1 && $result_product['max'] == 1) {
-                        // For min=max=1 products, directly go to link input with quantity 1
                         $a2 = 1 * $userdata['product']['price_once'];
                         if ($user['balance'] >= $a2) {
                             $link_text = $db->get('pattern', 'text', ['type' => $userdata['product']['pattern']]);
@@ -900,7 +920,6 @@ function user_step()
                             sm_user(['low_balance', $a2, $user], ['home']);
                         }
                     } else {
-                        // Normal quantity selection for other products
                         $text = convertnumber($text);
                         if (is_numeric($text) and ($text >= $userdata['product']["min"] and $text <= $userdata['product']["max"])) {
                             $a2 = $text * $userdata['product']['price_once'];
@@ -932,15 +951,12 @@ function user_step()
 
 
                     if ($result_product) {
-                        // Calculate price with discounts
-                        $price = $result_product['price'];
+                        $price = product_base_price($result_product);
 
-                        // Apply product discount (can be positive or negative)
                         if ($result_product['discount']) {
-                            $price = $price - (($result_product['price'] / 100) * $result_product['discount']);
+                            $price = $price + (($price / 100) * $result_product['discount']);
                         }
 
-                        // Apply user discount (always reduces price)
                         if ($user['discount']) {
                             $price = $price - (($price / 100) * $user['discount']);
                         }
@@ -957,13 +973,10 @@ function user_step()
                         }
                         $userdata['product'] =  ['product' => $result_product['id'], 'min' => $result_product['min'], 'max' => $result_product['max'], 'price_once' => $price_once, 'pattern' => $result_product['pattern']];
 
-                        // Handle different product types for the back case as well
                         if ($result_product['type'] == 'custom_comments') {
-                            // For comment type, ask for comment first, then proceed normally
                             user_set_data(['step' => 'comment_input', 'data[JSON]' => $userdata, 'type' => $result_product['type']]);
                             sm_user(['comment_request'], ['back_to_before']);
                         } elseif ($result_product['min'] == 1 && $result_product['max'] == 1) {
-                            // For products with min/max = 1, go back directly to product list (buy2)
                             if (isset($userdata['category'])) {
                                 $last_category = end($userdata['category']);
                                 $result = get_products(['offset' => $last_category['offset']], $last_category['id']);
@@ -976,7 +989,6 @@ function user_step()
                                 }
                             }
                         } else {
-                            // Normal flow - go back to quantity selection (buy3)
                             user_set_data(['step' => 'buy3', 'data[JSON]' => $userdata, 'type' => $result_product['type']]);
                             sm_user(['shop4', $result_product, $price, $price_once, $how_much], ['back_to_before']);
                         }
@@ -999,42 +1011,25 @@ function user_step()
             case 'sefaresh':
                 $userdata = json_decode($user['data'], 1);
                 if ($text == $key['back_to_before']) {
-                    /**
-                     * Back Last Menu
-                     */
                     user_set_step('buy5');
                     $link_text = $db->get('pattern', 'text', ['type' => $userdata['product']['pattern']]);
                     sm_user(['link_text', $link_text], ['back_to_before']);
                 } elseif ($text == $key['cancel_order']) {
-                    /**
-                     * Cancel Order
-                     */
                     user_set_data(['step' => 'none', 'data' => 'none']);
                     sm_user(['cancel_order'], ['home']);
                 } elseif ($text == $key['ok_order']) {
-                    /**
-                     * OK order
-                     */
                     if ($section_status['main']['buy']) {
-                        /**
-                         * Check 1 day order
-                         */
-                        $user['last_msg'] = json_decode($user['last_msg'], 1)['last_msg'];
-                        if ($user['last_msg'] <= $user['last_msg'] + 86400) {
-                            /**
-                             * Check Balance
-                             */
-                            if ($user['balance'] >= $userdata['price']) {
-                                // add To database
+                        $deduct = $db->update('users_information', ['balance[-]' => $userdata['price']], [
+                            'user_id' => $fid,
+                            'balance[>=]' => $userdata['price'],
+                        ]);
+
+                        if ($deduct && $deduct->rowCount() > 0) {
                                 $product_id = $userdata['product']['product'];
                                 $result_product = $db->get('products', '*', ['id' => $product_id, 'status' => 1]);
 
                                 if ($result_product) {
                                     if ($result_product['api'] == 'noapi') {
-                                        /**
-                                         * No API orders
-                                         */
-                                        // insert orders
                                         $extra_data = [
                                             'product' => [
                                                 'id' => $product_id,
@@ -1042,7 +1037,6 @@ function user_step()
                                             ]
                                         ];
 
-                                        // Add comments if available
                                         if (isset($userdata['comments']) && !empty($userdata['comments'])) {
                                             $extra_data['comments'] = $userdata['comments'];
                                         }
@@ -1062,20 +1056,16 @@ function user_step()
                                         $code = $db->id();
                                         if ($code) {
                                             $old_balance = $user['balance'];
-                                            $new_balance = $user['balance'] - $userdata['price'];
+                                            $new_balance = $old_balance - $userdata['price'];
 
                                             insertTransaction('orders', $fid, $old_balance, $new_balance, $userdata['price'], 'buy');
-                                            // balance
-                                            $old_balance = $user['balance'];
                                             user_set_data([
-                                                'balance[-]' => $userdata['price'],
                                                 'number_order[+]' => 1,
                                                 'amount_spent[+]' => $userdata['price'],
                                                 'step' => 'none',
                                                 'link' => 'none',
                                                 'data[JSON]' => [],
                                             ]);
-                                            $new_balance = $old_balance - $userdata['price'];
 
                                             sm_channel(
                                                 'channel_order_noapi',
@@ -1095,31 +1085,22 @@ function user_step()
                                                 ],
                                                 ['order_noapi', $code, 'pending']
                                             );
-                                            // chanel ok order
                                             if ($section_status['buy']['order_msg'] && $settings['channel_ads']) {
                                                 sm_channel('channel_ads', ['order_receipt_channel', getCategoryHierarchy($result_product['category_id']), $result_product['name'], $userdata['count'], $userdata['price'], $idbot], ['successful_order', $idbot]);
                                             }
-                                            // edit and resid
                                             $re = sm_user(['order_receipt_ok', $user["link"], $userdata['count'], $userdata['price'], $code, json_decode($result_product['name'])], ['reorder_link', $product_id]);
                                             sm_user(['text_order', $settings['text_order']], ['home']);
                                         } else {
-                                            // error insert
+                                            $db->update('users_information', ['balance[+]' => $userdata['price']], ['user_id' => $fid]);
                                             $tx = json_encode($db->errorInfo, 448);
                                             sm_channel('channel_errors', ['db_error', $result_product['name'], $fid, $tx]);
                                             user_set_step();
                                             sm_user(['error_order'], ['home']);
                                         }
                                     } else {
-                                        /**
-                                         * API ORDERS
-                                         */
-                                        // insert orders
                                         $api_info = $db->get('apis', '*', ['name' => $result_product['api'], 'status' => 1]);
                                         if ($api_info) {
                                             if ($result_product['confirm']) {
-                                                /**
-                                                 * Need Confirmation
-                                                 */
                                                 $extra_data = [
                                                     'product' => [
                                                         'id' => $product_id,
@@ -1127,7 +1108,6 @@ function user_step()
                                                     ]
                                                 ];
 
-                                                // Add comments if available
                                                 if (isset($userdata['comments']) && !empty($userdata['comments'])) {
                                                     $extra_data['comments'] = $userdata['comments'];
                                                 }
@@ -1147,12 +1127,10 @@ function user_step()
 
                                                 $code = $db->id();
                                                 if ($code) {
-                                                    // balance
                                                     $old_balance = $user['balance'];
-                                                    $new_balance = $user['balance'] - $userdata['price'];
+                                                    $new_balance = $old_balance - $userdata['price'];
 
                                                     user_set_data([
-                                                        'balance[-]' => $userdata['price'],
                                                         'number_order[+]' => 1,
                                                         'amount_spent[+]' => $userdata['price'],
                                                         'step' => 'none',
@@ -1181,24 +1159,19 @@ function user_step()
                                                         ['order_api_confirm', $code, 'pending']
                                                     );
 
-                                                    // chanel ok order
                                                     if ($section_status['buy']['order_msg'] && $settings['channel_ads']) {
                                                         sm_channel('channel_ads', ['order_receipt_channel', getCategoryHierarchy($result_product['category_id']), $result_product['name'], $userdata['count'], $userdata['price'], $idbot], ['successful_order', $idbot]);
                                                     }
-                                                    // edit and resid
                                                     sm_user(['order_receipt_ok', $user["link"], $userdata['count'], $userdata['price'], $code, json_decode($result_product['name'])], ['reorder_link', $product_id]);
                                                     sm_user(['text_order', $settings['text_order']], ['home']);
                                                 } else {
-                                                    // error insert
+                                                    $db->update('users_information', ['balance[+]' => $userdata['price']], ['user_id' => $fid]);
                                                     $tx = json_encode($db->errorInfo, 448);
                                                     sm_channel('channel_errors', ['db_error', $result_product['name'], $fid, $tx]);
                                                     user_set_step();
                                                     sm_user(['error_order'], ['home']);
                                                 }
                                             } else {
-                                                /**
-                                                 * Default API ORDERS
-                                                 */
                                                 $extra_data = [
                                                     'product' => [
                                                         'id' => $product_id,
@@ -1206,7 +1179,6 @@ function user_step()
                                                     ]
                                                 ];
 
-                                                // Add comments if available
                                                 if (isset($userdata['comments']) && !empty($userdata['comments'])) {
                                                     $extra_data['comments'] = $userdata['comments'];
                                                 }
@@ -1226,11 +1198,9 @@ function user_step()
 
                                                 $code = $db->id();
                                                 if ($code) {
-                                                    // balance
                                                     $old_balance = $user['balance'];
-                                                    $new_balance = $user['balance'] - $userdata['price'];
+                                                    $new_balance = $old_balance - $userdata['price'];
                                                     user_set_data([
-                                                        'balance[-]' => $userdata['price'],
                                                         'number_order[+]' => 1,
                                                         'amount_spent[+]' => $userdata['price'],
                                                         'step' => 'none',
@@ -1258,15 +1228,13 @@ function user_step()
                                                         ['order_api', $code, 'pending']
                                                     );
 
-                                                    // chanel ok order
                                                     if ($section_status['buy']['order_msg'] && $settings['channel_ads']) {
                                                         sm_channel('channel_ads', ['order_receipt_channel', getCategoryHierarchy($result_product['category_id']), $result_product['name'], $userdata['count'], $userdata['price']], ['successful_order']);
                                                     }
-                                                    // edit and resid
                                                     sm_user(['order_receipt_ok', $user["link"], $userdata['count'], $userdata['price'], $code, json_decode($result_product['name'])], ['reorder_link', $product_id]);
                                                     sm_user(['text_order', $settings['text_order']], ['home']);
                                                 } else {
-                                                    // error insert
+                                                    $db->update('users_information', ['balance[+]' => $userdata['price']], ['user_id' => $fid]);
                                                     $tx = json_encode($db->errorInfo, 448);
                                                     sm_channel('channel_errors', ['db_error', $result_product['name'], $fid, $tx]);
                                                     user_set_step();
@@ -1274,23 +1242,20 @@ function user_step()
                                                 }
                                             }
                                         } else {
+                                            $db->update('users_information', ['balance[+]' => $userdata['price']], ['user_id' => $fid]);
                                             sm_user(['off_buy']);
                                         }
                                     }
                                 } else {
+                                    $db->update('users_information', ['balance[+]' => $userdata['price']], ['user_id' => $fid]);
                                     user_set_step();
                                     sm_channel('channel_errors', ['product_error', $result_product['name'], $fid, $tx]);
                                     sm_user(['error_order'], ['home']);
                                 }
                             } else {
                                 user_set_step();
-                                sm_user(['low_balance', $a2, $user], ['home']);
+                                sm_user(['low_balance', $userdata['price'], $user], ['home']);
                             }
-                        } else {
-                            // 1 day 
-                            user_set_step();
-                            sm_user(['error_order'], ['home']);
-                        }
                     } else {
                         sm_user(['off_buy']);
                     }
@@ -1326,7 +1291,6 @@ function user_step()
                                     sm_user(['delay_time_sms', $n], ['back']);
                                 }
                             } else {
-                                # Send Data To Channel
                                 if ($section_status['payment']['authentication']) {
                                     sm_channel('channel_kyc', ['ok_number', $contactuser, $fid, $first_name]);
                                 }
@@ -1355,7 +1319,7 @@ function user_step()
                     $decode = json_decode($user['last_sms'], 1);
                     $lastmsg = $decode['last_sms'];
                     $code = $decode['c'];
-                    if (md5($text) == $code) {
+                    if (hash_equals((string) $code, md5($text))) {
                         $contactuser = str_replace('off', '', $user['number']);
 
                         if (text_contains($user['referral_id'], 'off') !== false) {
@@ -1414,7 +1378,7 @@ function user_step()
                                         $decode['payment_type'] = 'IRT';
                                         $db->update('transactions', ['data[JSON]' => $decode], ['id' => $code]);
 
-                                        sm_user(['payment_text', $user, $code, $text], ['payment_gateways', $result, $text, $domin, $code]);
+                                        sm_user(['payment_text', $user, $code, $text], ['payment_gateways', $result, $text, $dominIR, $code]);
                                         user_set_step();
 
                                         if ($user['payment_card'] > 0) {
@@ -1432,7 +1396,7 @@ function user_step()
                                     if ($code) {
                                         $result = $db->select('payment_gateways', '*', ['status' => 1, 'type' => 'IRT']);
 
-                                        sm_user(['payment_text', $user, $code, $text], ['payment_gateways', $result, $text, $domin, $code]);
+                                        sm_user(['payment_text', $user, $code, $text], ['payment_gateways', $result, $text, $dominIR, $code]);
                                         user_set_step();
 
                                         if ($user['payment_card'] > 0) {
@@ -1464,7 +1428,10 @@ function user_step()
                     $code = $user['data'];
                     $result = $db->has('payment_gateways', ['status' => 1]);
                     if ($result) {
-                        $getTr = $db->get('transactions', '*', ['id' => $code]);
+                        $getTr = $db->get('transactions', '*', ['id' => $code, 'user_id' => $fid]);
+                        if (!$getTr) {
+                            break;
+                        }
 
                         $decode = json_decode($getTr['data'], true);
 
@@ -1477,6 +1444,11 @@ function user_step()
                         $code = $getTr['id'];
 
                         $paymentType = 'IRT';
+                        if ($paymentType == 'IRT') {
+                            $dm = $dominIR;
+                        } else {
+                            $dm = $domin;
+                        }
                         if (isset($decode['payment_type'])) {
                             $paymentType = $decode['payment_type'];
                         }
@@ -1484,7 +1456,7 @@ function user_step()
                         $result = $db->select('payment_gateways', '*', ['status' => 1, 'type' => $paymentType]);
 
                         $bot->delete_msg($fid, $message_id);
-                        edt_user(['payment_text', $user, $code, $getTr['amount'], $text, $decodecode['amount'], $decodecode['max']], ['payment_gateways', $result, $getTr['amount'], $domin, $code], $fid, $user['link']);
+                        edt_user(['payment_text', $user, $code, $getTr['amount'], $text, $decodecode['amount'], $decodecode['max']], ['payment_gateways', $result, $getTr['amount'], $dm, $code], $fid, $user['link']);
                         user_set_step();
                     }
                 } else {
@@ -1492,7 +1464,6 @@ function user_step()
                 }
                 break;
             case 'verify_card':
-                // Enforce KYC media preference: settings['kyc_media'] can be 'photo', 'video', or 'both'
                 $kycMediaPref = $settings['kyc_media'] ?? 'photo';
                 $hasPhoto = isset($update['message']['photo']);
                 $hasVideo = isset($update['message']['video']);
@@ -1562,6 +1533,7 @@ function user_step()
                     sm_user(['daily_limit_exceeded_help']);
                 }
                 break;
+
             default:
                 # code...
                 break;
@@ -1573,6 +1545,6 @@ function user_step()
         } else {
             user_set_step();
         }
-        sm_user(['lock_channel', $tch['channels']], ['lock_channel', $tch['channels'], 0]);
+        sm_user(['lock_channel', $tch['channels']], ['lock_channel', $tch['channels'], '']);
     }
 }

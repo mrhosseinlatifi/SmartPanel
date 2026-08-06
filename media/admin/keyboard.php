@@ -1,5 +1,6 @@
 <?php
 //---------------کیبورد------------------//
+
 /** Main Admin Home */
 $key_admin['stats'] = "آمار ربات 📊";
 $key_admin['status'] = "روشن/خاموش ✅";
@@ -16,7 +17,7 @@ $key_admin['back_user'] = "پنل کاربری 👤";
 
 /** Navigation and Common Buttons */
 $key_admin['next_page'] = "صفحه بعد ➡️";
-$key_admin['prev_page'] = "صفحه قبل";
+$key_admin['prev_page'] = "صفحه قبل ⬅️";
 $key_admin['ok_admin'] = "تایید ✅";
 $key_admin['back_admin_before'] = "بازگشت به منوی قبل ⬅️";
 $key_admin['back_admin'] = "بازگشت به منوی مدیریت ⬅️";
@@ -26,6 +27,8 @@ $key_admin['close_list'] = "بستن لیست ❌";
 $key_admin['update'] = "بروزکردن 🔄";
 $key_admin['update_stats'] = "بروزکردن آمار 📊";
 $key_admin['total_stats'] = "آمار کلی 📊";
+$key_admin['cron_status'] = "⏰ زمان اجرای کرون‌ها";
+$key_admin['back_to_stats'] = "📊 بازگشت به آمار";
 $key_admin['back'] = "بازگشت ⬅️";
 $key_admin['edit'] = "ویرایش ✏️";
 $key_admin['next_step'] = "مرحله بعد ➡️";
@@ -74,6 +77,7 @@ $key_admin['sendall_forall'] = "فروارد همگانی ✉️";
 $key_admin['sendall_edit'] = "ویرایش مقادیر همگانی 📨";
 $key_admin['sendall_edit_sendall'] = "تعداد پیام همگانی ✍️";
 $key_admin['sendall_edit_forall'] = "تعداد فروارد همگانی ✉️";
+$key_admin['sendall_status'] = "📊 وضعیت ارسال همگانی";
 
 /** User info Panel */
 $key_admin['userinfo_card'] = "شماره کارت 💳";
@@ -103,6 +107,10 @@ $key_admin['time_slow_spam'] = 'فاصله بین هرپیام ⏳';
 /** Edit Api Setting Panel */
 $key_admin['limit'] = 'تعداد سفارش بررسی 📋';
 $key_admin['limit_multi'] = 'تعداد سفارش بررسی چندگانه 📋';
+$key_admin['order_unknown_days'] = 'مدت زمان نامشخص شدن سفارش 📅';
+
+/** Rate Settings Panel */
+$key_admin['rate_settings']    = 'قیمت دلار و استارز 💱';
 
 /** Api Panel */
 $key_admin['balance_api'] = "موجودی وب سرویس 💵";
@@ -196,6 +204,7 @@ $key_admin['product_edit_option'] = [
     'ordering' => "اولویت 🔢",
     'delete' => "حذف ❌",
     'price' => "قیمت 💰",
+    'price_usd' => "قیمت دلاری 💵",
     'min' => "محدوده 🔢",
     'info' => "توضیحات 📝",
     'api' => "وب سرویس 📡",
@@ -256,6 +265,7 @@ $key_admin['payment_option'] = [
     "daily_limit" => "حد مجاز تراکنش روزانه 🚫",
     "usd_rate" => "قیمت دلار 💵",
     "starz_rate" => "قیمت استارز ⭐️",
+    "starz_rate_usd" => "قیمت دلاری استارز ⭐️💱",
     "min_starz_deposit" => "حداقل استارز 🔻",
     "max_starz_deposit" => "حداکثر استارز 🔺",
     "kyc_media" => "روش احراز کارت 🔐",
@@ -342,7 +352,25 @@ $key_admin['update_api_type'] = [
     'type_3' => 'انتخاب و افزودن دسته بندی ها به صورت انتخابی 📂',
     'type_4' => 'انتخاب و افزودن محصولات به صورت انتخابی 🛍',
     'type_5' => 'افزودن تمامی محصولات و دسته بندی ها 📦',
-    'type_6' => 'بروزرسانی محصولات فعلی 🔄'
+    'type_6' => 'بروزرسانی محصولات فعلی 🔄',
+    'type_7' => 'افزودن یک دسته انتخابی و محصولاتش بصورت خودکار 📦',
+];
+
+/** Sendall status labels */
+$key_admin['sendall_status_state'] = [
+    'active' => '🟢 در حال ارسال',
+    'paused' => '⏸ متوقف شده',
+];
+$key_admin['sendall_type_label'] = [
+    'fwd'            => '🔄 فوروارد پیام',
+    'sm'             => '✍️ پیام متنی',
+    'sendmediagroup' => '📸 آلبوم عکس',
+    'sendphoto'      => '🖼 عکس',
+    'sendvideo'      => '🎥 ویدیو',
+    'sendaudio'      => '🎵 صوت',
+    'sendvoice'      => '🎙 ویس',
+    'senddocument'   => '📄 فایل',
+    'default'        => '✉️ پیام',
 ];
 
 /** Update API Info */
@@ -383,18 +411,18 @@ $key_admin['translations_access'] = [
 
 $key_admin['update_api_section'] = "قسمت 📂";
 $key_admin['update_api_status'] = "وضعیت ✅";
-$key_admin['update_api_price_increase'] = "درصد افزایش قیمت 💹";
-$key_admin['update_api_price_convert'] = "تبدیل قیمت 💰";
-$key_admin['update_api_rounding'] = "رند کردن 🔢";
-$key_admin['update_api_name'] = "اسم 📝";
-$key_admin['update_api_price'] = "قیمت 💰";
+$key_admin['update_api_price_increase'] = "افزایش قیمت % 💹";
+$key_admin['update_api_price_convert'] = "تبدیل دلار به تومان 💱";
+$key_admin['update_api_rounding'] = "رند کردن قیمت 🔢";
+$key_admin['update_api_name'] = "بروزرسانی اسم 📝";
+$key_admin['update_api_price'] = "بروزرسانی قیمت 💰";
 $key_admin['update_api_price_method'] = "روش قیمت 💹";
-$key_admin['update_api_quantity_range'] = "محدوده تعداد 🔢";
-$key_admin['update_api_description'] = "توضیحات 📝";
+$key_admin['update_api_quantity_range'] = "بروزرسانی min/max 🔢";
+$key_admin['update_api_description'] = "بروزرسانی توضیحات 📝";
 $key_admin['update_api_list'] = "بروزرسانی لیست 🔄";
 $key_admin['update_api_next_step'] = "مرحله بعد ➡️";
 $key_admin['update_api_close_panel'] = "بستن پنل ❌";
-$key_admin['update_api_update'] = "بروزرسانی 🔄";
+$key_admin['update_api_update'] = "🔄 تنظیمات بروزرسانی";
 
 $key_admin['sort_asc'] = "صعودی ⬆️";
 $key_admin['sort_desc'] = "نزولی ⬇️";
@@ -436,6 +464,7 @@ trait keyboard_admin
     function akeys($k, $data = null)
     {
         global $key_admin, $key, $settings;
+        $t = [];
         switch ($k) {
             case 'home':
                 $t[] = [['text' => $key_admin['stats']]];
@@ -483,10 +512,21 @@ trait keyboard_admin
                 $t = [
                     'keyboard' => [
                         [['text' => $key_admin['sendall_sendall']], ['text' => $key_admin['sendall_forall']]],
+                        [['text' => $key_admin['sendall_status']]],
                         [['text' => $key_admin['sendall_edit']]],
                         [['text' => $key_admin['back_admin']]],
                     ]
                 ];
+                break;
+            case 'sendall_status_kb':
+                $paused = $data;
+                $toggle_label = $paused ? '▶️ ادامه ارسال' : '⏸ توقف ارسال';
+                $toggle_cb = $paused ? 'sendall_resume' : 'sendall_pause';
+                $t = ['inline_keyboard' => [
+                    [['text' => '👁 نمونه پیام', 'callback_data' => 'sendall_preview']],
+                    [['text' => $toggle_label, 'callback_data' => $toggle_cb], ['text' => '🔄 بروزرسانی', 'callback_data' => 'sendall_status_refresh']],
+                    [['text' => '❌ لغو کامل ارسال', 'callback_data' => 'sendall_full_cancel']],
+                ]];
                 break;
             case 'api_panel':
                 $t = [
@@ -498,13 +538,83 @@ trait keyboard_admin
                     ]
                 ];
                 break;
-            case 'channel_key':
-                foreach ($key_admin['channels_key'] as $key => $value) {
-                    $t[] = [['text' => $value]];
+            case 'channels_panel':
+                $ch_meta = [
+                    'channel_main'             => '📢 کانال اصلی',
+                    'channel_lock'             => '🔒 جوین اجباری',
+                    'channel_transaction'      => '💰 تراکنشات',
+                    'channel_payment_offline'  => '💳 کارت به کارت',
+                    'channel_ads'              => '📢 تبلیغاتی',
+                    'channel_order_api'        => '🛍 سفارشات API',
+                    'channel_order_noapi'      => '🛍 سفارشات دستی',
+                    'channel_support'          => '💬 پشتیبانی',
+                    'channel_kyc'              => '🔐 احراز هویت',
+                    'channel_gift_transaction' => '💸 برداشت هدیه',
+                    'channel_errors'           => '‼️ خطاها',
+                ];
+                $rows = [];
+                foreach ($ch_meta as $ch_key => $ch_label) {
+                    $val = get_option($ch_key, 0);
+                    if ($ch_key === 'channel_lock') {
+                        $lk = ($val && $val != '0') ? (json_decode($val, true) ?: []) : [];
+                        $count_lk = count($lk);
+                        $status_icon = $count_lk > 0 ? '✅' : '❌';
+                        $rows[] = [['text' => "{$status_icon} {$ch_label} ({$count_lk} کانال)", 'callback_data' => 'ch_lock']];
+                    } else {
+                        $is_set = ($val && $val != '0');
+                        $rows[] = [['text' => ($is_set ? '✅ ' : '❌ ') . $ch_label, 'callback_data' => 'ch_detail_' . $ch_key]];
+                    }
                 }
-                $t = row_chunk($t, [3, 2, 3, 2]);
-                $t[] = [['text' => $key_admin['back_admin']]];
-                $t = ['keyboard' => $t];
+                $rows[] = [['text' => $key_admin['back_admin'], 'callback_data' => 'admin_back']];
+                $t = ['inline_keyboard' => $rows];
+                break;
+
+            case 'ch_detail_panel':
+                $ch_key = $data[0];
+                $is_set = !empty($data[1]);
+                $rows = [];
+                if ($is_set) {
+                    $rows[] = [
+                        ['text' => '✏️ ویرایش', 'callback_data' => 'ch_set_' . $ch_key],
+                        ['text' => '🗑 حذف',    'callback_data' => 'ch_del_' . $ch_key],
+                    ];
+                } else {
+                    $rows[] = [['text' => '➕ ثبت کانال', 'callback_data' => 'ch_set_' . $ch_key]];
+                }
+                $rows[] = [['text' => '← بازگشت به لیست', 'callback_data' => 'ch_panel']];
+                $t = ['inline_keyboard' => $rows];
+                break;
+
+            case 'channel_lock_panel':
+                $lock_arr = $data ?: [];
+                $rows = [];
+                foreach ($lock_arr as $uname) {
+                    $rows[] = [
+                        ['text' => '@' . $uname, 'callback_data' => 'none'],
+                        ['text' => '❌ حذف', 'callback_data' => 'ch_lock_del_' . $uname],
+                    ];
+                }
+                $rows[] = [['text' => '➕ افزودن کانال', 'callback_data' => 'ch_lock_add']];
+                $rows[] = [['text' => '← بازگشت', 'callback_data' => 'ch_panel']];
+                $t = ['inline_keyboard' => $rows];
+                break;
+
+            case 'ch_cancel':
+                $t = ['inline_keyboard' => [
+                    [['text' => '✖️ انصراف', 'callback_data' => 'ch_panel']],
+                ]];
+                break;
+
+            case 'ch_cancel_lock':
+                $t = ['inline_keyboard' => [
+                    [['text' => '✖️ انصراف', 'callback_data' => 'ch_lock']],
+                ]];
+                break;
+            case 'sendall_album_kb':
+                $t = ['inline_keyboard' => [
+                    [['text' => '✅ ارسال همگانی', 'callback_data' => 'sendall_album_send']],
+                    [['text' => '❌ لغو', 'callback_data' => 'sendall_album_cancel']],
+                ]];
                 break;
             case 'products_panel':
                 $t = [
@@ -530,10 +640,48 @@ trait keyboard_admin
                     'keyboard' => [
                         [['text' => $key_admin['payment_status']], ['text' => $key_admin['payment_edit']]],
                         [['text' => $key_admin['payment_add']], ['text' => $key_admin['payment_discount']]],
-                        [['text' => $key_admin['payment_edit_setting']]],
+                        [['text' => $key_admin['payment_edit_setting']], ['text' => $key_admin['rate_settings']]],
                         [['text' => $key_admin['back_admin']]],
                     ]
                 ];
+                break;
+            case 'rate_panel':
+                $usd_auto   = (int) ($data[0] ?? 0);
+                $interval   = (int) ($data[1] ?? 60);
+                $auto_starz = (int) ($data[2] ?? 0);
+                $t = ['inline_keyboard' => [
+                    [
+                        ['text' => '💵 تعیین قیمت دلار', 'callback_data' => 'rate_set_usd'],
+                    ],
+                    [
+                        ['text' => '🤖 دریافت خودکار: ' . ($usd_auto ? '✅' : '❌'), 'callback_data' => 'rate_toggle_usdauto'],
+                        ['text' => '⏱ بازه: ' . $interval . 'د', 'callback_data' => 'rate_set_interval'],
+                    ],
+                    [
+                        ['text' => '📥 دریافت نرخ لحظه‌ای', 'callback_data' => 'rate_fetch_now'],
+                    ],
+                    [
+                        ['text' => '⭐️ تعیین قیمت استارز', 'callback_data' => 'rate_set_starz'],
+                        ['text' => '🤖 استارز خودکار: ' . ($auto_starz ? '✅' : '❌'), 'callback_data' => 'rate_toggle_starzauto'],
+                    ],
+                    [
+                        ['text' => '💱 قیمت هر استارز به دلار', 'callback_data' => 'rate_set_starz_usd'],
+                    ],
+                    [
+                        ['text' => $key_admin['close_panel'], 'callback_data' => 'close_panel'],
+                    ],
+                ]];
+                break;
+            case 'rate_prompt_back':
+                $t = ['inline_keyboard' => [
+                    [['text' => '⬅️ بازگشت', 'callback_data' => 'rate_back']],
+                ]];
+                break;
+            case 'add_product_confirm_panel':
+                $t = ['inline_keyboard' => [
+                    [['text' => '✅ تایید و ثبت', 'callback_data' => 'admin_add_product_confirm']],
+                    [['text' => '🔄 ارسال مجدد', 'callback_data' => 'admin_add_product_retry']],
+                ]];
                 break;
             case 'skip_back_panel':
                 if ($data) {
@@ -603,6 +751,7 @@ trait keyboard_admin
                     $t = [
                         'inline_keyboard' => [
                             [['text' => $key_admin['update_stats'], 'callback_data' => 'statistics']],
+                            [['text' => $key_admin['cron_status'], 'callback_data' => 'cron_status']],
                         ]
                     ];
                 } else {
@@ -612,6 +761,13 @@ trait keyboard_admin
                         ]
                     ];
                 }
+                break;
+            case 'cron_status_kb':
+                $t = [
+                    'inline_keyboard' => [
+                        [['text' => $key_admin['back_to_stats'], 'callback_data' => 'statistics']],
+                    ]
+                ];
                 break;
             case 'sub_off':
                 $result = $data[0];
@@ -777,6 +933,7 @@ trait keyboard_admin
                     'keyboard' => [
                         [['text' => $key_admin['limit']]],
                         [['text' => $key_admin['limit_multi']]],
+                        [['text' => $key_admin['order_unknown_days']]],
                         [['text' => $key_admin['back_admin']], ['text' => $key_admin['back_admin_before']]],
                     ]
                 ];
@@ -868,7 +1025,6 @@ trait keyboard_admin
                         [['text' => $key_admin['payment_option']["min_crypto_deposit"]], ['text' => $key_admin['payment_option']["max_crypto_deposit"]]],
                         [['text' => $key_admin['payment_option']["min_move_balance"]], ['text' => $key_admin['payment_option']["min_kyc"]]],
                         [['text' => $key_admin['payment_option']["daily_limit"]]],
-                        [['text' => $key_admin['payment_option']["usd_rate"]], ['text' => $key_admin['payment_option']["starz_rate"]]],
                         [['text' => $key_admin['payment_option']["min_starz_deposit"]], ['text' => $key_admin['payment_option']["max_starz_deposit"]]],
                         [['text' => $key_admin['payment_option']["kyc_media"]]],
                         [['text' => $key_admin['back_admin']], ['text' => $key_admin['back_admin_before']]],
@@ -1000,9 +1156,14 @@ trait keyboard_admin
                 }
                 break;
             case 'update_info':
-                $t = ['inline_keyboard' => [
-                    [['text' => $key_admin['update'], 'callback_data' => 'adminpro_up_' . $data['0'] . '_' . $data['1']]]
-                ]];
+                $type   = $data[0];
+                $id     = $data[1];
+                $is_usd = $data[2] ?? 0;
+                $row = [['text' => $key_admin['update'], 'callback_data' => 'adminpro_up_' . $type . '_' . $id]];
+                if ($type === 'product') {
+                    $row[] = ['text' => $is_usd ? '💵 دلاری: ✅' : '💵 دلاری: ❌', 'callback_data' => 'adminpro_usd_toggle_' . $id];
+                }
+                $t = ['inline_keyboard' => [$row]];
                 break;
             case 'edit_products_panel':
                 switch ($data) {
@@ -1026,7 +1187,7 @@ trait keyboard_admin
                         $t = [
                             'keyboard' => [
                                 [['text' => $key_admin['product_edit_option']['min']], ['text' => $key_admin['product_edit_option']['price']], ['text' => $key_admin['product_edit_option']['name']]],
-                                [['text' => $key_admin['product_edit_option']['api']], ['text' => $key_admin['product_edit_option']['info']]],
+                                [['text' => $key_admin['product_edit_option']['price_usd']], ['text' => $key_admin['product_edit_option']['api']], ['text' => $key_admin['product_edit_option']['info']]],
                                 [['text' => $key_admin['product_edit_option']['discount']], ['text' => $key_admin['product_edit_option']['ordering']]],
                                 [['text' => $key_admin['product_edit_option']['confirm']], ['text' => $key_admin['product_edit_option']['service']]],
                                 [['text' => $key_admin['product_edit_option']['pattern']], ['text' => $key_admin['product_edit_option']['type']]],
@@ -1069,13 +1230,25 @@ trait keyboard_admin
             case 'update_api_type_0':
                 $t = [
                     'inline_keyboard' => [
-                        [['text' => $key_admin['update_api_type']['type_1'], 'callback_data' => 'update_api_type_1']],
-                        [['text' => $key_admin['update_api_type']['type_2'], 'callback_data' => 'update_api_type_2']],
-                        [['text' => $key_admin['update_api_type']['type_3'], 'callback_data' => 'update_api_type_3']],
-                        [['text' => $key_admin['update_api_type']['type_4'], 'callback_data' => 'update_api_type_4']],
-                        [['text' => $key_admin['update_api_type']['type_5'], 'callback_data' => 'update_api_type_5']],
-                        [['text' => $key_admin['update_api_type']['type_6'], 'callback_data' => 'update_api_type_6']],
+                        [['text' => $key_admin['update_api_type']['type_1'], 'callback_data' => 'update_api_info_1']],
+                        [['text' => $key_admin['update_api_type']['type_2'], 'callback_data' => 'update_api_info_2']],
+                        [['text' => $key_admin['update_api_type']['type_3'], 'callback_data' => 'update_api_info_3']],
+                        [['text' => $key_admin['update_api_type']['type_4'], 'callback_data' => 'update_api_info_4']],
+                        [['text' => $key_admin['update_api_type']['type_5'], 'callback_data' => 'update_api_info_5']],
+                        [['text' => $key_admin['update_api_type']['type_7'], 'callback_data' => 'update_api_info_7']],
+                        [['text' => $key_admin['update_api_type']['type_6'], 'callback_data' => 'update_api_info_6']],
                         [['text' => $key_admin['back_admin'], 'callback_data' => 'admin_back']],
+                    ]
+                ];
+                break;
+            case 'update_api_info_confirm':
+                $type = $data;
+                $t = [
+                    'inline_keyboard' => [
+                        [
+                            ['text' => '⬅️ بازگشت به لیست', 'callback_data' => 'update_api_back_types'],
+                            ['text' => '▶️ ادامه', 'callback_data' => 'update_api_type_' . $type],
+                        ],
                     ]
                 ];
                 break;
@@ -1143,6 +1316,16 @@ trait keyboard_admin
                     ]
                 ];
                 break;
+            case 'update_api_type_7':
+                $t = [
+                    'inline_keyboard' => [
+                        [['text' => $key_admin['found_categories'], 'callback_data' => 'fyk']],
+                        [['text' => $data, 'callback_data' => 'fyk']],
+                        [['text' => $key_admin['confirm_continue'], 'callback_data' => 'update_api_ok_7']],
+                        [['text' => $key_admin['back_admin'], 'callback_data' => 'admin_back']]
+                    ]
+                ];
+                break;
             case 'update_api_product_settings':
                 $type = $data['0'];
                 $p_s = $data['1'];
@@ -1175,17 +1358,27 @@ trait keyboard_admin
                         ]];
                         break;
                     case '6':
+                        $price_type_label = ($p_s['price_type'] == 1) ? '📈 فقط افزایش' : '🔄 همیشه بروز';
                         $t = ['inline_keyboard' => [
                             [['text' => $key_admin['update_api_update'], 'callback_data' => 'fyk'], ['text' => $key_admin['update_api_status'], 'callback_data' => 'fyk']],
                             [['text' => $key_admin['update_api_name'], 'callback_data' => 'fyk'], ['text' => off($p_s['name']), 'callback_data' => 'adminupdate_name']],
                             [['text' => $key_admin['update_api_price'], 'callback_data' => 'fyk'], ['text' => off($p_s['price']), 'callback_data' => 'adminupdate_price']],
-                            [['text' => $key_admin['update_api_price_method'], 'callback_data' => 'fyk'], ['text' => $p_s['price_type'], 'callback_data' => 'adminupdate_price_type']],
+                            [['text' => $key_admin['update_api_price_method'], 'callback_data' => 'fyk'], ['text' => $price_type_label, 'callback_data' => 'adminupdate_price_type']],
                             [['text' => $key_admin['update_api_quantity_range'], 'callback_data' => 'fyk'], ['text' => off($p_s['min']), 'callback_data' => 'adminupdate_min']],
                             [['text' => $key_admin['update_api_description'], 'callback_data' => 'fyk'], ['text' => off($p_s['info']), 'callback_data' => 'adminupdate_info']],
                             [['text' => $key_admin['update_api_price_increase'], 'callback_data' => 'fyk'], ['text' => $p_s['up'], 'callback_data' => 'adminupdate_up']],
                             [['text' => $key_admin['update_api_price_convert'], 'callback_data' => 'fyk'], ['text' => off($p_s['convert']), 'callback_data' => 'adminupdate_convert']],
                             [['text' => $key_admin['update_api_rounding'], 'callback_data' => 'fyk'], ['text' => $p_s['round'], 'callback_data' => 'adminupdate_round']],
                             [['text' => $key_admin['update_api_close_panel'], 'callback_data' => 'close_panel'], ['text' => $key_admin['update_api_list'], 'callback_data' => 'adminupdate_list'], ['text' => $key_admin['update_api_next_step'], 'callback_data' => 'adminupdate_next']],
+                        ]];
+                        break;
+                    case '7':
+                        $t = ['inline_keyboard' => [
+                            [['text' => $key_admin['update_api_section'], 'callback_data' => 'fyk'], ['text' => $key_admin['update_api_status'], 'callback_data' => 'fyk']],
+                            [['text' => $key_admin['update_api_price_increase'], 'callback_data' => 'fyk'], ['text' => $p_s['up'] ?? 0, 'callback_data' => 'adminupdate_up']],
+                            [['text' => $key_admin['update_api_rounding'], 'callback_data' => 'fyk'], ['text' => $p_s['round'] ?? 0, 'callback_data' => 'adminupdate_round']],
+                            [['text' => $key_admin['update_api_price_convert'], 'callback_data' => 'fyk'], ['text' => off($p_s['convert'] ?? 0), 'callback_data' => 'adminupdate_convert']],
+                            [['text' => $key_admin['back_admin'], 'callback_data' => 'admin_back'], ['text' => $key_admin['update_api_next_step'], 'callback_data' => 'adminupdate_next']],
                         ]];
                         break;
                     default:
@@ -1205,11 +1398,15 @@ trait keyboard_admin
                         $start_index = ($page_number - 1) * $page_size;
                         $end_index = min($start_index + $page_size, $c);
 
-                        $t = [];
+                        global $db;
                         for ($i = $start_index; $i < $end_index; $i++) {
                             $key = array_keys($result)[$i];
                             $value = $result[$key];
-                            $t[] = [['text' => $value, 'callback_data' => 'update_api_add_category_' . $key]];
+                            $label = $value;
+                            if ($db->has('categories', ['name' => js($value), 'category_id' => null])) {
+                                $label .= ' ⚠️ در ربات موجود';
+                            }
+                            $t[] = [['text' => $label, 'callback_data' => 'update_api_add_category_' . $key]];
                         }
 
                         $buttons = [];
@@ -1238,7 +1435,6 @@ trait keyboard_admin
                         $start_index = ($page_number - 1) * $page_size;
                         $end_index = min($start_index + $page_size, $c);
 
-                        $t = [];
                         for ($i = $start_index; $i < $end_index; $i++) {
                             $key = array_keys($result)[$i];
                             $value = $result[$key];
@@ -1270,7 +1466,6 @@ trait keyboard_admin
                         $start_index = ($page_number - 1) * $page_size;
                         $end_index = min($start_index + $page_size, $c);
 
-                        $t = [];
                         for ($i = $start_index; $i < $end_index; $i++) {
                             $key = array_keys($result)[$i];
                             $value = $result[$key];

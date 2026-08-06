@@ -45,6 +45,7 @@ function admin_data_global()
                             edk_channel('channel_order_noapi', ['order_noapi', $code, 'inprogress']);
                         }
                     }
+                    alert_admin(['none']);
                     break;
                 case 'check':
                     alert_admin(['status_order', $order], true);
@@ -91,12 +92,12 @@ function admin_data_global()
                         sm_user(['order_confirmation', $order, $show_channel], null, $user_id);
                         edk_channel('channel_order_noapi', ['order_noapi', $code, 'completed']);
                     }
+                    alert_admin(['none']);
                     break;
                 default:
                     # code...
                     break;
             }
-            // update_api_ok_1
             break;
         case text_starts_with($data, 'admintiket_'):
             check_allow('support', 'sub');
@@ -148,9 +149,9 @@ function admin_data_global()
             $name = $bot->getChatMember($id);
             $res = $db->get('users_information', '*', ['user_id' => $id]);
             edt_admin(['userinfo_2', $res, $name, 1], ['userinfo_data', $id]);
+            alert_admin(['none']);
             break;
         case text_starts_with($data, 'adminorder_'):
-            // User Orders Logs
             $str = str_replace('adminorder_', '', $data);
             $ex = explode('_', $str);
             $id = $ex[1];
@@ -166,7 +167,6 @@ function admin_data_global()
             alert_admin(['none']);
             break;
         case text_starts_with($data, 'adminpayment_'):
-            // User Payment History
             $str = str_replace('adminpayment_', '', $data);
             $ex = explode('_', $str);
             $id = $ex[1];
@@ -176,7 +176,6 @@ function admin_data_global()
             $bef = $now - $page;
             $result = null;
             $c = 0;
-            // All payment related transaction types
             $payment_types = ['payment', 'payment_offline'];
             $result = $db->select('transactions', '*', ['user_id' => $id, 'ORDER' => ['id' => 'DESC'], 'LIMIT' => [$now, $page], 'type' => $payment_types]);
             $c = $db->count('transactions', ['user_id' => $id, 'type' => $payment_types]) ?? 0;
@@ -184,7 +183,6 @@ function admin_data_global()
             alert_admin(['none']);
             break;
         case text_starts_with($data, 'admintrans_'):
-            // Users Log Balance
             $str = str_replace('admintrans_', '', $data);
             $ex = explode('_', $str);
             $id = $ex[1];
@@ -262,20 +260,24 @@ function admin_data_global()
             $payout = $db->get('transactions', '*', ['id' => $code]);
             switch ($type) {
                 case 'ok':
-                    $db->update('transactions', ['status' => 1], ['id' => $code]);
-                    edk_channel('channel_gift_transaction', ['gift_payouts', 1]);
-                    sm_to_user(['ok_payout'], null, $payout['user_id']);
+                    $upd = $db->update('transactions', ['status' => 1], ['id' => $code, 'status' => 2]);
+                    if ($upd && $upd->rowCount() > 0) {
+                        edk_channel('channel_gift_transaction', ['gift_payouts', 1]);
+                        sm_to_user(['ok_payout'], null, $payout['user_id']);
+                    }
                     alert_admin(['none']);
                     break;
                 case 'nok':
-                    $db->update('transactions', ['status' => 0], ['id' => $code]);
-                    $db->update('users_information', ["gift[+]" => $payout['amount']], ['user_id' => $payout['user_id']]);
-                    edk_channel('channel_gift_transaction', ['gift_payouts', 2]);
-                    sm_to_user(['cancel_payout'], null, $payout['user_id']);
+                    $upd = $db->update('transactions', ['status' => 0], ['id' => $code, 'status' => 2]);
+                    if ($upd && $upd->rowCount() > 0) {
+                        $db->update('users_information', ["gift[+]" => $payout['amount']], ['user_id' => $payout['user_id']]);
+                        edk_channel('channel_gift_transaction', ['gift_payouts', 2]);
+                        sm_to_user(['cancel_payout'], null, $payout['user_id']);
+                    }
                     alert_admin(['none']);
                     break;
                 default:
-                    # code...
+                    alert_admin(['none']);
                     break;
             }
             break;
@@ -304,8 +306,9 @@ function admin_data_global()
             $ba3 = ($db->sum('transactions', 'amount', ['status' => 1, 'type' => ['payment', 'payment_offline']]) > 0) ? $db->sum('transactions', 'amount', ['status' => 1, 'type' => ['payment', 'payment_offline']]) : 0;
             $amount_paid = number_format($ba3) ?: 0;
 
-            $cron = $settings['last_cron_send'];
-            $cron_done = $settings['last_cron_orders'];
+            $usd_rate = number_format((float) get_option('usd_rate', 0));
+            $usd_mode = get_option('usd_rate_mode', 'manual');
+
             edt_admin([
                 'more_stats',
                 $number_user,
@@ -320,16 +323,30 @@ function admin_data_global()
                 $users_balance,
                 $users_gift_balance,
                 $amount_paid,
-                $cron,
-                $cron_done,
+                $usd_rate,
+                $usd_mode,
                 $settings['version']
             ], ['more_stats', 1]);
+            alert_admin(['none']);
+            break;
+
+        case 'cron_status':
+            edt_admin([
+                'cron_status',
+                (int) ($settings['last_cron_send'] ?? 0),
+                (int) ($settings['last_cron_orders'] ?? 0),
+                (int) get_option('cron_auto_last', 0),
+            ], ['cron_status_kb']);
+            alert_admin(['none']);
             break;
         case text_starts_with($data, 'adminopen_section_'):
             check_allow('status');
             $str = str_replace('adminopen_section_', '', $data);
-            $result = $section_status[$str];
-            edk_admin(['sub_off', $result, $str]);
+            if (isset($section_status[$str])) {
+                $result = $section_status[$str];
+                edk_admin(['sub_off', $result, $str]);
+            }
+            alert_admin(['none']);
             break;
         case text_starts_with($data, 'adminsection_status_'):
             check_allow('status');
@@ -392,7 +409,7 @@ function admin_data_global()
                         sm_to_user(['receipt_up', $amount, $new], null, $userId);
 
                         edk_admin(['receipt_check', 'OK'],$message_id,$cid);
-
+                        alert_admin(['none']);
                         break;
                     case 'nok':
                         $db->update('transactions', ['status' => 0, 's_date' => time(), 'data[JSON]' => $decode], ['id' => $invoice['id']]);
@@ -400,6 +417,7 @@ function admin_data_global()
                         admin_data(['step' => 'send_reason_receipt', 'data[JSON]' => ['id' => $invoice['id'], 'type' => 1]]);
                         edk_admin(['receipt_check', 'NOK'],$message_id,$cid);
                         sm_admin(['send_reason_receipt'], ['back_panel_all']);
+                        alert_admin(['none']);
                         break;
                     case 'edit':
                         $db->update('transactions', ['status' => 1, 's_date' => time(), 'data[JSON]' => $decode], ['id' => $invoice['id']]);
@@ -407,9 +425,10 @@ function admin_data_global()
                         admin_data(['step' => 'send_up_receipt', 'data' => $invoice['id']]);
                         edk_admin(['receipt_check', 'EDIT'],$message_id,$cid);
                         sm_admin(['send_up_receipt'], ['back_panel_all']);
+                        alert_admin(['none']);
                         break;
                     default:
-                        
+                        alert_admin(['none']);
                         break;
                 }
             } else {
@@ -417,6 +436,7 @@ function admin_data_global()
                 $st = str_replace(['0','1'],['NOK','OK'],$invoice['status']);
                 edk_admin(['receipt_check',$st],$message_id,$cid);
             }
+            break;
         default:
             # code...
             break;

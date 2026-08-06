@@ -111,15 +111,14 @@ function admin_data_step()
 
                         admin_data(['step' => 'edit_info', 'data[JSON]' => ['type' => 'product', 'id' => $id]]);
 
-                        sm_admin(['edit_product_info', $result, false], ['update_info', 'product', $result['id']]);
+                        sm_admin(['edit_product_info', $result, false], ['update_info', 'product', $result['id'], $result['is_usd'] ?? 0]);
 
                         sm_admin(['edit_products_panel'], ['edit_products_panel', 'product']);
 
                         break;
                 }
-            } else {
-                alert_admin(['none']);
             }
+            alert_admin(['none']);
             break;
         case text_starts_with($data, 'adminpro_up_'):
             $str = str_replace('adminpro_up_', '', $data);
@@ -139,8 +138,33 @@ function admin_data_step()
                     break;
                 case 'product':
                     $result = $db->get('products', '*', ['id' => $id]);
-                    edt_admin(['edit_product_info', $result, true], ['update_info', 'product', $result['id']]);
+                    edt_admin(['edit_product_info', $result, true], ['update_info', 'product', $result['id'], $result['is_usd'] ?? 0]);
                     break;
+            }
+            alert_admin(['none']);
+            break;
+        case text_starts_with($data, 'adminpro_usd_toggle_'):
+            $prod_id = str_replace('adminpro_usd_toggle_', '', $data);
+            $result  = $db->get('products', '*', ['id' => $prod_id]);
+            if ($result) {
+                $new_usd = $result['is_usd'] ? 0 : 1;
+                $db->update('products', ['is_usd' => $new_usd], ['id' => $prod_id]);
+                edt_admin(['edit_product_info', array_merge($result, ['is_usd' => $new_usd]), true], ['update_info', 'product', $prod_id, $new_usd]);
+            }
+            alert_admin(['none']);
+            break;
+
+        case text_starts_with($data, 'update_api_info_'):
+            $str = str_replace('update_api_info_', '', $data);
+            if ($admin['step'] == 'update_api_2') {
+                edt_admin(['update_api_info_' . $str], ['update_api_info_confirm', $str]);
+            }
+            alert_admin(['none']);
+            break;
+
+        case 'update_api_back_types':
+            if ($admin['step'] === 'update_api_2') {
+                edt_admin(['update_api_2'], ['update_api_type_0']);
             }
             alert_admin(['none']);
             break;
@@ -248,6 +272,20 @@ function admin_data_step()
                         admin_data(['step' => 'update_api_3', 'data[JSON]' => $admin_data]);
                         edt_admin(['update_api_2'], ['update_api_type_5', $count, $count2]);
                         break;
+                    case '7':
+                        $services = $api->services($result_api);
+                        $list = [];
+                        $count = 0;
+                        foreach ($services['data'] as $row) {
+                            if (!in_array($row['category'], $list)) {
+                                $count += 1;
+                                $list[] = $row['category'];
+                            }
+                        }
+                        $admin_data['update_type'] = 7;
+                        admin_data(['step' => 'update_api_3', 'data[JSON]' => $admin_data]);
+                        edt_admin(['update_api_2'], ['update_api_type_7', $count]);
+                        break;
                     case '6':
                         $count = $db->count('products', ['api' => $result_api['name']]);
                         $admin_data['update_type'] = 6;
@@ -260,6 +298,7 @@ function admin_data_step()
                         break;
                 }
             }
+            alert_admin(['none']);
             break;
         case text_starts_with($data, 'update_api_ok_'):
             $str = str_replace('update_api_ok_', '', $data);
@@ -356,17 +395,24 @@ function admin_data_step()
                         admin_data(['step' => 'update_api_4', 'data[JSON]' => $admin_data]);
                         edt_admin(['update_api_2'], ['update_api_product_settings', 5, $p_s]);
                         break;
+                    case '7':
+                        $p_s = ['up' => 0, 'round' => 0, 'convert' => 0, 'next' => 0];
+                        $admin_data['p_s'] = $p_s;
+                        admin_data(['step' => 'update_api_4', 'data[JSON]' => $admin_data]);
+                        edt_admin(['update_api_2'], ['update_api_product_settings', 7, $p_s]);
+                        break;
                     case '6':
                         $p_s = ['name' => 0, 'price' => 1, 'price_type' => 1, 'min' => 1, 'info' => 0, 'up' => 0, 'round' => 0, 'next' => 0, 'convert' => 0];
                         $admin_data['p_s'] = $p_s;
                         admin_data(['step' => 'update_api_4', 'data[JSON]' => $admin_data]);
-                        edt_admin(['update_api_2'], ['update_api_product_settings', 6, $p_s]);
+                        edt_admin(['update_api_2_type6'], ['update_api_product_settings', 6, $p_s]);
                         break;
                     default:
                         # code...
                         break;
                 }
             }
+            alert_admin(['none']);
             break;
         case text_starts_with($data, 'update_api_add_'):
             $str = str_replace('update_api_add_', '', $data);
@@ -382,8 +428,132 @@ function admin_data_step()
                         $data_file = json_decode(file_get_contents(ROOTPATH . '/temp/' . $fid . '.json'), true);
                         $name_category = mb_substr(removeWhiteSpace($data_file[$id]), 0, 130);
                         $text_en = js($name_category);
-                        if (!$db->has('categories', ['name' => $text_en, 'category_id' => null])) {
 
+                        if (isset($admin_data['update_type']) && $admin_data['update_type'] == 7) {
+                            $page_number = isset($admin_data['page_number']) ? max(1, (int) $admin_data['page_number']) : 1;
+                            $category_exists = $db->has('categories', ['name' => $text_en, 'category_id' => null]);
+                            $category_id = $db->get('categories', 'id', ['name' => $text_en, 'category_id' => null]);
+                            if (!$category_exists) {
+                                $ordering = (int) $db->max('categories', 'ordering', ['category_id' => null]);
+                                $ordering += 1;
+                                $db->insert('categories', [
+                                    'name' => $text_en,
+                                    'category_id' => null,
+                                    'status' => 1,
+                                    'ordering' => $ordering,
+                                ]);
+                                $category_id = $db->id();
+                            }
+
+                            if ($category_id) {
+                                $services = $api->services($result_api);
+                                $usd_rate = $settings['usd_rate'];
+                                $add_count = 0;
+                                $added_products = [];
+
+                                foreach ($services['data'] as $row) {
+                                    $category_value = mb_substr(removeWhiteSpace($row['category']), 0, 130);
+                                    if ($category_value !== $name_category) {
+                                        continue;
+                                    }
+
+                                    $name_product = mb_substr(removeWhiteSpace($row['name']), 0, 130);
+                                    $text_product = js($name_product);
+
+                                    if (!$db->has('products', ['service' => $row['service'], 'api' => $result_api['name'], 'name' => $text_product, 'category_id' => $category_id])) {
+                                        $orig_rate = $row['rate'];
+                                        $rate = $row['rate'];
+                                        if ($admin_data['p_s']['convert'] && $usd_rate > 0) {
+                                            $rate *= $usd_rate;
+                                        }
+                                        if ($admin_data['p_s']['up'] != 0) {
+                                            $rate = up_price($rate, $admin_data['p_s']['up']);
+                                        }
+                                        if ($admin_data['p_s']['round'] != 0) {
+                                            $rate = round_up($rate, $admin_data['p_s']['round']);
+                                        }
+
+                                        $price = $rate;
+                                        $min = $row['min'];
+                                        $max = $row['max'];
+                                        $info = removeWhiteSpace($row['desc'] ?? '');
+                                        $ser_id = $row['service'];
+                                        $ordering = (int) $db->max('products', 'ordering', ['category_id' => $category_id]);
+                                        $ordering += 1;
+
+                                        $product_type = 'default';
+                                        if (isset($row['type']) && !empty($row['type'])) {
+                                            $api_type = strtolower(trim($row['type']));
+                                            if (in_array($api_type, ['default', 'custom_comments', 'package'])) {
+                                                $product_type = $api_type;
+                                            }
+                                        }
+
+                                        $db->insert('products', [
+                                            'name' => $text_product,
+                                            'price' => $price,
+                                            'price_usd' => $admin_data['p_s']['convert'] ? (float) $orig_rate : 0,
+                                            'cost_price' => $admin_data['p_s']['convert'] ? (float) ($orig_rate * $usd_rate) : (float) $orig_rate,
+                                            'min' => $min,
+                                            'max' => $max,
+                                            'info' => $info,
+                                            'api' => $result_api['name'],
+                                            'service' => $ser_id,
+                                            'category_id' => $category_id,
+                                            'ordering' => $ordering,
+                                            'type' => $product_type,
+                                        ]);
+                                        if ($db->id()) {
+                                            $add_count += 1;
+                                            $added_products[] = [
+                                                'name'       => json_decode($text_product),
+                                                'service'    => $ser_id,
+                                                'cost_price' => $admin_data['p_s']['convert'] ? (float) ($orig_rate * $usd_rate) : (float) $orig_rate,
+                                                'price'      => (float) $price,
+                                                'unit_price' => (float) price_once($min, $max, $price, $product_type),
+                                                'price_usd'  => $admin_data['p_s']['convert'] ? (float) $orig_rate : 0,
+                                                'min'        => (int) $min,
+                                                'max'        => (int) $max,
+                                            ];
+                                        }
+                                    }
+                                }
+
+                                unset($data_file[$id]);
+                                $data_file = array_values($data_file);
+                                file_put_contents(ROOTPATH . '/temp/' . $fid . '.json', json_encode($data_file));
+
+                                $report_key = save_update_log([
+                                    'type' => 7,
+                                    'type_label' => $key_admin['update_api_type']['type_7'],
+                                    'api' => json_decode($result_api['name']),
+                                    'category' => $name_category,
+                                    'category_new' => !$category_exists,
+                                    'add_count' => $add_count,
+                                    'products' => $added_products,
+                                ]);
+                                $report_url = 'https://' . $domin . '/update_report.php?k=' . $report_key;
+
+                                $total_categories = count($data_file);
+                                if ($total_categories > 0) {
+                                    $page_number = min($page_number, max(1, ceil($total_categories / 20)));
+                                    $admin_data['page_number'] = $page_number;
+                                    admin_data(['data[JSON]' => $admin_data]);
+                                    alert_admin(['update_api_ok', 7, $add_count, $category_exists ? 1 : 0]);
+                                    sm_admin(['update_report_link', $report_url, 'category', $name_category]);
+                                    edt_admin(['update_api_2'], ['update_api_select_product', $data_file, 'category', $page_number]);
+                                } else {
+                                    admin_step('products');
+                                    sm_admin(['update_api_ok', 7, $add_count, $category_exists ? 1 : 0], ['products_panel']);
+                                    sm_admin(['update_report_link', $report_url, 'final']);
+                                }
+                            } else {
+                                alert_admin(['update_api_product_error_1']);
+                            }
+                            break;
+                        }
+
+                        if (!$db->has('categories', ['name' => $text_en, 'category_id' => null])) {
                             $admin_data['category_id'] = $id;
                             admin_data(['step' => 'update_api_5', 'data[JSON]' => $admin_data]);
                             edt_admin(['update_api_add_category_1'], ['type_add_category']);
@@ -500,7 +670,7 @@ function admin_data_step()
                         }
                         $admin_data['page_number_2'] = $id;
                         admin_data(['data[JSON]' => $admin_data]);
-                        edt_admin(['update_api_2'], ['update_api_select_product', $categories, 'sub_category', $id]);
+                        edt_admin(['update_api_2'], ['update_api_select_product', $categories, 'product', $id]);
                         break;
                     case 'product':
                         if ($db->has('categories', ['category_id' => $id])) {
@@ -528,9 +698,12 @@ function admin_data_step()
                                     $text_en = js($name_product);
 
                                     if (!$db->has('products', ['service' => $row['service'], 'api' => $result_api['name'], 'name' => $text_en, 'category_id' => $id])) {
+                                        $orig_rate = $row['rate'];
                                         $row['rate'] = ($p_s['convert'] && $usd_rate > 0) ? $row['rate'] * $usd_rate : $row['rate'];
                                         $row['rate'] = ($p_s['up'] > 0) ? up_price($row['rate'], $p_s['up']) : $row['rate'];
                                         $row['rate'] = ($p_s['round'] > 0) ? round_up($row['rate'], $p_s['round']) : $row['rate'];
+                                        $row['_price_usd'] = $p_s['convert'] ? (float) $orig_rate : 0;
+                                        $row['_cost_price'] = $p_s['convert'] ? (float) ($orig_rate * $usd_rate) : (float) $orig_rate;
                                         $product = $row;
                                         $true = true;
                                     } else {
@@ -552,14 +725,12 @@ function admin_data_step()
                                 $price = $product['rate'];
                                 $min = $product['min'];
                                 $max = $product['max'];
-                                $desc = removeWhiteSpace($product['desc']);
+                                $desc = removeWhiteSpace($product['desc'] ?? '');
                                 $ser_id = $product['service'];
 
-                                // Get product type from API if available, otherwise use default
                                 $product_type = 'default';
                                 if (isset($product['type']) && !empty($product['type'])) {
                                     $api_type = strtolower(trim($product['type']));
-                                    // Map API type to our system types
                                     if (in_array($api_type, ['default', 'custom_comments', 'package'])) {
                                         $product_type = $api_type;
                                     }
@@ -568,6 +739,8 @@ function admin_data_step()
                                 $db->insert('products', [
                                     'name' => $text_en,
                                     'price' => $price,
+                                    'price_usd' => $product['_price_usd'] ?? 0,
+                                    'cost_price' => $product['_cost_price'] ?? 0,
                                     'min' => $min,
                                     'max' => $max,
                                     'info' => $desc,
@@ -631,9 +804,12 @@ function admin_data_step()
                                 $text_en = js($name_product);
 
                                 if (!$db->has('products', ['service' => $row['service'], 'api' => $result_api['name'], 'name' => $text_en, 'category_id' => $id])) {
+                                    $orig_rate = $row['rate'];
                                     $row['rate'] = ($p_s['convert'] && $usd_rate > 0) ? $row['rate'] * $usd_rate : $row['rate'];
                                     $row['rate'] = ($p_s['up'] > 0) ? up_price($row['rate'], $p_s['up']) : $row['rate'];
                                     $row['rate'] = ($p_s['round'] > 0) ? round_up($row['rate'], $p_s['round']) : $row['rate'];
+                                    $row['_price_usd'] = $p_s['convert'] ? (float) $orig_rate : 0;
+                                    $row['_cost_price'] = $p_s['convert'] ? (float) ($orig_rate * $usd_rate) : (float) $orig_rate;
                                     $product = $row;
                                     $true = true;
                                 } else {
@@ -655,14 +831,12 @@ function admin_data_step()
                             $price = $product['rate'];
                             $min = $product['min'];
                             $max = $product['max'];
-                            $desc = removeWhiteSpace($product['desc']);
+                            $desc = removeWhiteSpace($product['desc'] ?? '');
                             $ser_id = $product['service'];
 
-                            // Get product type from API if available, otherwise use default
                             $product_type = 'default';
                             if (isset($product['type']) && !empty($product['type'])) {
                                 $api_type = strtolower(trim($product['type']));
-                                // Map API type to our system types
                                 if (in_array($api_type, ['default', 'custom_comments', 'package'])) {
                                     $product_type = $api_type;
                                 }
@@ -671,6 +845,8 @@ function admin_data_step()
                             $db->insert('products', [
                                 'name' => $text_en,
                                 'price' => $price,
+                                'price_usd' => $product['_price_usd'] ?? 0,
+                                'cost_price' => $product['_cost_price'] ?? 0,
                                 'min' => $min,
                                 'max' => $max,
                                 'info' => $desc,
@@ -750,6 +926,136 @@ function admin_data_step()
             }
             alert_admin(['none']);
             break;
+        case 'rate_toggle_usdauto':
+            $cur = get_option('usd_rate_mode', 'manual');
+            update_option('usd_rate_mode', $cur === 'auto' ? 'manual' : 'auto');
+            render_rate_panel($message_id);
+            alert_admin(['none']);
+            break;
+
+        case 'rate_toggle_starzauto':
+            $new_starzauto = get_option('auto_starz_rate', 0) ? 0 : 1;
+            update_option('auto_starz_rate', $new_starzauto);
+            if ($new_starzauto) {
+                $starz_usd = (float) get_option('starz_rate_usd', 0);
+                $usd_rate  = (float) get_option('usd_rate', 0);
+                if ($starz_usd > 0 && $usd_rate > 0) {
+                    update_option('starz_rate', round($starz_usd * $usd_rate));
+                }
+            }
+            render_rate_panel($message_id);
+            alert_admin(['none']);
+            break;
+
+        case 'rate_fetch_now':
+            $new_rate = fetch_usd_rate();
+            if ($new_rate > 0) {
+                apply_usd_rate_update($new_rate);
+                render_rate_panel($message_id);
+                alert_admin(['usd_rate_updated', $new_rate], true);
+            } else {
+                alert_admin(['usd_rate_update_failed'], true);
+            }
+            break;
+
+        case 'rate_set_usd':
+            admin_data(['step' => 'rate_input', 'data[JSON]' => ['field' => 'usd', 'msgid' => $message_id]]);
+            edt_admin(['rate_ask_usd', number_format((float) get_option('usd_rate', 0))], ['rate_prompt_back'], $message_id);
+            alert_admin(['none']);
+            break;
+
+        case 'rate_set_starz':
+            admin_data(['step' => 'rate_input', 'data[JSON]' => ['field' => 'starz', 'msgid' => $message_id]]);
+            edt_admin(['rate_ask_starz', number_format((float) get_option('starz_rate', 0))], ['rate_prompt_back'], $message_id);
+            alert_admin(['none']);
+            break;
+
+        case 'rate_set_starz_usd':
+            admin_data(['step' => 'rate_input', 'data[JSON]' => ['field' => 'starz_usd', 'msgid' => $message_id]]);
+            edt_admin(['rate_ask_starz_usd', number_format((float) get_option('starz_rate_usd', 0), 4)], ['rate_prompt_back'], $message_id);
+            alert_admin(['none']);
+            break;
+
+        case 'rate_set_interval':
+            admin_data(['step' => 'rate_input', 'data[JSON]' => ['field' => 'interval', 'msgid' => $message_id]]);
+            edt_admin(['rate_ask_interval', (int) get_option('usd_rate_interval', 60)], ['rate_prompt_back'], $message_id);
+            alert_admin(['none']);
+            break;
+
+        case 'rate_back':
+            admin_step('payments');
+            render_rate_panel($message_id);
+            alert_admin(['none']);
+            break;
+
+        case 'admin_add_product_confirm':
+            if ($admin['step'] === 'add_product_confirm') {
+                $admin_data = json_decode($admin['data'], true);
+                $pending = $admin_data['pending'] ?? null;
+                if ($pending) {
+                    $ordering = (int) $db->max('products', 'ordering', ['category_id' => $pending['category_id']]);
+                    $ordering += 1;
+                    $insert_data = $pending;
+                    $next = $insert_data['next'];
+                    $next_variant = $insert_data['next_variant'] ?? 0;
+                    unset($insert_data['next'], $insert_data['next_variant']);
+                    $insert_data['ordering'] = $ordering;
+
+                    $db->insert('products', $insert_data);
+                    $insert_id = $db->id();
+
+                    if ($insert_id) {
+                        $admin_data['id'] = $insert_id;
+                        unset($admin_data['pending']);
+
+                        $bot->edit_text($fid, $message_id, $media_admin->atext('product_add_confirmed_alert'), ['inline_keyboard' => []]);
+
+                        if ($next === 'type') {
+                            admin_data(['step' => 'add_product_type', 'data[JSON]' => $admin_data]);
+                            sm_admin(['product_add_type'], ['product_service_type_panel']);
+                        } else {
+                            $btn = $db->get('categories', '*', ['id' => $pending['category_id']]);
+                            $name_show = json_decode($insert_data['name']);
+                            admin_data(['step' => 'add_product_6', 'data[JSON]' => $admin_data]);
+                            sm_admin(['product_add_5', $btn['id'], $name_show, $insert_data['price'], $insert_data['min'], $insert_data['max']], ['skip_back_panel', $next_variant]);
+                        }
+                        alert_admin(['product_add_confirmed_alert'], true);
+                    } else {
+                        $bot->edit_text($fid, $message_id, $media_admin->atext('product_add_error_1'), ['inline_keyboard' => []]);
+                        alert_admin(['product_add_error_1'], true);
+                    }
+                } else {
+                    $bot->edit_text($fid, $message_id, $media_admin->atext('product_preview_expired'), ['inline_keyboard' => []]);
+                    alert_admin(['none']);
+                }
+            } else {
+                $bot->edit_text($fid, $message_id, $media_admin->atext('product_preview_expired'), ['inline_keyboard' => []]);
+                alert_admin(['none']);
+            }
+            break;
+
+        case 'admin_add_product_retry':
+            if ($admin['step'] === 'add_product_confirm') {
+                $admin_data = json_decode($admin['data'], true);
+                unset($admin_data['pending']);
+
+                if (empty($admin_data['api'])) {
+                    $variant = 0;
+                } else {
+                    $result_api = $db->get('apis', '*', ['id' => $admin_data['api']]);
+                    $variant = ($result_api && $result_api['smart_panel']) ? 1 : 2;
+                }
+
+                $bot->edit_text($fid, $message_id, $media_admin->atext('product_add_retry_wait'), ['inline_keyboard' => []]);
+
+                admin_data(['step' => 'add_product_5', 'data[JSON]' => $admin_data]);
+                sm_admin(['product_add_4', $variant], ['back_panel']);
+            } else {
+                $bot->edit_text($fid, $message_id, $media_admin->atext('product_preview_expired'), ['inline_keyboard' => []]);
+            }
+            alert_admin(['none']);
+            break;
+
         case text_starts_with($data, 'adminupdate_'):
             $str = str_replace('adminupdate_', '', $data);
             $admin_data = json_decode($admin['data'], true);
@@ -787,10 +1093,12 @@ function admin_data_step()
                                         $cate = $ids[$row['category']];
 
                                         if (!$db->has('products', ['service' => $row['service'], 'api' => $result_api['name'], 'name' => $text_en, 'category_id' => $cate])) {
-
+                                            $orig_rate = $row['rate'];
                                             $row['rate'] = ($p_s['convert'] && $usd_rate > 0) ? $row['rate'] * $usd_rate : $row['rate'];
                                             $row['rate'] = ($p_s['up'] > 0) ? up_price($row['rate'], $p_s['up']) : $row['rate'];
                                             $row['rate'] = ($p_s['round'] > 0) ? round_up($row['rate'], $p_s['round']) : $row['rate'];
+                                            $row['_price_usd'] = $p_s['convert'] ? (float) $orig_rate : 0;
+                                            $row['_cost_price'] = $p_s['convert'] ? (float) ($orig_rate * $usd_rate) : (float) $orig_rate;
                                             $products[] = $row;
                                         }
                                     }
@@ -798,6 +1106,7 @@ function admin_data_step()
 
                                 $add_count = 0;
                                 $not = 0;
+                                $added_products = [];
                                 foreach ($products as $value) {
                                     $name_product = mb_substr(removeWhiteSpace($value['name']), 0, 130);
                                     $text_en = js($name_product);
@@ -809,14 +1118,12 @@ function admin_data_step()
                                     $price = $value['rate'];
                                     $min = $value['min'];
                                     $max = $value['max'];
-                                    $info = removeWhiteSpace($value['desc']);
+                                    $info = removeWhiteSpace($value['desc'] ?? '');
                                     $ser_id = $value['service'];
 
-                                    // Get product type from API if available, otherwise use default
                                     $product_type = 'default';
                                     if (isset($value['type']) && !empty($value['type'])) {
                                         $api_type = strtolower(trim($value['type']));
-                                        // Map API type to our system types
                                         if (in_array($api_type, ['default', 'custom_comments', 'package'])) {
                                             $product_type = $api_type;
                                         }
@@ -825,6 +1132,8 @@ function admin_data_step()
                                     $db->insert('products', [
                                         'name' => $text_en,
                                         'price' => $price,
+                                        'price_usd' => $value['_price_usd'] ?? 0,
+                                        'cost_price' => $value['_cost_price'] ?? 0,
                                         'min' => $min,
                                         'max' => $max,
                                         'info' => $info,
@@ -837,10 +1146,28 @@ function admin_data_step()
                                     $insert = $db->id();
                                     if ($insert) {
                                         $add_count += 1;
+                                        $added_products[] = [
+                                            'name'       => json_decode($text_en),
+                                            'service'    => $ser_id,
+                                            'cost_price' => (float) ($value['_cost_price'] ?? 0),
+                                            'price'      => (float) $price,
+                                            'unit_price' => (float) price_once($min, $max, $price, $product_type),
+                                            'price_usd'  => (float) ($value['_price_usd'] ?? 0),
+                                            'min'        => (int) $min,
+                                            'max'        => (int) $max,
+                                        ];
                                     }
                                 }
+                                $report_key = save_update_log([
+                                    'type' => 2,
+                                    'type_label' => $key_admin['update_api_type']['type_2'],
+                                    'api' => json_decode($result_api['name']),
+                                    'add_count' => $add_count,
+                                    'products' => $added_products,
+                                ]);
                                 admin_step('products');
                                 sm_admin(['update_api_ok', 2, $add_count], ['products_panel']);
+                                sm_admin(['update_report_link', 'https://' . $domin . '/update_report.php?k=' . $report_key, 'update']);
                                 break;
                             case '4':
 
@@ -905,9 +1232,12 @@ function admin_data_step()
 
                                         $id = $db->has('products', ['service' => $row['service'], 'api' => $result_api['name'], 'name' => $text_en, 'category_id' => $cate]);
                                         if (!$id) {
+                                            $orig_rate = $row['rate'];
                                             $row['rate'] = ($p_s['convert'] && $usd_rate > 0) ? $row['rate'] * $usd_rate : $row['rate'];
                                             $row['rate'] = ($p_s['up'] > 0) ? up_price($row['rate'], $p_s['up']) : $row['rate'];
                                             $row['rate'] = ($p_s['round'] > 0) ? round_up($row['rate'], $p_s['round']) : $row['rate'];
+                                            $row['_price_usd'] = $p_s['convert'] ? (float) $orig_rate : 0;
+                                            $row['_cost_price'] = $p_s['convert'] ? (float) ($orig_rate * $usd_rate) : (float) $orig_rate;
                                             $products[] = $row;
                                         }
                                     }
@@ -915,6 +1245,7 @@ function admin_data_step()
 
                                 $add_count = 0;
                                 $not = 0;
+                                $added_products = [];
                                 foreach ($products as $value) {
                                     $name_product = mb_substr(removeWhiteSpace($value['name']), 0, 130);
                                     $text_en = js($name_product);
@@ -926,14 +1257,12 @@ function admin_data_step()
                                     $price = $value['rate'];
                                     $min = $value['min'];
                                     $max = $value['max'];
-                                    $info = removeWhiteSpace($value['desc']);
+                                    $info = removeWhiteSpace($value['desc'] ?? '');
                                     $ser_id = $value['service'];
 
-                                    // Get product type from API if available, otherwise use default
                                     $product_type = 'default';
                                     if (isset($value['type']) && !empty($value['type'])) {
                                         $api_type = strtolower(trim($value['type']));
-                                        // Map API type to our system types
                                         if (in_array($api_type, ['default', 'custom_comments', 'package'])) {
                                             $product_type = $api_type;
                                         }
@@ -942,6 +1271,8 @@ function admin_data_step()
                                     $db->insert('products', [
                                         'name' => $text_en,
                                         'price' => $price,
+                                        'price_usd' => $value['_price_usd'] ?? 0,
+                                        'cost_price' => $value['_cost_price'] ?? 0,
                                         'min' => $min,
                                         'max' => $max,
                                         'info' => $info,
@@ -954,37 +1285,59 @@ function admin_data_step()
                                     $insert = $db->id();
                                     if ($insert) {
                                         $add_count += 1;
+                                        $added_products[] = [
+                                            'name'       => json_decode($text_en),
+                                            'service'    => $ser_id,
+                                            'cost_price' => (float) ($value['_cost_price'] ?? 0),
+                                            'price'      => (float) $price,
+                                            'unit_price' => (float) price_once($min, $max, $price, $product_type),
+                                            'price_usd'  => (float) ($value['_price_usd'] ?? 0),
+                                            'min'        => (int) $min,
+                                            'max'        => (int) $max,
+                                        ];
                                     }
                                 }
+                                $report_key = save_update_log([
+                                    'type' => 5,
+                                    'type_label' => $key_admin['update_api_type']['type_5'],
+                                    'api' => json_decode($result_api['name']),
+                                    'add_count' => $add_count,
+                                    'products' => $added_products,
+                                ]);
                                 admin_step('products');
                                 sm_admin(['update_api_ok', 2, $add_count], ['products_panel']);
+                                sm_admin(['update_report_link', 'https://' . $domin . '/update_report.php?k=' . $report_key, 'update']);
 
                                 break;
                             case '6':
                                 $add_count = 0;
                                 $off_count = 0;
+                                $disabled_products = [];
 
                                 $services = $api->services($result_api);
-                                $list = [];
                                 $products = [];
-                                $ids = [];
                                 $usd_rate = $settings['usd_rate'];
                                 foreach ($services['data'] as $row) {
                                     $products[$row['service']] = $row;
                                 }
                                 $result_products = $db->select('products', '*', ['api' => $result_api['name']]);
+                                $updated_products = [];
                                 foreach ($result_products as $key => $value) {
                                     if (!isset($products[$value['service']])) {
-                                        $db->update('products', ['status' => 0], ['id' => $value['id']]);
-                                        $off_count;
+                                        if ($p_s['min']) {
+                                            $db->update('products', ['status' => 0], ['id' => $value['id']]);
+                                            $off_count += 1;
+                                            $disabled_products[] = [
+                                                'id'      => $value['id'],
+                                                'service' => $value['service'],
+                                                'name'    => json_decode($value['name']),
+                                            ];
+                                        }
                                         continue;
                                     }
 
-
                                     $data_p = $products[$value['service']];
                                     $s = [];
-
-                                    $s['status'] = 1;
 
                                     if ($p_s['name']) {
                                         $name_product = mb_substr(removeWhiteSpace($data_p['name']), 0, 130);
@@ -995,34 +1348,36 @@ function admin_data_step()
                                     if ($p_s['price']) {
                                         $price = $data_p['rate'];
                                         $price = ($p_s['convert'] && $usd_rate > 0) ? $price * $usd_rate : $price;
-                                        if ($p_s['price_type'] == 2 && $value['price'] < $data_p['rate']) {
-                                            $price = $value['price'];
-                                        }
 
-                                        if ($p_s['up'] > 0) {
+                                        if ($p_s['up'] != 0) {
                                             $price = up_price($price, $p_s['up']);
                                         }
 
-                                        if ($p_s['round'] > 0) {
+                                        if ($p_s['round'] != 0) {
                                             $price = round_up($price, $p_s['round']);
                                         }
-                                        $price = $price;
+
+                                        if ($p_s['price_type'] == 1 && $price < $value['price']) {
+                                            $price = $value['price'];
+                                        }
+
                                         $s['price'] = $price;
+                                        $s['price_usd'] = $p_s['convert'] ? (float) $data_p['rate'] : 0;
+                                        $s['cost_price'] = $p_s['convert'] ? (float) ($data_p['rate'] * $usd_rate) : (float) $data_p['rate'];
                                     }
 
                                     if ($p_s['min']) {
                                         $s['min'] = $data_p['min'];
                                         $s['max'] = $data_p['max'];
+                                        $s['status'] = 1;
                                     }
 
                                     if ($p_s['info']) {
-                                        $s['info'] = removeWhiteSpace($data_p['desc']);
+                                        $s['info'] = removeWhiteSpace($data_p['desc'] ?? '');
                                     }
 
-                                    // Update product type from API if available
                                     if (isset($data_p['type']) && !empty($data_p['type'])) {
                                         $api_type = strtolower(trim($data_p['type']));
-                                        // Map API type to our system types
                                         if (in_array($api_type, ['default', 'custom_comments', 'package'])) {
                                             $s['type'] = $api_type;
                                         }
@@ -1031,12 +1386,57 @@ function admin_data_step()
                                     if (!empty($s)) {
                                         $db->update('products', $s, ['id' => $value['id']]);
                                         $add_count += 1;
+
+                                        $u_new_price = isset($s['price']) ? (float) $s['price'] : (float) $value['price'];
+                                        $u_min       = (int) ($s['min'] ?? $value['min']);
+                                        $u_max       = (int) ($s['max'] ?? $value['max']);
+                                        $u_type      = $s['type'] ?? $value['type'] ?? 'default';
+                                        $u_cost      = (float) ($s['cost_price'] ?? $value['cost_price'] ?? 0);
+
+                                        $updated_products[] = [
+                                            'name'       => json_decode($s['name'] ?? $value['name']),
+                                            'service'    => $value['service'],
+                                            'cost_price' => $u_cost,
+                                            'old_price'  => (float) $value['price'],
+                                            'new_price'  => $u_new_price,
+                                            'unit_price' => (float) price_once($u_min, $u_max, $u_new_price, $u_type),
+                                            'price_usd'  => (float) ($s['price_usd'] ?? $value['price_usd'] ?? 0),
+                                            'min'        => $u_min,
+                                            'max'        => $u_max,
+                                        ];
                                     }
                                 }
 
-
+                                $report_key = save_update_log([
+                                    'type' => 6,
+                                    'type_label' => $key_admin['update_api_type']['type_6'],
+                                    'api' => json_decode($result_api['name']),
+                                    'add_count' => $add_count,
+                                    'off_count' => $off_count,
+                                    'settings' => $p_s,
+                                    'disabled_products' => $disabled_products,
+                                    'products' => $updated_products,
+                                ]);
                                 admin_step('products');
                                 sm_admin(['update_api_ok', 6, $add_count, $off_count], ['products_panel']);
+                                sm_admin(['update_report_link', 'https://' . $domin . '/update_report.php?k=' . $report_key, 'update']);
+                                break;
+                            case '7':
+                                $services = $api->services($result_api);
+                                $list = [];
+                                foreach ($services['data'] as $row) {
+                                    if (!in_array($row['category'], $list)) {
+                                        $list[] = $row['category'];
+                                    }
+                                }
+                                if (empty($list)) {
+                                    admin_step('products');
+                                    sm_admin(['update_api_error_1']);
+                                    break;
+                                }
+                                file_put_contents(ROOTPATH . '/temp/' . $fid . '.json', json_encode($list));
+                                admin_data(['step' => 'update_api_4', 'data[JSON]' => $admin_data]);
+                                edt_admin(['update_api_2'], ['update_api_select_product', $list, 'category', 1]);
                                 break;
                         }
                         break;
@@ -1046,7 +1446,7 @@ function admin_data_step()
                     case 'info':
                     case 'convert':
                         $p_s = $admin_data['p_s'];
-                        $p_s[$str] = ($p_s[$str]) ? 0 : 1;
+                        $p_s[$str] = (!empty($p_s[$str])) ? 0 : 1;
 
                         $admin_data['p_s'] = $p_s;
                         admin_data(['data[JSON]' => $admin_data]);
@@ -1055,7 +1455,7 @@ function admin_data_step()
                         break;
                     case 'price_type':
                         $p_s = $admin_data['p_s'];
-                        $p_s[$str] = ($p_s[$str] == 1) ? 2 : 1;
+                        $p_s[$str] = (!isset($p_s[$str]) || $p_s[$str] == 1) ? 2 : 1;
 
                         $admin_data['p_s'] = $p_s;
                         admin_data(['data[JSON]' => $admin_data]);
@@ -1092,7 +1492,6 @@ function admin_data_step()
                 switch ($str) {
                     case 'update_row':
                         edt_admin(['display_product'], ['display_products']);
-                        alert_admin(['none']);
                         break;
                     case 'sort_product_by':
                         admin_data(['data[JSON]' => ['type' => 'product']]);
@@ -1144,6 +1543,7 @@ function admin_data_step()
                         break;
                 }
             }
+            alert_admin(['none']);
             break;
         case text_starts_with($data, 'adminch2_key_'):
             $str = str_replace('adminch2_key_', '', $data);
@@ -1209,7 +1609,6 @@ function admin_data_step()
             $str = str_replace('adminoffpanel_', '', $data);
             $ex = explode('_', $str);
             $type = $ex['0'];
-            // adminoffpanel_category_status_1
             switch ($type) {
                 case 'category':
                     $type_2 = $ex['1'];
@@ -1246,6 +1645,7 @@ function admin_data_step()
                             } else {
                                 alert_user(['not_found']);
                             }
+                            alert_admin(['none']);
                             break;
                         case 'page':
                             $depth = $ex['2'];
@@ -1260,6 +1660,7 @@ function admin_data_step()
                             $result = get_category(['inline', 'offset' => $now, 'status' => 1], $depth);
                             $c = $db->count('categories', ['category_id' => $depth]);
                             edk_admin(['category_status', $result, $c, $depth, $now]);
+                            alert_admin(['none']);
                             break;
                         case 'back':
                             $id = $ex['2'];
@@ -1288,7 +1689,7 @@ function admin_data_step()
                             } else {
                                 alert_user(['not_found']);
                             }
-
+                            alert_admin(['none']);
                             break;
                         case 'status':
                             $id = $ex['2'];
@@ -1341,7 +1742,7 @@ function admin_data_step()
                             $bot->edit_keyboard($fid, $message_id, ['inline_keyboard' => $x]);
                             break;
                         default:
-                            # code...
+                            alert_admin(['none']);
                             break;
                     }
                     break;
@@ -1354,7 +1755,8 @@ function admin_data_step()
 
                             $result = get_products(['inline', 'offset' => $now, 'status' => 1], $depth);
                             $c = $db->count('products', ['category_id' => $depth]);
-                            edk_user(['product_status', $result, $c, $depth, $now]);
+                            edk_admin(['product_status', $result, $c, $depth, $now]);
+                            alert_admin(['none']);
                             break;
                         case 'status':
                             $id = $ex['2'];
@@ -1408,6 +1810,145 @@ function admin_data_step()
                     }
             }
             break;
+        case text_starts_with($data, 'ch_detail_'):
+            $ch_key = str_replace('ch_detail_', '', $data);
+            $ch_val = get_option($ch_key, 0);
+            
+            $name = null;
+            
+            if($ch_val != 0){
+                if ($ch_key == 'channel_main') {
+                    $tx = '@' . $ch_val;
+                    $g = $bot->bot('GetChat', ['chat_id' => $tx]);
+                    if ($g['result']['type'] == 'channel') {
+                        $name = $g['result']['title'];
+                    } else {
+                        $name = null;
+                    }
+                }else{
+                    $g = $bot->bot('GetChat', ['chat_id' => $ch_val]);
+                    if ($g['result']['type'] == 'channel') {
+                        $name = $g['result']['title'];
+                    } else {
+                        $name = $g['result']['first_name'];
+                    }
+                }
+            }
+            edt_admin(['ch_detail_text', $ch_key, $ch_val,$name], ['ch_detail_panel', $ch_key, !empty($ch_val) && $ch_val != '0']);
+            alert_admin(['none']);
+            break;
+
+        case 'ch_panel':
+            admin_step('ch_idle');
+            edt_admin(['channels_panel'], ['channels_panel']);
+            alert_admin(['none']);
+            break;
+
+        case text_starts_with($data, 'ch_set_'):
+            $ch_key = str_replace('ch_set_', '', $data);
+            admin_data(['step' => 'ch_set', 'data[JSON]' => ['key' => $ch_key, 'msgid' => $message_id]]);
+            edt_admin(['ch_set_prompt', $ch_key], ['ch_cancel']);
+            alert_admin(['none']);
+            break;
+
+        case text_starts_with($data, 'ch_del_'):
+            $ch_key = str_replace('ch_del_', '', $data);
+            update_option($ch_key, 0);
+            edt_admin(['channels_panel'], ['channels_panel']);
+            alert_admin(['ch_deleted']);
+            break;
+
+        case 'ch_lock':
+            $lock_val = get_option('channel_lock', 0);
+            $lock_arr = ($lock_val && $lock_val != '0') ? (json_decode($lock_val, true) ?: []) : [];
+            edt_admin(['ch_lock_panel', $lock_arr], ['channel_lock_panel', $lock_arr]);
+            alert_admin(['none']);
+            break;
+
+        case text_starts_with($data, 'ch_lock_del_'):
+            $username = str_replace('ch_lock_del_', '', $data);
+            $lock_val = get_option('channel_lock', 0);
+            $lock_arr = ($lock_val && $lock_val != '0') ? (json_decode($lock_val, true) ?: []) : [];
+            $lock_arr = array_values(array_filter($lock_arr, fn($ch) => $ch !== $username));
+            update_option('channel_lock', json_encode($lock_arr));
+            edt_admin(['ch_lock_panel', $lock_arr], ['channel_lock_panel', $lock_arr]);
+            alert_admin(['ch_deleted']);
+            break;
+
+        case 'ch_lock_add':
+            admin_data(['step' => 'ch_lock_set', 'data[JSON]' => ['msgid' => $message_id]]);
+            edt_admin(['ch_lock_add_prompt'], ['ch_cancel_lock']);
+            alert_admin(['none']);
+            break;
+
+        case 'sendall_album_send':
+            $album_data = json_decode($admin['data'], true);
+            $files   = $album_data['files'] ?? [];
+            $caption = $album_data['caption'] ?? '';
+            $sendstep = $db->has('jobs', ['step[!]' => "none"]);
+            if ($sendstep) {
+                admin_step('sendall');
+                $bot->edit_text($fid, $message_id, $media_admin->atext('sendall_6'), ['inline_keyboard' => []]);
+            } elseif (count($files) >= 2) {
+                $data_send = ['step' => 'sendall', 'info[JSON]' => ['send' => 'sendmediagroup', 'files' => $files, 'caption' => $caption], 'user' => '0', 'admin' => $fid];
+                $db->insert('jobs', $data_send);
+                admin_step('sendall');
+                admin_data(['data' => 'none']);
+                $bot->edit_text($fid, $message_id, $media_admin->atext('sendall_album_added', count($files)), ['inline_keyboard' => []]);
+                sm_admin(['sendall_5'], ['send_panel']);
+            } elseif (!empty($files)) {
+                $f = $files[0];
+                $data_send = ['step' => 'sendall', 'info[JSON]' => ['send' => 'sendphoto', 'file_id' => $f['file_id'], 'type_file' => 'photo', 'caption' => $caption], 'user' => '0', 'admin' => $fid];
+                $db->insert('jobs', $data_send);
+                admin_step('sendall');
+                admin_data(['data' => 'none']);
+                $bot->edit_text($fid, $message_id, $media_admin->atext('sendall_photo_added'), ['inline_keyboard' => []]);
+                sm_admin(['sendall_5'], ['send_panel']);
+            }
+            alert_admin(['none']);
+            break;
+
+        case 'sendall_album_cancel':
+            admin_data(['step' => 'sendall_2', 'data' => 'none']);
+            $bot->edit_text($fid, $message_id, $media_admin->atext('sendall_album_cancelled'), ['inline_keyboard' => []]);
+            sm_admin(['sendall_2'], ['back_panel_all']);
+            alert_admin(['none']);
+            break;
+
+        // ── Sendall status/control ─────────────────────────────────────────────────
+        case 'sendall_preview':
+            $job = $db->get('jobs', '*', ['step[!]' => 'none']);
+            if ($job) {
+                sendallmsg($fid, $job);
+                alert_admin(['sendall_preview_sent']);
+            } else {
+                alert_admin(['sendall_status_empty']);
+            }
+            break;
+
+        case 'sendall_pause':
+            $db->update('jobs', ['paused' => 1], ['step[!]' => 'none']);
+            render_sendall_status($message_id);
+            alert_admin(['sendall_paused']);
+            break;
+
+        case 'sendall_resume':
+            $db->update('jobs', ['paused' => 0], ['step[!]' => 'none']);
+            render_sendall_status($message_id);
+            alert_admin(['sendall_resumed']);
+            break;
+
+        case 'sendall_status_refresh':
+            render_sendall_status($message_id);
+            alert_admin(['none']);
+            break;
+
+        case 'sendall_full_cancel':
+            $db->update('jobs', ['step' => 'none', 'paused' => 0], ['step[!]' => 'none']);
+            render_sendall_status($message_id);
+            alert_admin(['sendall_cancelled']);
+            break;
+
         default:
 
             break;

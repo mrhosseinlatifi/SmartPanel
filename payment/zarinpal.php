@@ -96,21 +96,17 @@ if ($type === 'get') {
                 redirect($base_url);
             } else {
                 $tracking_code = $result['response']['data']['ref_id'];
-                if (
-                    $result['response']['data']['code'] == 100 &&
-                    !$db->has('transactions', ['tracking_code' => $tracking_code, 'type' => 'payment', 'getway' => $paymentEn])
-                ) {
-
+                if ($result['response']['data']['code'] == 100) {
                     $card = $result['response']['data']['card_pan'];
-
-                    $db->update('transactions', [
+                    $stmt = $db->update('transactions', [
                         'status' => 1,
                         'tracking_code' => $tracking_code,
                         'getway' => $paymentEn,
                         'type' => 'payment'
-                    ], ['id' => $code]);
-
-                    $result_ok = true;
+                    ], ['id' => $code, 'status' => 3]);
+                    if ($stmt && $stmt->rowCount() > 0) {
+                        $result_ok = true;
+                    }
                 }
             }
         }

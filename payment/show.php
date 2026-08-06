@@ -1,8 +1,20 @@
 <?php
 
-if(isset($_GET['OK'])){ 
-    $code = $_GET['code'] ?? 0; 
-    $idbot = $_GET['idbot'] ?? null;
+header('Content-Type: text/html; charset=UTF-8');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Referrer-Policy: no-referrer');
+
+if(isset($_GET['OK'])){
+    $code  = $_GET['code'] ?? 0;
+    $idbot = $_GET['idbot'] ?? '';
+
+    $code = is_numeric($code) ? (int) $code : 0;
+    $idbot = preg_match('/^[a-zA-Z0-9_]{1,64}$/', (string) $idbot) ? $idbot : '';
+
+    $code  = htmlspecialchars((string) $code, ENT_QUOTES, 'UTF-8');
+    $idbot = htmlspecialchars($idbot, ENT_QUOTES, 'UTF-8');
+
     echo "<html>
 <head>
 </head>
@@ -100,7 +112,12 @@ if(isset($_GET['OK'])){
 </html>";
 
 }elseif(isset($_GET['NOK'])){
-  $idbot = $_GET['idbot'] ?? null;
+  $idbot = $_GET['idbot'] ?? '';
+
+  // idbot فقط کاراکترهای مجاز یوزرنیم تلگرام
+  $idbot = preg_match('/^[a-zA-Z0-9_]{1,64}$/', (string) $idbot) ? $idbot : '';
+  $idbot = htmlspecialchars($idbot, ENT_QUOTES, 'UTF-8');
+
   $msg = [];
   echo "<html>
      <head>

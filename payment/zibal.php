@@ -89,19 +89,20 @@ if ($type === 'get') {
         redirect($base_url);
     } else {
         $tracking_code = $result['response']['refNumber'];
-        if (
-            $result['response']['result'] == 100 &&
-            !$db->has('transactions', ['tracking_code' => $tracking_code, 'type' => 'payment', 'getway' => $paymentEn])
-        ) {
+        $paidAmount = (float) ($result['response']['amount'] ?? 0);
+        if ($result['response']['result'] == 100 && $paidAmount == ($amount * 10)) {
             $card = $result['response']['cardNumber'] ?? 0;
-            $db->update('transactions', [
+            $stmt = $db->update('transactions', [
                 'status' => 1,
                 'tracking_code' => $tracking_code,
                 'getway' => $paymentEn,
                 'type' => 'payment'
-            ], ['id' => $code]);
-
-            $result_ok = true;
+            ], ['id' => $code, 'status' => 3]);
+            if ($stmt && $stmt->rowCount() > 0) {
+                $result_ok = true;
+            }
+        } elseif ($result['response']['result'] == 100) {
+            sm_channel('channel_errors', ['curl_payment_error', $paymentEn, 'amount mismatch: expected ' . ($amount * 10) . ' got ' . $paidAmount]);
         }
     }
 }

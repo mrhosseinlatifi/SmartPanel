@@ -1,7 +1,7 @@
 <?php
 class api
 {
-	protected $timeout = 30;
+	protected $timeout = 60;
 	protected $connect_timeout = 30;
 
 	public function balance($api)
@@ -9,7 +9,7 @@ class api
 		if ($api['smart_panel']) {
 			$url = $api['api_url'];
 			$data = ['key' => $api['api_key'], 'action' => 'balance'];
-			$result = $this->rq($url, 'POST', $data);
+			$result = $this->rq($url, 'POST', $data, md5($url));
 			if ($result['result']) {
 				$b = number_format($result['data']['balance']) . ' ' . strtoupper($result['data']['currency']) ?: 'Error';
 				return ['result' => true, 'balance' => $b];
@@ -30,7 +30,7 @@ class api
 				'key' => $api['api_key'],
 				'order' => $id,
 			];
-			$result = $this->rq($url, 'POST', $postFields);
+			$result = $this->rq($url, 'POST', $postFields, md5($url));
 
 			if ($result['result']) {
 				return ['result' => true, 'data' => $result['data']];
@@ -50,7 +50,7 @@ class api
 				'key' => $api['api_key'],
 				'orders' => implode(',', $ids),
 			];
-			$result = $this->rq($url, 'POST', $postFields);
+			$result = $this->rq($url, 'POST', $postFields, md5($url));
 
 			if ($result['result']) {
 				return ['result' => true, 'data' => $result['data']];
@@ -73,12 +73,11 @@ class api
 				'quantity' => $quantity,
 			];
 			
-			// Add comments if provided (array of comments joined with \r\n)
 			if (!empty($comments) && is_array($comments)) {
 				$postFields['comments'] = implode("\r\n", $comments);
 			}
-			
-			$result = $this->rq($url, 'POST', $postFields);
+
+			$result = $this->rq($url, 'POST', $postFields, md5($url));
 			if ($result['result']) {
 				return ['result' => true, 'order' => $result['data']['order']];
 			} else {
@@ -93,7 +92,7 @@ class api
 		if ($api['smart_panel']) {
 			$url = $api['api_url'];
 			$data = ['key' => $api['api_key'], 'action' => 'services'];
-			$result = $this->rq($url, 'POST', $data);
+			$result = $this->rq($url, 'POST', $data, md5($url));
 			if ($result['result']) {
 				return $result;
 			} else {
@@ -137,6 +136,7 @@ class api
 		curl_setopt($ch, CURLOPT_COOKIEFILE, $cookie_file);
 
 		$response = curl_exec($ch);
+		$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
 		if (file_exists($cookie_file)) {
 			chmod($cookie_file, 0600);
@@ -147,7 +147,11 @@ class api
 			return ['result' => false, 'data' => ['error' => curl_error($ch) ?: 'Empty response']];
 		}
 
-		$response = strtolower($response);
+		if ($http_code < 200 || $http_code >= 300) {
+			error_log('error curl : unexpected HTTP status ' . $http_code . ' - url : ' . $url);
+			return ['result' => false, 'data' => ['error' => 'HTTP ' . $http_code]];
+		}
+
 		$decoded = json_decode($response, true);
 
 		if (is_null($decoded)) {

@@ -1,5 +1,5 @@
 <?php
-require_once "Medoo.php";
+require_once __DIR__ . '/Medoo.php';
 use Medoo\Medoo;
 
 $db = new Medoo([

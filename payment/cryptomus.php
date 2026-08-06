@@ -110,59 +110,32 @@ if ($type === 'get') {
                     $order_id = $update_in_de['order_id'];
                     $status_get = $update_in_de['status'];
 
+                    if ((string) $order_id !== (string) $code) {
+                        break;
+                    }
 
                     switch ($status_get) {
                         case 'paid':
-                            // ok
-                            $card = 0;
-
-                            $db->update('transactions', [
-                                'status' => 1,
-                                'tracking_code' => $tracking_code,
-                                'getway' => $paymentEn,
-                                'type' => 'payment'
-                            ], ['id' => $code]);
-
-                            $result_ok = true;
-                            break;
                         case 'paid_over':
-                            $payment_amount = $update_in_de['payment_amount_usd'];
-                            $am = $update_in_de['amount'];
-                            $am2 = $payment_amount * get_option('usd_rate', 1);
-
-                            $amount = $am2;
-
                             $card = 0;
-
-                            $db->update('transactions', [
+                            $stmt = $db->update('transactions', [
                                 'status' => 1,
                                 'tracking_code' => $tracking_code,
                                 'getway' => $paymentEn,
                                 'type' => 'payment'
-                            ], ['id' => $code]);
-
-                            $result_ok = true;
+                            ], ['id' => $code, 'status' => 3]);
+                            if ($stmt && $stmt->rowCount() > 0) {
+                                $result_ok = true;
+                            }
                             break;
                         case 'wrong_amount':
-                            $payment_amount = $update_in_de['payment_amount_usd'];
-                            $am = $update_in_de['amount'];
-                            $am2 = $payment_amount * get_option('usd_rate', 1);
-
-                            $amount = $am2;
-
-                            $card = 0;
-
-                            $db->update('transactions', [
-                                'status' => 1,
-                                'tracking_code' => $tracking_code,
-                                'getway' => $paymentEn,
-                                'type' => 'payment'
-                            ], ['id' => $code]);
-
-                            $result_ok = true;
+                            // کاربر مبلغ کمتر پرداخت کرده — رد می‌شود
                             break;
                         default:
-                            # code...
+                            $check_array = ['process', 'confirm_check', 'check', 'wrong_amount_waiting', 'locked'];
+                            if (in_array($status_get, $check_array)) {
+                                $result_ipn = true;
+                            }
                             break;
                     }
                 }
@@ -191,55 +164,26 @@ if ($type === 'get') {
 
                         switch ($status_get) {
                             case 'paid':
-                                // ok
-                                $card = 0;
-
-                                $db->update('transactions', [
-                                    'status' => 1,
-                                    'tracking_code' => $tracking_code,
-                                    'getway' => $paymentEn,
-                                    'type' => 'payment'
-                                ], ['id' => $code]);
-
-                                $result_ok = true;
-                                break;
                             case 'paid_over':
-                                $payment_amount = $result['response']['result']['payment_amount_usd'];
-                                $am2 = $payment_amount * get_option('usd_rate', 1);
-
-                                $amount = round_up($am2, '+0.01');
-
                                 $card = 0;
-
-                                $db->update('transactions', [
+                                $stmt = $db->update('transactions', [
                                     'status' => 1,
                                     'tracking_code' => $tracking_code,
                                     'getway' => $paymentEn,
                                     'type' => 'payment'
-                                ], ['id' => $code]);
-
-                                $result_ok = true;
-
+                                ], ['id' => $code, 'status' => 3]);
+                                if ($stmt && $stmt->rowCount() > 0) {
+                                    $result_ok = true;
+                                }
                                 break;
                             case 'wrong_amount':
-                                $payment_amount = $result['response']['result']['payment_amount_usd'];
-                                $am2 = $payment_amount * get_option('usd_rate', 1);
-
-                                $amount = round_up($am2, '+0.01');
-
-                                $card = 0;
-
-                                $db->update('transactions', [
-                                    'status' => 1,
-                                    'tracking_code' => $tracking_code,
-                                    'getway' => $paymentEn,
-                                    'type' => 'payment'
-                                ], ['id' => $code]);
-
-                                $result_ok = true;
+                                // کاربر مبلغ کمتر پرداخت کرده — رد می‌شود
                                 break;
                             default:
-                                # code...
+                                $check_array = ['process', 'confirm_check', 'check', 'wrong_amount_waiting', 'locked'];
+                                if (in_array($status_get, $check_array)) {
+                                    $result_ipn = true;
+                                }
                                 break;
                         }
                     }
@@ -252,7 +196,7 @@ if ($type === 'get') {
 /**
  * Function to handle cURL requests
  */
-function sendCurlRequest($url, $data = [],$key,$sign)
+function sendCurlRequest($url, $data, $key, $sign)
 {
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_POST, true);

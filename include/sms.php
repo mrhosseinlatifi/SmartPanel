@@ -1,7 +1,7 @@
 <?php
 function sendsms($username,$password,$pattern_code,$from,$tonumber,$value='code'){
     $to = array($tonumber);
-    $code = rand(11111,99999);
+    $code = random_int(11111,99999);
     $input_data = array($value => $code);
     $url = "https://ippanel.com/patterns/pattern?username=" . $username . "&password=" . urlencode($password) . "&from=$from&to=" . json_encode($to) . "&input_data=" . urlencode(json_encode($input_data)) . "&pattern_code=$pattern_code";
     $curl = curl_init($url);

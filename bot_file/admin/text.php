@@ -17,7 +17,8 @@ function admin_text()
             $number_order = number_format($db->count('orders')) ?: 0;
             $ba = ($db->sum('users_information', 'balance') > 0) ? $db->sum('users_information', 'balance') : 0;
             $users_balance = number_format($ba) ?: 0;
-            sm_admin(['stats', $number_user, $number_order, $users_balance], ['more_stats', 0]);
+            $usd_rate = number_format((float) get_option('usd_rate', 0));
+            sm_admin(['stats', $number_user, $number_order, $users_balance, $usd_rate], ['more_stats', 0]);
             break;
         case $key_admin['status']:
             check_allow('status');
@@ -56,8 +57,11 @@ function admin_text()
             break;
         case $key_admin['channels']:
             check_allow('channels');
-            admin_step('channels');
-            sm_admin(['channels_1'], ['channel_key']);
+            admin_step('ch_idle');
+
+            sm_admin(['dot_text'], ['back_panel_all']);
+            sm_admin(['channels_panel'], ['channels_panel']);
+
             break;
         case $key_admin['referral']:
             check_allow('referral');
@@ -73,12 +77,15 @@ function admin_text()
         case '/cron':
             $cron = jdate('Y/m/d , H:i', $settings['last_cron_send']);
             $cron_done = jdate('Y/m/d , H:i', $settings['last_cron_orders']);
-            sm_admin(['last_cron', $cron, $cron_done]);
+            $cron_auto = jdate('Y/m/d , H:i', $settings['cron_auto_last']);
+            sm_admin(['last_cron', $cron, $cron_done, $cron_auto]);
             break;
         case '/cron_link':
-            $se = 'https://' . $domin . '/send.php';
-            $se2 = 'https://' . $domin . '/orders.php';
-            sm_admin(['cron_link', $se, $se2]);
+            $tok = get_cron_token();
+            $se  = 'https://' . $domin . '/send.php?token=' . $tok;
+            $se2 = 'https://' . $domin . '/orders.php?token=' . $tok;
+            $se3 = 'https://' . $domin . '/cron.php?token=' . $tok;
+            sm_admin(['cron_link', $se, $se2, $se3]);
             break;
         case '/access':
             sm_admin(['access_tx'], ['show_access_admin', $access, $fid, true]);

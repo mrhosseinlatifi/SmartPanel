@@ -155,6 +155,11 @@ function table($db)
             'NOT NULL',
             'DEFAULT 0',
         ],
+        'paused' => [
+            'INT',
+            'NOT NULL',
+            'DEFAULT 0',
+        ],
         'last_job' => [
             'BIGINT',
             'NOT NULL',
@@ -354,6 +359,21 @@ function table($db)
             'NOT NULL',
             'DEFAULT 1',
         ],
+        'price_usd' => [
+            'FLOAT',
+            'NOT NULL',
+            'DEFAULT 0',
+        ],
+        'cost_price' => [
+            'FLOAT',
+            'NOT NULL',
+            'DEFAULT 0',
+        ],
+        'is_usd' => [
+            'TINYINT(1)',
+            'NOT NULL',
+            'DEFAULT 0',
+        ],
     ], [
         'CHARSET' => 'utf8mb4'
     ]);
@@ -427,6 +447,7 @@ function table($db)
             'NOT NULL',
             'DEFAULT 0',
         ],
+        'INDEX idx_tracking_code (tracking_code(191))',
     ], [
         'AUTO_INCREMENT' => 1000,
         'CHARSET' => 'utf8mb4'
@@ -474,12 +495,12 @@ function table($db)
             'DEFAULT 0',
         ],
         'amount_paid' => [
-            'INT',
+            'FLOAT',
             'NOT NULL',
             'DEFAULT 0',
         ],
         'amount_spent' => [
-            'INT',
+            'FLOAT',
             'NOT NULL',
             'DEFAULT 0',
         ],
@@ -608,7 +629,7 @@ function first_data($db, $admin)
         'number_float' => 0,
         'last_cron_send' => 0,
         'last_cron_orders' => 0,
-        'version' => '9.1',
+        'version' => '9.2',
         'sall' => 50,
         'fall' => 30,
         'DIFF_TIME' => 0,
@@ -622,6 +643,7 @@ function first_data($db, $admin)
         's_block' => 30,
         'limit' => 300,
         'limit_multi' => 100,
+        'order_unknown_days' => 15,
         'min_deposit' => 1000,
         'max_deposit' => 500000,
         'min_crypto_deposit' => 10000,
@@ -665,6 +687,11 @@ function first_data($db, $admin)
         'starz_rate' => 1000,
         'min_starz_deposit' => 1,
         'max_starz_deposit' => 2500,
+        'usd_rate_mode' => 'manual',
+        'usd_rate_interval' => 60,
+        'usd_rate_last_update' => 0,
+        'starz_rate_usd' => 0,
+        'auto_starz_rate' => 0,
     ];
 
 
@@ -678,6 +705,7 @@ function first_data($db, $admin)
 
 function ping($host, $port = 80, $timeout = 30)
 {
+    $t = [];
     for ($i = 0; $i < 1; $i++) {
         $tB = microtime(true);
         $fP = fSockOpen($host, $port, $errno, $errstr, $timeout);

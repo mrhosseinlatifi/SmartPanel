@@ -10,6 +10,8 @@ require ROOTPATH . "/include/jdf.php";
 require ROOTPATH . '/api/api.php';
 require ROOTPATH . "/media/index.php";
 
+check_cron_token();
+
 //--------------------------------------------------------------//
 //--------------------------------------------------------------//
 if (!get_option('cron_order_lock', 1)) {
@@ -64,8 +66,10 @@ if (!get_option('cron_order_lock', 1)) {
 
 						if (empty($fd) || !is_array($fd)) continue;
 						$user_id = $fd['user_id'];
-
+                        
+                        
 						if (isset($val['status'])) {
+						    $val['status'] = strtolower($val['status']);
 							switch ($val['status']) {
 								case 'pending':
 									break;
@@ -140,6 +144,7 @@ if (!get_option('cron_order_lock', 1)) {
 	//--------------------------------------------------------------//
 	//--------------------------------------------------------------//
 	$checked_apis[] = 'noapi';
+	$order_unknown_days = (int) get_option('order_unknown_days', 15);
 
 	$orders_single_check = $db->select('orders', '*', [
 		'api[!]' => $checked_apis,
@@ -152,7 +157,7 @@ if (!get_option('cron_order_lock', 1)) {
 		foreach ($orders_single_check as $order) {
 			$now = (time() - $order['date']) / 86400;
 
-			if ($now >= 15) {
+			if ($now >= $order_unknown_days) {
 				$db->update('orders', ['status' => 'unknow'], ['id' => $order['id']]);
 				continue;
 			}
@@ -160,10 +165,11 @@ if (!get_option('cron_order_lock', 1)) {
 			$api_info = $db->get('apis', '*', ['name' => $order['api']]);
 			if ($api_info) {
 				$result_order = $api->status($api_info, $order['code_api']);
-
 				if ($result_order['result']) {
 					$user_id = $order['user_id'];
-
+					
+                    $result_order['data']['status'] = strtolower($result_order['data']['status']);
+                    
 					switch ($result_order['data']['status']) {
 						case 'pending':
 							break;
@@ -230,7 +236,7 @@ if (!get_option('cron_order_lock', 1)) {
 	foreach ($result_add_order as $order) {
 		$now = (time() - $order['date']) / 86400;
 
-		if ($now >= 15) {
+		if ($now >= $order_unknown_days) {
 			$db->update('orders', ['status' => 'unknow'], ['id' => $order['id']]);
 			continue;
 		}

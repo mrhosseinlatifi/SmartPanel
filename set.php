@@ -42,7 +42,6 @@ if ($response['ok']) {
 
     $bot->sm(admins[0], 'OK!');
     echo 'OK';
-    // unlink('set.php'); // Uncomment if needed
 } else {
     http_response_code(448);
     echo json_encode($response);

@@ -50,7 +50,7 @@ if ($type === 'get') {
 
         case 3:
             if ($payment['getway'] === $paymentEn) {
-                $url = str_replace('NUMBER', $tracking_code, BITPAY_PAYMENT_URL);
+                $url = str_replace('NUMBER', $payment['tracking_code'], BITPAY_PAYMENT_URL);
                 redirect_payment($url);
                 exit;
             } else {
@@ -89,34 +89,40 @@ if ($type === 'get') {
         redirect($base_url);
     }
 
+    if (isset($response->amount) && (float) $response->amount != ($amount * 10)) {
+        sm_channel('channel_errors', ['error_getway_get', $paymentEn, 'amount mismatch: expected ' . ($amount * 10) . ' got ' . $response->amount]);
+        $db->update('transactions', ['status' => 0], ['id' => $code, 'type' => 'payment']);
+        redirect($base_url . '&msg=' . $media->text('error', $paymentEn));
+        exit;
+    }
+
     $tracking_code = $_REQUEST['trans_id'];
     $card = $response->cardNum;
 
-    if ($db->has('transactions', ['tracking_code' => $tracking_code, 'type' => 'payment', 'getway' => $paymentEn])) {
-        redirect($base_url . '&msg=' . $media->text('duplicate_payment'));
-    }
-
-    // بررسی تطبیق کارت در صورت نیاز
     if ($user['payment_card']) {
         if (
             substr($card, 0, 6) !== substr($user['payment_card'], 0, 6) ||
             substr($card, -4) !== substr($user['payment_card'], -4)
         ) {
-            $db->update('transactions', ['status' => 0], ['id' => $code, 'type' => 'payment']);
+            $db->update('transactions', ['status' => 0], ['id' => $code, 'status' => 3]);
             $bot->sm($fid, $media->text(['not_pay_payment_card']));
             redirect($base_url);
             exit;
         }
     }
 
-    $db->update('transactions', [
+    $stmt = $db->update('transactions', [
         'status' => 1,
         'tracking_code' => $tracking_code,
         'getway' => $paymentEn,
         'type' => 'payment'
-    ], ['id' => $code, 'type' => 'payment']);
+    ], ['id' => $code, 'status' => 3]);
 
-    $result_ok = true;
+    if ($stmt && $stmt->rowCount() > 0) {
+        $result_ok = true;
+    } else {
+        redirect($base_url . '&msg=' . $media->text('duplicate_payment'));
+    }
 }
 
 
@@ -128,7 +134,8 @@ function sendCurlRequest($url, $data)
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, is_array($data) ? http_build_query($data) : $data);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
     $result = curl_exec($ch);
     $err = curl_error($ch);
     curl_close($ch);

@@ -491,9 +491,6 @@ $discount_tx
             case 'link_out':
                 $t = "❌ لینک تراکنش فاقد اعتبار است، لطفاً مجدداً تلاش فرمایید.";
                 break;
-            case 'time_payment_end':
-                $t = "❌ زمان مجاز برای پرداخت به اتمام رسیده است.";
-                break;
             case 'desc_payment':
                 $fid = $data[0];
                 $name = $data[1];
@@ -514,7 +511,7 @@ $discount_tx
                 $Amount = $data[1];
                 $balanceold = $data[2];
                 $balancenew = $balanceold + $Amount;
-                $payment = $data[3]; // نام درگاه
+                $payment = $data[3];
                 $channel = $data[4];
                 $t = "✅ پرداخت شما موفقیت آمیز بود !
 
@@ -533,6 +530,11 @@ $discount_tx
 
 1⃣. شما از پرداخت منصرف شده اید.
 2⃣.  تراکنش شما با کارت ثبت نشده انجام شده است.";
+                break;
+            case 'payment_pending':
+                $t = "⏳ تراکنش شما در دست بررسی است.
+
+پرداخت شما هنوز توسط درگاه تایید نهایی نشده، لطفاً چند دقیقه دیگر دوباره تلاش کنید. در صورت تایید، موجودی شما به‌صورت خودکار افزایش می‌یابد.";
                 break;
             case 'not_pay_payment':
                 $t = "❌ تراکنش انجام نشد !";
@@ -685,9 +687,9 @@ $discount_tx
                 break;
             case 'info_referral':
                 if ($data[0] == 1) {
-                    $first_name = $data[2];
-                    $last_name = $data[3];
-                    $user_name = $data[4];
+                    $first_name = $data[1];
+                    $last_name = $data[2];
+                    $user_name = $data[3];
                     $user = $data[4];
                     $fid = $user['user_id'];
                     $gift = $user['gift'];
@@ -706,9 +708,9 @@ $discount_tx
 
 🤖 | @{$idbot}";
                 } elseif ($data[0] == 2) {
-                    $first_name = $data[2];
-                    $last_name = $data[3];
-                    $user_name = $data[4];
+                    $first_name = $data[1];
+                    $last_name = $data[2];
+                    $user_name = $data[3];
                     $user = $data[4];
                     $fid = $user['user_id'];
                     $gift = $user['gift'];
@@ -725,9 +727,9 @@ $discount_tx
 
 @$idbot";
                 } else {
-                    $first_name = $data[2];
-                    $last_name = $data[3];
-                    $user_name = $data[4];
+                    $first_name = $data[1];
+                    $last_name = $data[2];
+                    $user_name = $data[3];
                     $user = $data[4];
                     $fid = $user['user_id'];
                     $gift = $user['gift'];
@@ -983,7 +985,7 @@ $discount_tx
                 $count = $data[1];
                 $link = $data[2];
                 $price = $data[3];
-                $comments = isset($data[4]) ? $data[4] : null; // Optional comments
+                $comments = isset($data[4]) ? $data[4] : null;
                 
                 $comments_text = "";
                 if (!empty($comments) && is_array($comments)) {
@@ -1190,6 +1192,19 @@ $tt
                 break;
             case 'off_move_balance':
                 $t = "❌ این بخش غیرفعال میباشد.";
+                break;
+            case 'min_charge_code':
+                $min = number_format($data);
+                $t = "❌ حداقل موجودی برای استفاده از کد شارژ باید {$min} تومان باشد.";
+                break;
+            case 'off_charge_code':
+                $t = "❌ این بخش غیرفعال میباشد.";
+                break;
+            case 'error_offline_payment':
+                $t = "❌ خطایی در ثبت فیش واریزی رخ داد، لطفاً دوباره تلاش کنید.";
+                break;
+            case 'error_processing':
+                $t = "❌ خطایی رخ داد، لطفاً دوباره تلاش کنید.";
                 break;
             case 'link_text':
                 $t = $data;
