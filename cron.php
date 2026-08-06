@@ -56,6 +56,11 @@ function notify_admins_usd_rate($bot, $db, $old_rate, $new_rate)
         return;
     }
 
+    $notification_usd = (int) get_option('notification_usd', 1);
+    if(!$notification_usd){
+        return;
+    }
+
     $auto_starz = (int) get_option('auto_starz_rate', 0);
     $starz_rate = (float) get_option('starz_rate', 0);
     $msg = $media_admin->atext('usd_rate_auto_notify', [$new_rate, $old_rate, $auto_starz, $starz_rate]);

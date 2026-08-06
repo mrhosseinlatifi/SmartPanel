@@ -420,9 +420,10 @@ function render_rate_panel($msgid = null)
     $starz      = get_option('starz_rate', 0);
     $auto_starz = (int) get_option('auto_starz_rate', 0);
     $starz_usd  = get_option('starz_rate_usd', 0);
+    $notification_usd = (int) get_option('notification_usd', 1);
 
     $text_args = ['rate_panel_1', $usd_rate, $usd_auto, $interval, $last, $starz, $auto_starz, $starz_usd];
-    $kb_args   = ['rate_panel', $usd_auto, $interval, $auto_starz];
+    $kb_args   = ['rate_panel', $usd_auto, $interval, $auto_starz, $notification_usd];
 
     if ($msgid === null) {
         return sm_admin($text_args, $kb_args);

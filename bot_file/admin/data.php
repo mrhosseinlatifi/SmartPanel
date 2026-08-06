@@ -932,6 +932,12 @@ function admin_data_step()
             render_rate_panel($message_id);
             alert_admin(['none']);
             break;
+        case 'rate_toggle_notificationusd':
+            $new_notification_usd = get_option('notification_usd', 1) ? 0 : 1;
+            update_option('notification_usd', $new_notification_usd);
+            render_rate_panel($message_id);
+            alert_admin(['none']);
+            break;
 
         case 'rate_toggle_starzauto':
             $new_starzauto = get_option('auto_starz_rate', 0) ? 0 : 1;

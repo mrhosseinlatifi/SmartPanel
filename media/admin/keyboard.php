@@ -649,6 +649,7 @@ trait keyboard_admin
                 $usd_auto   = (int) ($data[0] ?? 0);
                 $interval   = (int) ($data[1] ?? 60);
                 $auto_starz = (int) ($data[2] ?? 0);
+                $notification_usd = (int) ($data[2] ?? 0);
                 $t = ['inline_keyboard' => [
                     [
                         ['text' => '💵 تعیین قیمت دلار', 'callback_data' => 'rate_set_usd'],
@@ -667,6 +668,9 @@ trait keyboard_admin
                     [
                         ['text' => '💱 قیمت هر استارز به دلار', 'callback_data' => 'rate_set_starz_usd'],
                     ],
+                    [
+                        ['text' => 'اطلاع رسانی بروز شدن دلار'. ($notification_usd ? '✅' : '❌'),'callback_data' => 'rate_toggle_notificationusd'],
+                    ]
                     [
                         ['text' => $key_admin['close_panel'], 'callback_data' => 'close_panel'],
                     ],
