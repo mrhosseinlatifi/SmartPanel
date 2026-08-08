@@ -552,7 +552,8 @@ function admin_steps()
                                         "payments" => 0,
                                         "channels" => 0,
                                         "referral" => 0,
-                                        "text" => 0
+                                        "text" => 0,
+                                        "notification_price" => 0
                                     ],
                                     "sub" => [
                                         "ch_order" => 0,
@@ -3166,7 +3167,7 @@ function admin_steps()
             if (isset($text)) {
                 sm_to_user(['support_pm2', $text], ['fast_support'], $id);
 
-                if ($fid != $chat['id']) {
+                if ($fid != $chat) {
                     $bot->bot('sendmessage', [
                         'chat_id' => $chat,
                         'text' => $media_admin->atext('send_pm_result', $text),
@@ -3197,7 +3198,7 @@ function admin_steps()
                     'parse_mode' => 'Html',
                     'reply_markup' => json_encode($media->akeys('fast_support')),
                 ]);
-                if ($fid != $chat['id']) {
+                if ($fid != $chat) {
                     $bot->bot($send, [
                         'chat_id' => $chat,
                         $i => $file_id,

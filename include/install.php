@@ -585,7 +585,8 @@ function first_data($db, $admin)
             "payments",
             "channels",
             "referral",
-            "text"
+            "text",
+            "notification_price"
         ], 1),
         "sub" => array_fill_keys(["ch_order", "support", "card", "payout"], 1)
     ];

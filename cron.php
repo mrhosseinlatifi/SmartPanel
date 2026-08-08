@@ -51,13 +51,8 @@ function notify_admins_usd_rate($bot, $db, $old_rate, $new_rate)
 {
     global $media_admin;
 
-    $admins = $db->select('admins', 'user_id');
+    $admins = $db->select('admins', ['user_id', 'access']);
     if (!$admins) {
-        return;
-    }
-
-    $notification_usd = (int) get_option('notification_usd', 1);
-    if(!$notification_usd){
         return;
     }
 
@@ -65,8 +60,12 @@ function notify_admins_usd_rate($bot, $db, $old_rate, $new_rate)
     $starz_rate = (float) get_option('starz_rate', 0);
     $msg = $media_admin->atext('usd_rate_auto_notify', [$new_rate, $old_rate, $auto_starz, $starz_rate]);
 
-    foreach ($admins as $aid) {
-        $bot->sm($aid, $msg);
+    foreach ($admins as $admin) {
+        $access = json_decode($admin['access'], 1);
+        if (!($access['main']['notification_price'] ?? 1)) {
+            continue;
+        }
+        $bot->sm($admin['user_id'], $msg);
     }
 }
 
