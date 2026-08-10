@@ -467,11 +467,21 @@ function sendallmsg($id, $data)
         }
     } elseif ($data["step"] == "fwd") {
         $info = json_decode($data['info'], 1) ?: [];
-        $bot->bot('forwardmessage', [
-            'chat_id' => $id,
-            'from_chat_id' => $info['from_chat'],
-            'message_id' => $info['msgid']
-        ]);
+        $message_ids = $info['message_ids'] ?? (isset($info['msgid']) ? [$info['msgid']] : []);
+        sort($message_ids);
+        if (count($message_ids) > 1) {
+            $bot->bot('forwardMessages', [
+                'chat_id' => $id,
+                'from_chat_id' => $info['from_chat'],
+                'message_ids' => json_encode($message_ids)
+            ]);
+        } else {
+            $bot->bot('forwardmessage', [
+                'chat_id' => $id,
+                'from_chat_id' => $info['from_chat'],
+                'message_id' => $message_ids[0]
+            ]);
+        }
     } else {
         $bot->sm($id, "Error: Unknown step");
     }

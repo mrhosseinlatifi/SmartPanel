@@ -617,6 +617,12 @@ trait keyboard_admin
                     [['text' => '❌ لغو', 'callback_data' => 'sendall_album_cancel']],
                 ]];
                 break;
+            case 'sendall_fwd_album_kb':
+                $t = ['inline_keyboard' => [
+                    [['text' => '✅ تایید', 'callback_data' => 'sendall_fwd_album_send']],
+                    [['text' => '❌ لغو', 'callback_data' => 'sendall_fwd_album_cancel']],
+                ]];
+                break;
             case 'products_panel':
                 $t = [
                     'keyboard' => [

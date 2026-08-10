@@ -112,6 +112,12 @@ trait main_admin_text
 🖼 تعداد عکس: {$count}{$cap_line}
 عکس‌های بیشتر ارسال کنید یا دکمه تأیید را بزنید:";
                 break;
+            case 'sendall_fwd_album_preview':
+                $count = $data ?? 0;
+                $t = "🔄 آلبوم آماده فوروارد:
+📦 تعداد پیام: {$count}
+اگر پیام دیگری از این آلبوم مانده، صبر کنید تا دریافت شود، سپس دکمه تأیید را بزنید:";
+                break;
             case 'sendall_7':
                 $t = "🔢 عدد فعلی: {$data}
 برای تغییر، عدد جدید را ارسال کنید.
@@ -162,6 +168,10 @@ trait main_admin_text
             case 'sendall_album_added':
                 $count = $data;
                 $t = "✅ آلبوم {$count} عکسه به صف همگانی اضافه شد.";
+                break;
+            case 'sendall_fwd_album_added':
+                $count = $data;
+                $t = "✅ آلبوم {$count} پیامی به صف فوروارد همگانی اضافه شد.";
                 break;
             case 'sendall_photo_added':
                 $t = "✅ عکس به صف همگانی اضافه شد.";

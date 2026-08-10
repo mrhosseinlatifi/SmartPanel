@@ -102,12 +102,22 @@ function processForward($db, $settings, $job)
     );
 
     $info = json_decode($job['info'], true);
+    $message_ids = $info['message_ids'] ?? (isset($info['msgid']) ? [$info['msgid']] : []);
+    sort($message_ids);
     foreach ($users as $user) {
-        $response = $bot->bot('forwardmessage', [
-            'chat_id' => $user,
-            'from_chat_id' => $info['from_chat'],
-            'message_id' => $info['msgid']
-        ]);
+        if (count($message_ids) > 1) {
+            $response = $bot->bot('forwardMessages', [
+                'chat_id' => $user,
+                'from_chat_id' => $info['from_chat'],
+                'message_ids' => json_encode($message_ids)
+            ]);
+        } else {
+            $response = $bot->bot('forwardmessage', [
+                'chat_id' => $user,
+                'from_chat_id' => $info['from_chat'],
+                'message_id' => $message_ids[0]
+            ]);
+        }
         handleBlockedUser($db, $response, $user);
     }
 

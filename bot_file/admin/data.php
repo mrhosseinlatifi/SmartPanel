@@ -1914,6 +1914,32 @@ function admin_data_step()
             alert_admin(['none']);
             break;
 
+        case 'sendall_fwd_album_send':
+            $album_data = json_decode($admin['data'], true);
+            $message_ids = $album_data['message_ids'] ?? [];
+            $from_chat = $album_data['from_chat'] ?? $fid;
+            $sendstep = $db->has('jobs', ['step[!]' => "none"]);
+            if ($sendstep) {
+                admin_step('sendall');
+                $bot->edit_text($fid, $message_id, $media_admin->atext('sendall_6'), ['inline_keyboard' => []]);
+            } elseif (!empty($message_ids)) {
+                $data_send = ['step' => 'fwd', 'info[JSON]' => ['message_ids' => $message_ids, 'from_chat' => $from_chat], 'user' => '0', 'admin' => $fid];
+                $db->insert('jobs', $data_send);
+                admin_step('sendall');
+                admin_data(['data' => 'none']);
+                $bot->edit_text($fid, $message_id, $media_admin->atext('sendall_fwd_album_added', count($message_ids)), ['inline_keyboard' => []]);
+                sm_admin(['sendall_5'], ['send_panel']);
+            }
+            alert_admin(['none']);
+            break;
+
+        case 'sendall_fwd_album_cancel':
+            admin_data(['step' => 'sendall_3', 'data' => 'none']);
+            $bot->edit_text($fid, $message_id, $media_admin->atext('sendall_album_cancelled'), ['inline_keyboard' => []]);
+            sm_admin(['sendall_3'], ['back_panel_all']);
+            alert_admin(['none']);
+            break;
+
         // ── Sendall status/control ─────────────────────────────────────────────────
         case 'sendall_preview':
             $job = $db->get('jobs', '*', ['step[!]' => 'none']);

@@ -137,13 +137,51 @@ function admin_steps()
             } else {
                 $sendstep = $db->has('jobs', ['step[!]' => "none"]);
                 if (!$sendstep) {
-                    $data_send =  ['step' => 'fwd', 'info[JSON]' => ['msgid' => $message_id, 'from_chat' => $fid], 'user' => '0', 'admin' => $fid];
-                    $db->insert('jobs', $data_send);
-                    admin_step('sendall');
-                    sm_admin(['sendall_5'], ['send_panel']);
+                    if (isset($update['message']['media_group_id'])) {
+                        $media_group_id = $update['message']['media_group_id'];
+                        $message_ids = [$message_id];
+                        $res = sm_admin(['sendall_fwd_album_preview', count($message_ids)], ['sendall_fwd_album_kb']);
+                        $album_msgid = $res['result']['message_id'] ?? null;
+                        admin_data([
+                            'step' => 'sendall_fwd_album',
+                            'data[JSON]' => [
+                                'media_group_id' => $media_group_id,
+                                'from_chat' => $fid,
+                                'message_ids' => $message_ids,
+                                'msgid' => $album_msgid,
+                            ]
+                        ]);
+                    } else {
+                        $data_send =  ['step' => 'fwd', 'info[JSON]' => ['msgid' => $message_id, 'from_chat' => $fid], 'user' => '0', 'admin' => $fid];
+                        $db->insert('jobs', $data_send);
+                        admin_step('sendall');
+                        sm_admin(['sendall_5'], ['send_panel']);
+                    }
                 } else {
                     admin_step('sendall');
                     sm_admin(['sendall_6'], ['send_panel']);
+                }
+            }
+            break;
+        case 'sendall_fwd_album':
+            $album_data = json_decode($admin['data'], true);
+            if ($text == $key_admin['back_admin_before'] || $text == $key_admin['back_admin']) {
+                admin_data(['step' => 'sendall_3', 'data' => 'none']);
+                sm_admin(['sendall_3'], ['back_panel_all']);
+            } elseif (isset($update['message']['media_group_id'])) {
+                $message_ids = $album_data['message_ids'] ?? [];
+                $message_ids[] = $message_id;
+                $msgid = $album_data['msgid'] ?? null;
+                admin_data([
+                    'data[JSON]' => [
+                        'media_group_id' => $album_data['media_group_id'] ?? '',
+                        'from_chat' => $album_data['from_chat'] ?? $fid,
+                        'message_ids' => $message_ids,
+                        'msgid' => $msgid,
+                    ]
+                ]);
+                if ($msgid) {
+                    edt_admin(['sendall_fwd_album_preview', count($message_ids)], ['sendall_fwd_album_kb'], $msgid);
                 }
             }
             break;
