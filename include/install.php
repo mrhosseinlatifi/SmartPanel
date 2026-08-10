@@ -585,10 +585,9 @@ function first_data($db, $admin)
             "payments",
             "channels",
             "referral",
-            "text",
-            "notification_price"
+            "text"
         ], 1),
-        "sub" => array_fill_keys(["ch_order", "support", "card", "payout"], 1)
+        "sub" => array_fill_keys(["ch_order", "support", "card", "payout", "verifyreceipt", "notification_price"], 1)
     ];
     $accessConfig["main"]["status"] = 1;
 

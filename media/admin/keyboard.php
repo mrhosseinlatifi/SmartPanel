@@ -407,6 +407,7 @@ $key_admin['translations_access'] = [
     'support' => 'پشتیبانی 💬',
     'card' => 'احراز کارت 💳',
     'payout' => 'درخواست های برداشت 💸',
+    'verifyreceipt' => 'تایید رسید کارت به کارت 💳',
 ];
 
 

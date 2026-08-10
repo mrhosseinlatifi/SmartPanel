@@ -590,14 +590,15 @@ function admin_steps()
                                         "payments" => 0,
                                         "channels" => 0,
                                         "referral" => 0,
-                                        "text" => 0,
-                                        "notification_price" => 0
+                                        "text" => 0
                                     ],
                                     "sub" => [
                                         "ch_order" => 0,
                                         "support" => 0,
                                         "card" => 0,
                                         "payout" => 0,
+                                        "verifyreceipt" => 0,
+                                        "notification_price" => 0,
                                     ]
                                 ];
 

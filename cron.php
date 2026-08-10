@@ -62,7 +62,7 @@ function notify_admins_usd_rate($bot, $db, $old_rate, $new_rate)
 
     foreach ($admins as $admin) {
         $access = json_decode($admin['access'], 1);
-        if (!($access['main']['notification_price'] ?? 1)) {
+        if (!($access['sub']['notification_price'] ?? 1)) {
             continue;
         }
         $bot->sm($admin['user_id'], $msg);
