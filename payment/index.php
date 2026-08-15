@@ -42,6 +42,7 @@ if (isset($_GET['file'])) {
   if ($result_payment) {
     $settings = [];
     get_settings($settings);
+    $ttl = (int) get_option('payment_link_ttl', 3600);
     $ip = getip() ?? 0;
     if ($result_payment['ip']) {
       $country = strtolower(ip_info($ip));
@@ -77,7 +78,7 @@ if (isset($_GET['file'])) {
                 $amount = $original_amount + $commission;
                 $decode_data['charged_amount'] = $amount;
 
-                if ($date + 3600 >= time()) {
+                if ($date + $ttl >= time()) {
 
                   if (!$user['block']) {
                     $type = 'get';
@@ -86,7 +87,7 @@ if (isset($_GET['file'])) {
                     echo "<title>@$idbot</title><h1 style='text-align: center;margin-top:30px'>" . $media->text('time_payment_end', $result_payment['file']) . "</h1>";
                   }
                 } else {
-
+                  $db->update('transactions', ['status' => 0], ['id' => $code, 'type' => 'payment']);
                   echo "<title>@$idbot</title><h1 style='text-align: center;margin-top:30px'>" . $media->text('time_payment_end', $result_payment['file']) . "</h1>";
                 }
 
@@ -119,7 +120,7 @@ if (isset($_GET['file'])) {
                 $commission = calculateGatewayCommission($original_amount, $percent_fee, $max_fee);
                 $amount = $decode_data['charged_amount'] ?? ($original_amount + $commission);
 
-                if ($date + 3600 >= time()) {
+                if ($date + $ttl >= time()) {
                   if (!$user['block']) {
                     $type = 'back';
                     $result_ok = false;
@@ -201,6 +202,7 @@ if (isset($_GET['file'])) {
                     echo "<title>@$idbot</title><h1 style='text-align: center;margin-top:30px'>" . $media->text('time_payment_end', $result_payment['file']) . "</h1>";
                   }
                 } else {
+                  $db->update('transactions', ['status' => 0], ['id' => $code, 'type' => 'payment']);
                   echo "<title>@$idbot</title><h1 style='text-align: center;margin-top:30px'>" . $media->text('time_payment_end', $result_payment['file']) . "</h1>";
                 }
 

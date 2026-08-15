@@ -316,24 +316,47 @@ function user_step()
                     if ($text >= $min_crypto && $text <= $max_crypto) {
                         $result = $db->has('payment_gateways', ['status' => 1, 'type' => 'crypto']);
                         if ($result) {
-                            if ($db->has('transactions', ['amount' => $text, 'status' => 2, 'tracking_code' => 0, 'type' => 'payment', 'user_id' => $fid])) {
-                                $getTr = $db->get('transactions', ['id', 'data'], ['amount' => $text, 'status' => 2, 'tracking_code' => 0, 'type' => 'payment', 'user_id' => $fid]);
+                            $ttl = (int) get_option('payment_link_ttl', 3600);
+                            $min_remaining = (int) get_option('payment_link_min_remaining', 600);
+                            $recent_threshold = time() - $ttl;
+
+                            $reuse = false;
+                            if ($db->has('transactions', [
+                                'amount' => $text,
+                                'status' => 2,
+                                'tracking_code' => 0,
+                                'type' => 'payment',
+                                'user_id' => $fid,
+                                'date[>=]' => $recent_threshold
+                            ])) {
+                                $getTr = $db->get('transactions', ['id', 'data', 'date'], [
+                                    'amount' => $text,
+                                    'status' => 2,
+                                    'tracking_code' => 0,
+                                    'type' => 'payment',
+                                    'user_id' => $fid,
+                                    'date[>=]' => $recent_threshold
+                                ]);
                                 $code = $getTr['id'];
                                 if ($code) {
-                                    $result = $db->select('payment_gateways', '*', ['status' => 1, 'type' => 'crypto']);
-
-                                    $decode = json_decode($getTr['data'], true);
-                                    $decode['payment_type'] = 'crypto';
-                                    $db->update('transactions', ['data[JSON]' => $decode], ['id' => $code]);
-
-                                    sm_user(['payment_text', $user, $code, $text], ['payment_gateways', $result, $text, $domin, $code]);
-                                    user_set_step();
-
-                                    sm_user(['back_pay', $settings['text_payment_crypto']], ['home']);
-                                } else {
-                                    user_set_step();
-                                    sm_user(['payment_mistake'], ['home']);
+                                    $remaining = ($getTr['date'] + $ttl) - time();
+                                    if ($remaining >= $min_remaining) {
+                                        $reuse = true;
+                                    }
                                 }
+                            }
+
+                            if ($reuse) {
+                                $result = $db->select('payment_gateways', '*', ['status' => 1, 'type' => 'crypto']);
+
+                                $decode = json_decode($getTr['data'], true);
+                                $decode['payment_type'] = 'crypto';
+                                $db->update('transactions', ['data[JSON]' => $decode], ['id' => $code]);
+
+                                sm_user(['payment_text', $user, $code, $text], ['payment_gateways', $result, $text, $domin, $code]);
+                                user_set_step();
+
+                                sm_user(['back_pay', $settings['text_payment_crypto']], ['home']);
                             } else {
                                 $code = add_tranaction('payment', $fid, $text, ['payment_type' => 'crypto']);
 
@@ -1368,10 +1391,37 @@ function user_step()
                         } else {
                             $result = $db->has('payment_gateways', ['status' => 1, 'type' => 'IRT']);
                             if ($result) {
-                                if ($db->has('transactions', ['amount' => $text, 'status' => 2, 'tracking_code' => 0, 'type' => 'payment', 'user_id' => $fid])) {
-                                    $getTr = $db->get('transactions', ['id', 'data'], ['amount' => $text, 'status' => 2, 'tracking_code' => 0, 'type' => 'payment', 'user_id' => $fid]);
-                                    $code = $getTr['id'];
-                                    if ($code) {
+                                    $ttl = (int) get_option('payment_link_ttl', 3600);
+                                    $min_remaining = (int) get_option('payment_link_min_remaining', 600);
+                                    $recent_threshold = time() - $ttl;
+
+                                    $reuse = false;
+                                    if ($db->has('transactions', [
+                                        'amount' => $text,
+                                        'status' => 2,
+                                        'tracking_code' => 0,
+                                        'type' => 'payment',
+                                        'user_id' => $fid,
+                                        'date[>=]' => $recent_threshold
+                                    ])) {
+                                        $getTr = $db->get('transactions', ['id', 'data', 'date'], [
+                                            'amount' => $text,
+                                            'status' => 2,
+                                            'tracking_code' => 0,
+                                            'type' => 'payment',
+                                            'user_id' => $fid,
+                                            'date[>=]' => $recent_threshold
+                                        ]);
+                                        $code = $getTr['id'];
+                                        if ($code) {
+                                            $remaining = ($getTr['date'] + $ttl) - time();
+                                            if ($remaining >= $min_remaining) {
+                                                $reuse = true;
+                                            }
+                                        }
+                                    }
+
+                                    if ($reuse) {
                                         $result = $db->select('payment_gateways', '*', ['status' => 1, 'type' => 'IRT']);
 
                                         $decode = json_decode($getTr['data'], true);
@@ -1387,11 +1437,7 @@ function user_step()
 
                                         sm_user(['back_pay', $settings['text_payment']], ['home']);
                                     } else {
-                                        user_set_step();
-                                        sm_user(['payment_mistake'], ['home']);
-                                    }
-                                } else {
-                                    $code = add_tranaction('payment', $fid, $text, ['payment_type' => 'IRT']);
+                                        $code = add_tranaction('payment', $fid, $text, ['payment_type' => 'IRT']);
 
                                     if ($code) {
                                         $result = $db->select('payment_gateways', '*', ['status' => 1, 'type' => 'IRT']);

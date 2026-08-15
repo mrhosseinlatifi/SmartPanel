@@ -692,6 +692,8 @@ function first_data($db, $admin)
         'usd_rate_last_update' => 0,
         'starz_rate_usd' => 0,
         'auto_starz_rate' => 0,
+        'payment_link_ttl' => 3600,
+        'payment_link_min_remaining' => 600,
     ];
 
 

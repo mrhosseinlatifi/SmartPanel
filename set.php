@@ -42,6 +42,7 @@ if ($response['ok']) {
 
     $bot->sm(admins[0], 'OK!');
     echo 'OK';
+    unlink(__FILE__);
 } else {
     http_response_code(448);
     echo json_encode($response);
