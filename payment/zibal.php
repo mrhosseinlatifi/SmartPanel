@@ -35,8 +35,9 @@ if ($type === 'get') {
                 $base_url .= '&msg=' . $media->text('error', $paymentEn);
                 redirect($base_url);
             } else {
-                if ($result['response']['result'] == 100) {
-                    $trackid = $result['response']['trackId'];
+                $response = is_array($result['response'] ?? null) ? $result['response'] : [];
+                if (($response['result'] ?? null) == 100 && !empty($response['trackId'])) {
+                    $trackid = (string) $response['trackId'];
 
                     $decode_data['ip'] = $ip;;
                     $decode_data['payment'] = $paymentEn;
@@ -50,7 +51,7 @@ if ($type === 'get') {
                     ], ['id' => $code]);
                     redirect_payment(ZIBAL_PAYMENT_URL . $trackid);
                 } else {
-                    $msg = htmlentities($result['response']['message'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                    $msg = htmlentities($response['message'] ?? 'Invalid gateway response', ENT_QUOTES | ENT_HTML5, 'UTF-8');
                     sm_channel('channel_errors', ['error_getway_get', $paymentEn, $msg]);
                     $base_url .= '&msg=' . $media->text('error', $paymentEn);
                     redirect($base_url);
@@ -88,20 +89,15 @@ if ($type === 'get') {
         $base_url .= '&msg=' . $media->text('error', $paymentEn);
         redirect($base_url);
     } else {
-        $tracking_code = $result['response']['refNumber'];
-        $paidAmount = (float) ($result['response']['amount'] ?? 0);
-        if ($result['response']['result'] == 100 && $paidAmount == ($amount * 10)) {
-            $card = $result['response']['cardNumber'] ?? 0;
-            $stmt = $db->update('transactions', [
-                'status' => 1,
-                'tracking_code' => $tracking_code,
-                'getway' => $paymentEn,
-                'type' => 'payment'
-            ], ['id' => $code, 'status' => 3]);
-            if ($stmt && $stmt->rowCount() > 0) {
+        $response = is_array($result['response'] ?? null) ? $result['response'] : [];
+        $tracking_code = (string) ($response['refNumber'] ?? '');
+        $paidAmount = (float) ($response['amount'] ?? 0);
+        if (($response['result'] ?? null) == 100 && $paidAmount == ($amount * 10) && $tracking_code !== '') {
+            $card = $response['cardNumber'] ?? 0;
+            if (markPaymentAsSuccessful($code, $tracking_code, $paymentEn)) {
                 $result_ok = true;
             }
-        } elseif ($result['response']['result'] == 100) {
+        } elseif (($response['result'] ?? null) == 100) {
             sm_channel('channel_errors', ['curl_payment_error', $paymentEn, 'amount mismatch: expected ' . ($amount * 10) . ' got ' . $paidAmount]);
         }
     }

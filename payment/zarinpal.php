@@ -39,8 +39,10 @@ if ($type === 'get') {
                 redirect($base_url);
             } else {
                 
-                if ($result['response']['data']['code'] == 100) {
-                    $trackid = $result['response']['data']['authority'];
+                $response = is_array($result['response'] ?? null) ? $result['response'] : [];
+                $responseData = is_array($response['data'] ?? null) ? $response['data'] : [];
+                if (($responseData['code'] ?? null) == 100 && !empty($responseData['authority'])) {
+                    $trackid = (string) $responseData['authority'];
                     $decode_data['ip'] = $ip; ; 
                     $decode_data['payment'] = $paymentEn; 
                     $db->update('transactions', [
@@ -53,7 +55,7 @@ if ($type === 'get') {
 
                     redirect_payment(ZARINPAL_PAYMENT_URL . $trackid);
                 } else {
-                    $msg = $result['response']['errors']['message'];
+                    $msg = $response['errors']['message'] ?? 'Invalid gateway response';
                     sm_channel('channel_errors', ['error_getway_get', $paymentEn, $msg]);
                     $base_url .= '&msg=' . $media->text('error', $paymentEn);
 
@@ -78,8 +80,10 @@ if ($type === 'get') {
     }
 } elseif ($type === 'back') {
     $url = ZARINPAL_VERIFY_URL;
-    if ($payment['tracking_code'] == $_REQUEST['Authority']) {
-        if ($_REQUEST['Status'] == 'OK') {
+    $authority = $_GET['Authority'] ?? '';
+    $status = $_GET['Status'] ?? '';
+    if (is_string($authority) && $payment['tracking_code'] === $authority) {
+        if ($status === 'OK') {
 
             $data_transaction = [
                 "merchant_id" => $result_payment['code'],
@@ -95,16 +99,12 @@ if ($type === 'get') {
 
                 redirect($base_url);
             } else {
-                $tracking_code = $result['response']['data']['ref_id'];
-                if ($result['response']['data']['code'] == 100) {
-                    $card = $result['response']['data']['card_pan'];
-                    $stmt = $db->update('transactions', [
-                        'status' => 1,
-                        'tracking_code' => $tracking_code,
-                        'getway' => $paymentEn,
-                        'type' => 'payment'
-                    ], ['id' => $code, 'status' => 3]);
-                    if ($stmt && $stmt->rowCount() > 0) {
+                $response = is_array($result['response'] ?? null) ? $result['response'] : [];
+                $responseData = is_array($response['data'] ?? null) ? $response['data'] : [];
+                if (($responseData['code'] ?? null) == 100 && !empty($responseData['ref_id'])) {
+                    $tracking_code = (string) $responseData['ref_id'];
+                    $card = $responseData['card_pan'] ?? 0;
+                    if (markPaymentAsSuccessful($code, $tracking_code, $paymentEn)) {
                         $result_ok = true;
                     }
                 }
@@ -130,5 +130,8 @@ function sendCurlRequest($url, $data)
     $err = curl_error($ch);
     curl_close($ch);
 
-    return ['response' => json_decode($result, true), 'error' => $err];
+    return [
+        'response' => is_string($result) ? json_decode($result, true) : null,
+        'error' => $err,
+    ];
 }

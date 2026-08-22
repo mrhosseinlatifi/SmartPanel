@@ -12,9 +12,9 @@ if ($type === 'get') {
     switch ($step) {
         case 2:
             $payment_key = $result_payment['code'];
-            $ex = explode('|', $payment_key);
-            $key = $ex[0];
-            $ipn = $ex[1];
+            $ex = explode('|', $payment_key, 2);
+            $key = $ex[0] ?? '';
+            $ipn = $ex[1] ?? '';
 
             define('HELEKET_IPN', $ipn);
             define('HELEKET_API_KEY', $key);
@@ -40,8 +40,10 @@ if ($type === 'get') {
                 $base_url .= '&msg=' . $media->text('error', $paymentEn);
                 redirect($base_url);
             } else {
-                if (!empty($result['response']) && isset($result['response']['state']) && $result['response']['state'] == '0') {
-                    $trackid = $result['response']['result']['uuid'];
+                $response = is_array($result['response'] ?? null) ? $result['response'] : [];
+                $responseResult = is_array($response['result'] ?? null) ? $response['result'] : [];
+                if (($response['state'] ?? null) == '0' && !empty($responseResult['uuid'])) {
+                    $trackid = (string) $responseResult['uuid'];
                     $payment_url = HELEKET_PAYMENT_URL . $trackid;
 
                     $decode_data['ip'] = $ip;
@@ -58,7 +60,7 @@ if ($type === 'get') {
 
                     redirect_payment($payment_url);
                 } else {
-                    $msg = $result['response']['message'] ?? $result['response']['error'] ?? 'Unknown error';
+                    $msg = $response['message'] ?? $response['error'] ?? 'Unknown error';
                     sm_channel('channel_errors', ['error_getway_get', $paymentEn, $msg]);
                     $base_url .= '&msg=' . $media->text('error', $paymentEn);
                     redirect($base_url);
@@ -83,9 +85,9 @@ if ($type === 'get') {
     }
 } elseif ($type === 'back') {
     $payment_key = $result_payment['code'];
-    $ex = explode('|', $payment_key);
-    $key = $ex[0];
-    $ipn = $ex[1];
+    $ex = explode('|', $payment_key, 2);
+    $key = $ex[0] ?? '';
+    $ipn = $ex[1] ?? '';
 
     define('HELEKET_IPN', $ipn);
     define('HELEKET_API_KEY', $key);
@@ -111,18 +113,14 @@ if ($type === 'get') {
 
                     if (hash_equals($calculated_signature, $received_signature) && $step == '3') {
                         $payment_status = $request_data['status'] ?? '';
-                        $tracking_code = $request_data['uuid'];
+                        $tracking_code = $request_data['uuid'] ?? '';
 
-                        if ($payment_status === 'paid') {
-                            $stmt = $db->update('transactions', [
-                                'status' => 1,
-                                'tracking_code' => $tracking_code,
-                                'getway' => $paymentEn,
-                                'type' => 'payment'
-                            ], ['id' => $code, 'status' => 3]);
-                            if ($stmt && $stmt->rowCount() > 0) {
+                        if ($payment_status === 'paid'
+                            && (string) ($request_data['order_id'] ?? '') === (string) $code
+                            && $tracking_code !== ''
+                            && markPaymentAsSuccessful($code, $tracking_code, $paymentEn)
+                        ) {
                                 $result_ok = true;
-                            }
                         } else {
                             $result_ipn = true;
                         }
@@ -141,20 +139,17 @@ if ($type === 'get') {
                             'uuid' => $payment_id
                         ];
                         $result = sendCurlRequest(HELEKET_INFO_URL, $data_transaction);
-                        if (!empty($result['response']) && isset($result['response']['state'])) {
-                            $payment_status = $result['response']['result']['status'];
-                            $tracking_code = $result['response']['result']['uuid'];
+                        $response = is_array($result['response'] ?? null) ? $result['response'] : [];
+                        $responseResult = is_array($response['result'] ?? null) ? $response['result'] : [];
+                        if (isset($response['state']) && !empty($responseResult)) {
+                            $payment_status = $responseResult['status'] ?? '';
+                            $tracking_code = $responseResult['uuid'] ?? '';
 
-                            if ($payment_status === 'paid') {
-                                $stmt = $db->update('transactions', [
-                                    'status' => 1,
-                                    'tracking_code' => $tracking_code,
-                                    'getway' => $paymentEn,
-                                    'type' => 'payment'
-                                ], ['id' => $code, 'status' => 3]);
-                                if ($stmt && $stmt->rowCount() > 0) {
+                            if ($payment_status === 'paid'
+                                && $tracking_code === (string) $payment['tracking_code']
+                                && markPaymentAsSuccessful($code, $tracking_code, $paymentEn)
+                            ) {
                                     $result_ok = true;
-                                }
                             } else {
                                 $check_array = ['process', 'confirm_check', 'check', 'wrong_amount_waiting', 'locked'];
                                 if (in_array($payment_status, $check_array)) {

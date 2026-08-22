@@ -30,6 +30,140 @@ function calculateGatewayCommission($amount, $percent_fee, $max_fee = 0)
   return $commission;
 }
 
+function markPaymentAsSuccessful($transactionId, $trackingCode, $paymentGateway)
+{
+    global $db;
+
+    $transactionId = (int) $transactionId;
+    $trackingCode = trim((string) $trackingCode);
+    $paymentGateway = trim((string) $paymentGateway);
+
+    // Validate input
+    if (
+        $transactionId <= 0 ||
+        $trackingCode === '' ||
+        $trackingCode === '0' ||
+        $paymentGateway === ''
+    ) {
+        return false;
+    }
+
+    // Unique MySQL advisory lock for this payment
+    $lockName = 'payment_tracking_' . hash(
+        'sha256',
+        $paymentGateway . ':' . $trackingCode
+    );
+
+    /*
+     * Acquire lock
+     */
+    $lockStatement = null;
+
+    try {
+        $lockStatement = $db->query(
+            'SELECT GET_LOCK(:lock_name, 5)',
+            [
+                ':lock_name' => $lockName
+            ]
+        );
+
+        if (!$lockStatement) {
+            return false;
+        }
+
+        $lockResult = $lockStatement->fetchColumn();
+
+        // Important: completely close the result before another query
+        $lockStatement->closeCursor();
+        $lockStatement = null;
+
+        if ((int) $lockResult !== 1) {
+            return false;
+        }
+
+        /*
+         * Check whether this tracking code is already
+         * registered for another payment transaction.
+         */
+        $alreadyUsed = $db->has('transactions', [
+            'tracking_code' => $trackingCode,
+            'type' => 'payment',
+            'getway' => $paymentGateway,
+            'id[!]' => $transactionId,
+        ]);
+
+        if ($alreadyUsed) {
+
+            /*
+             * Another transaction already owns this tracking code.
+             * Reset current pending transaction.
+             */
+            $db->update(
+                'transactions',
+                [
+                    'status' => 0
+                ],
+                [
+                    'id' => $transactionId,
+                    'type' => 'payment',
+                    'status' => 3,
+                ]
+            );
+
+            return false;
+        }
+
+        /*
+         * Mark current transaction as successful.
+         *
+         * status 3 = pending
+         * status 1 = successful
+         */
+        $statement = $db->update(
+            'transactions',
+            [
+                'status' => 1,
+                'tracking_code' => $trackingCode,
+                'getway' => $paymentGateway,
+                'type' => 'payment',
+            ],
+            [
+                'id' => $transactionId,
+                'status' => 3,
+            ]
+        );
+
+        return $statement && $statement->rowCount() > 0;
+
+    } finally {
+
+        /*
+         * Release MySQL advisory lock.
+         *
+         * The result must also be consumed/closed,
+         * otherwise the same unbuffered-query problem can happen.
+         */
+        try {
+            $releaseStatement = $db->query(
+                'SELECT RELEASE_LOCK(:lock_name)',
+                [
+                    ':lock_name' => $lockName
+                ]
+            );
+
+            if ($releaseStatement) {
+                $releaseStatement->fetchColumn();
+                $releaseStatement->closeCursor();
+            }
+        } catch (Throwable $e) {
+            /*
+             * Do not replace the original payment exception
+             * with a RELEASE_LOCK exception.
+             */
+        }
+    }
+}
+
 $bot = new hkbot(Token);
 $getBotInfo = $bot->bot('getMe');
 $numberId = $getBotInfo['result']['id'];
@@ -37,8 +171,22 @@ $idbot = $getBotInfo['result']['username'];
 
 @$section_status = json_decode(get_option('section_status'), 1);
 @$media = new media;
-if (isset($_GET['file'])) {
-  $result_payment = $db->get('payment_gateways', '*', ['file' => $_GET['file']]);
+if (isset($_GET['file']) && is_string($_GET['file']) && preg_match('/^[a-zA-Z0-9_-]+$/', $_GET['file'])) {
+  $gatewayFile = $_GET['file'];
+  $allowedPaymentFiles = [
+    'aqayepardakht',
+    'bitpay',
+    'cryptomus',
+    'heleket',
+    'nowpayments',
+    'zarinpal',
+    'zibal',
+  ];
+  if (!in_array($gatewayFile, $allowedPaymentFiles, true)) {
+    http_response_code(404);
+    exit;
+  }
+  $result_payment = $db->get('payment_gateways', '*', ['file' => $gatewayFile]);
   if ($result_payment) {
     $settings = [];
     get_settings($settings);
@@ -52,7 +200,7 @@ if (isset($_GET['file'])) {
 
     if ($section_status['main']['payment'] && $result_payment['status']) {
       if ($country == 'iran') {
-        if (isset($_GET['code'])) {
+        if (isset($_GET['code']) && ctype_digit((string) $_GET['code'])) {
           if (isset($_GET['action']) && $_GET['action']) {
             switch ($_GET['action']) {
               case 'get':
@@ -69,9 +217,11 @@ if (isset($_GET['file'])) {
                 $step = $payment['status'];
                 $date = $payment['date'];
                 $name = $bot->getChatMember($fid)['user']['first_name'];
-                $decode_data = json_decode($payment['data'], true);
+                $decode_data = json_decode($payment['data'] ?? '', true);
+                $decode_data = is_array($decode_data) ? $decode_data : [];
 
-                $gateway_data = json_decode($result_payment['data'], true);
+                $gateway_data = json_decode($result_payment['data'] ?? '', true);
+                $gateway_data = is_array($gateway_data) ? $gateway_data : [];
                 $percent_fee = isset($gateway_data['percent_fee']) ? floatval($gateway_data['percent_fee']) : 0;
                 $max_fee = isset($gateway_data['max_fee']) ? floatval($gateway_data['max_fee']) : 0;
                 $commission = calculateGatewayCommission($original_amount, $percent_fee, $max_fee);
@@ -87,7 +237,7 @@ if (isset($_GET['file'])) {
                     echo "<title>@$idbot</title><h1 style='text-align: center;margin-top:30px'>" . $media->text('time_payment_end', $result_payment['file']) . "</h1>";
                   }
                 } else {
-                  $db->update('transactions', ['status' => 0], ['id' => $code, 'type' => 'payment']);
+                  $db->update('transactions', ['status' => 0], ['id' => $code, 'type' => 'payment', 'status' => [2, 3]]);
                   echo "<title>@$idbot</title><h1 style='text-align: center;margin-top:30px'>" . $media->text('time_payment_end', $result_payment['file']) . "</h1>";
                 }
 
@@ -112,9 +262,11 @@ if (isset($_GET['file'])) {
                 $step = $payment['status'];
                 $date = $payment['date'];
                 $name = $bot->getChatMember($fid)['user']['first_name'];
-                $decode_data = json_decode($payment['data'], true);
+                $decode_data = json_decode($payment['data'] ?? '', true);
+                $decode_data = is_array($decode_data) ? $decode_data : [];
 
-                $gateway_data = json_decode($result_payment['data'], true);
+                $gateway_data = json_decode($result_payment['data'] ?? '', true);
+                $gateway_data = is_array($gateway_data) ? $gateway_data : [];
                 $percent_fee = isset($gateway_data['percent_fee']) ? floatval($gateway_data['percent_fee']) : 0;
                 $max_fee = isset($gateway_data['max_fee']) ? floatval($gateway_data['max_fee']) : 0;
                 $commission = calculateGatewayCommission($original_amount, $percent_fee, $max_fee);
@@ -190,7 +342,7 @@ if (isset($_GET['file'])) {
                         if ($result_ipn) {
                           echo "<title>@$idbot</title><h1 style='text-align: center;margin-top:30px'>" . $media->text('payment_pending', $result_payment['file']) . "</h1>";
                         } else {
-                          $db->update('transactions', ['status' => 0], ['id' => $code, 'type' => 'payment']);
+                          $db->update('transactions', ['status' => 0], ['id' => $code, 'type' => 'payment', 'status' => 3]);
 
                           $bot->sm($fid, $media->text('cancel_payment', $result_payment['file']));
                           $base_url = 'https://' . $domin . '/payment/show.php?NOK&idbot=' . $idbot . '&msg=' . $media->text('error', $paymentEn);
@@ -202,7 +354,7 @@ if (isset($_GET['file'])) {
                     echo "<title>@$idbot</title><h1 style='text-align: center;margin-top:30px'>" . $media->text('time_payment_end', $result_payment['file']) . "</h1>";
                   }
                 } else {
-                  $db->update('transactions', ['status' => 0], ['id' => $code, 'type' => 'payment']);
+                  $db->update('transactions', ['status' => 0], ['id' => $code, 'type' => 'payment', 'status' => 3]);
                   echo "<title>@$idbot</title><h1 style='text-align: center;margin-top:30px'>" . $media->text('time_payment_end', $result_payment['file']) . "</h1>";
                 }
 

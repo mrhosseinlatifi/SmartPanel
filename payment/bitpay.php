@@ -63,14 +63,16 @@ if ($type === 'get') {
             break;
     }
 } elseif ($type === 'back') {
-    if ($payment['tracking_code'] !== $_REQUEST['id_get']) {
+    $callbackId = $_REQUEST['id_get'] ?? '';
+    $callbackTransaction = $_REQUEST['trans_id'] ?? '';
+    if (!is_scalar($callbackId) || !is_scalar($callbackTransaction) || $payment['tracking_code'] !== (string) $callbackId) {
         redirect($base_url . '&msg=' . $media->text('error_tracking'));
     }
 
     $data_transaction = [
         "api"      => $result_payment['code'],
-        "id_get"   => $_REQUEST['id_get'],
-        "trans_id" => $_REQUEST['trans_id'],
+        "id_get"   => (string) $callbackId,
+        "trans_id" => (string) $callbackTransaction,
         "json"     => 1
     ];
 
@@ -84,20 +86,20 @@ if ($type === 'get') {
     $response = $result['response'];
 
     if (!isset($response->status) || $response->status != 1) {
-        $db->update('transactions', ['status' => 0], ['id' => $code, 'type' => 'payment']);
+        $db->update('transactions', ['status' => 0], ['id' => $code, 'type' => 'payment', 'status' => 3]);
         $bot->sm($fid, $media->text(['error_payment']));
         redirect($base_url);
     }
 
     if (isset($response->amount) && (float) $response->amount != ($amount * 10)) {
         sm_channel('channel_errors', ['error_getway_get', $paymentEn, 'amount mismatch: expected ' . ($amount * 10) . ' got ' . $response->amount]);
-        $db->update('transactions', ['status' => 0], ['id' => $code, 'type' => 'payment']);
+        $db->update('transactions', ['status' => 0], ['id' => $code, 'type' => 'payment', 'status' => 3]);
         redirect($base_url . '&msg=' . $media->text('error', $paymentEn));
         exit;
     }
 
-    $tracking_code = $_REQUEST['trans_id'];
-    $card = $response->cardNum;
+    $tracking_code = (string) $callbackTransaction;
+    $card = $response->cardNum ?? 0;
 
     if ($user['payment_card']) {
         if (
@@ -111,14 +113,7 @@ if ($type === 'get') {
         }
     }
 
-    $stmt = $db->update('transactions', [
-        'status' => 1,
-        'tracking_code' => $tracking_code,
-        'getway' => $paymentEn,
-        'type' => 'payment'
-    ], ['id' => $code, 'status' => 3]);
-
-    if ($stmt && $stmt->rowCount() > 0) {
+    if (markPaymentAsSuccessful($code, $tracking_code, $paymentEn)) {
         $result_ok = true;
     } else {
         redirect($base_url . '&msg=' . $media->text('duplicate_payment'));
@@ -140,5 +135,8 @@ function sendCurlRequest($url, $data)
     $err = curl_error($ch);
     curl_close($ch);
 
-    return ['response' => json_decode($result), 'error' => $err];
+    return [
+        'response' => is_string($result) ? json_decode($result) : null,
+        'error' => $err,
+    ];
 }

@@ -12,9 +12,9 @@ if ($type === 'get') {
     switch ($step) {
         case 2:
             $payment_key = $result_payment['code'];
-            $ex = explode('|', $payment_key);
-            $cryptomus_key  = $ex['0'];
-            $cryptomus_ipn  = $ex['1'];
+            $ex = explode('|', $payment_key, 2);
+            $cryptomus_key  = $ex[0] ?? '';
+            $cryptomus_ipn  = $ex[1] ?? '';
 
             $dollar_price = get_option('usd_rate', 1);
             $dollar_price = (is_numeric($dollar_price) && $dollar_price > 0) ? $dollar_price : 1;
@@ -53,8 +53,10 @@ if ($type === 'get') {
                 redirect($base_url);
             } else {
 
-                if ($result['response']['state'] == 0 and !empty($result['response']['result']['url'])) {
-                    $trackid = $result['response']['result']['uuid'];
+                $response = is_array($result['response'] ?? null) ? $result['response'] : [];
+                $responseResult = is_array($response['result'] ?? null) ? $response['result'] : [];
+                if (($response['state'] ?? null) == 0 && !empty($responseResult['url']) && !empty($responseResult['uuid'])) {
+                    $trackid = (string) $responseResult['uuid'];
                     $decode_data['ip'] = $ip;
                     $decode_data['payment'] = $paymentEn;
 
@@ -66,9 +68,9 @@ if ($type === 'get') {
                         'type' => 'payment'
                     ], ['id' => $code]);
 
-                    redirect_payment($result['response']['result']['url']);
+                    redirect_payment($responseResult['url']);
                 } else {
-                    $msg = $result['response']['errors']['message'];
+                    $msg = $response['errors']['message'] ?? 'Invalid gateway response';
                     sm_channel('channel_errors', ['error_getway_get', $paymentEn, $msg]);
                     $base_url .= '&msg=' . $media->text('error', $paymentEn);
 
@@ -88,9 +90,9 @@ if ($type === 'get') {
     }
 } elseif ($type === 'back') {
     $payment_key = $result_payment['code'];
-    $ex = explode('|', $payment_key);
-    $cryptomus_key  = $ex['0'];
-    $cryptomus_ipn  = $ex['1'];
+    $ex = explode('|', $payment_key, 2);
+    $cryptomus_key  = $ex[0] ?? '';
+    $cryptomus_ipn  = $ex[1] ?? '';
 
     if (!empty(file_get_contents('php://input'))) {
         $result_ipn = true;
@@ -100,7 +102,12 @@ if ($type === 'get') {
             case 3:
                 $update_in = file_get_contents('php://input');
                 $update_in_de = json_decode($update_in, true);
-                $sign = $update_in_de['sign'];
+                $sign = is_array($update_in_de) && is_string($update_in_de['sign'] ?? null)
+                    ? $update_in_de['sign']
+                    : '';
+                if (!is_array($update_in_de) || $sign === '') {
+                    break;
+                }
                 unset($update_in_de['sign']);
                 $hash = md5(base64_encode(json_encode($update_in_de, JSON_UNESCAPED_UNICODE)) . $cryptomus_ipn);
 
@@ -118,13 +125,7 @@ if ($type === 'get') {
                         case 'paid':
                         case 'paid_over':
                             $card = 0;
-                            $stmt = $db->update('transactions', [
-                                'status' => 1,
-                                'tracking_code' => $tracking_code,
-                                'getway' => $paymentEn,
-                                'type' => 'payment'
-                            ], ['id' => $code, 'status' => 3]);
-                            if ($stmt && $stmt->rowCount() > 0) {
+                            if ($tracking_code !== '' && markPaymentAsSuccessful($code, $tracking_code, $paymentEn)) {
                                 $result_ok = true;
                             }
                             break;
@@ -156,23 +157,19 @@ if ($type === 'get') {
                 
                 $result = sendCurlRequest(CRYPTOMUS_INFO_URL, $params,$cryptomus_key,$sign);
                 
-                if ($result['response']['state'] == 0) {
-                    if ($result['response']['result']['uuid'] == $payment['tracking_code']) {
+                $response = is_array($result['response'] ?? null) ? $result['response'] : [];
+                $responseResult = is_array($response['result'] ?? null) ? $response['result'] : [];
+                if (($response['state'] ?? null) == 0) {
+                    if (($responseResult['uuid'] ?? null) == $payment['tracking_code']) {
                         
-                        $status_get = $result['response']['result']['status'];
-                        $tracking_code = $result['response']['result']['uuid'];
+                        $status_get = $responseResult['status'] ?? '';
+                        $tracking_code = (string) ($responseResult['uuid'] ?? '');
 
                         switch ($status_get) {
                             case 'paid':
                             case 'paid_over':
                                 $card = 0;
-                                $stmt = $db->update('transactions', [
-                                    'status' => 1,
-                                    'tracking_code' => $tracking_code,
-                                    'getway' => $paymentEn,
-                                    'type' => 'payment'
-                                ], ['id' => $code, 'status' => 3]);
-                                if ($stmt && $stmt->rowCount() > 0) {
+                                if (markPaymentAsSuccessful($code, $tracking_code, $paymentEn)) {
                                     $result_ok = true;
                                 }
                                 break;

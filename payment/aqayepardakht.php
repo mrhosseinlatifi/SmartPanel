@@ -36,8 +36,9 @@ if ($type === 'get') {
                 sm_channel('channel_errors', ['curl_payment_error', $paymentEn, $result['error']]);
                 redirect($base_url);
             } else {
-                if ($result['response']['status'] == 'success') {
-                    $trackid = $result['response']['transid'];
+                $response = is_array($result['response'] ?? null) ? $result['response'] : [];
+                if (($response['status'] ?? null) === 'success' && !empty($response['transid'])) {
+                    $trackid = (string) $response['transid'];
                     $decode_data['ip'] = $ip;;
                     $decode_data['payment'] = $paymentEn;
                     $db->update('transactions', [
@@ -49,7 +50,7 @@ if ($type === 'get') {
                     ], ['id' => $code]);
                     redirect_payment(AQAYEPARDAKHT_PAYMENT_URL . $trackid);
                 } else {
-                    $msg = $result['response']['code'];
+                    $msg = $response['code'] ?? 'Invalid gateway response';
                     sm_channel('channel_errors', ['error_getway_get', $paymentEn, $msg]);
                     redirect($base_url);
                 }
@@ -83,18 +84,12 @@ if ($type === 'get') {
         sm_channel('channel_errors', ['curl_payment_error', $paymentEn, $result['error']]);
         redirect($base_url);
     } else {
-        if ($result['response']['status'] == 'success') {
-            $tracking_code = $payment['tracking_code'];
+        $response = is_array($result['response'] ?? null) ? $result['response'] : [];
+        if (($response['status'] ?? null) === 'success') {
+            $tracking_code = (string) $payment['tracking_code'];
             $card = $_POST['cardnumber'] ?? 0;
 
-            $stmt = $db->update('transactions', [
-                'status' => 1,
-                'tracking_code' => $tracking_code,
-                'getway' => $paymentEn,
-                'type' => 'payment'
-            ], ['id' => $code, 'status' => 3]);
-
-            if ($stmt && $stmt->rowCount() > 0) {
+            if (markPaymentAsSuccessful($code, $tracking_code, $paymentEn)) {
                 $result_ok = true;
             }
         }

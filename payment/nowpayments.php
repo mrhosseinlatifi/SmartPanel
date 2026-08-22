@@ -12,9 +12,9 @@ if ($type === 'get') {
         case 2:
             $url = $url_1;
             $payment_key = $result_payment['code'];
-            $ex = explode('|', $payment_key);
-            $key = $ex[0];
-            $ipn = $ex[1];
+            $ex = explode('|', $payment_key, 2);
+            $key = $ex[0] ?? '';
+            $ipn = $ex[1] ?? '';
 
             define('now_key', $key);
             define('now_ipn', $ipn);
@@ -42,11 +42,12 @@ if ($type === 'get') {
                 $base_url .= '&msg=' . $media->text('error', $paymentEn);
                 redirect($base_url);
             } else {
-                if (!empty($result['response']) && !empty($result['response']['invoice_url'])) {
-                    $trackid = $result['response']['id'];
+                $response = is_array($result['response'] ?? null) ? $result['response'] : [];
+                if (!empty($response['invoice_url']) && !empty($response['id'])) {
+                    $trackid = (string) $response['id'];
                     $decode_data['ip'] = $ip;
                     $decode_data['payment'] = $paymentEn;
-                    $decode_data['price_amount'] = $result['response']['price_amount'];
+                    $decode_data['price_amount'] = $response['price_amount'] ?? $amount;
 
                     $db->update('transactions', [
                         'status' => 3,
@@ -59,7 +60,7 @@ if ($type === 'get') {
 
                     redirect_payment($url_3 . $trackid);
                 } else {
-                    $msg = $result['response']['errors']['message'] ?? 'Unknown error';
+                    $msg = $response['errors']['message'] ?? 'Unknown error';
                     sm_channel('error_getway_get', [$paymentEn, $msg]);
                     $base_url .= '&msg=' . $media->text('error', $paymentEn);
                     redirect($base_url);
@@ -83,9 +84,9 @@ if ($type === 'get') {
     }
 } elseif ($type === 'back') {
     $payment_key = $result_payment['code'];
-    $ex = explode('|', $payment_key);
-    $key = $ex[0];
-    $ipn = $ex[1];
+    $ex = explode('|', $payment_key, 2);
+    $key = $ex[0] ?? '';
+    $ipn = $ex[1] ?? '';
 
     define('now_key', $key);
     define('now_ipn', $ipn);
@@ -101,28 +102,28 @@ if ($type === 'get') {
                 $request_data = json_decode($request_json, true);
                 $recived_hmac = $_SERVER['HTTP_X_NOWPAYMENTS_SIG'] ?? '';
 
-                if (!empty($request_json)) {
+                if (!empty($request_json) && is_array($request_data)) {
                     ksort($request_data, SORT_STRING);
                     $sorted_request_json = json_encode($request_data, JSON_UNESCAPED_SLASHES);
                     $hmac = hash_hmac("sha512", $sorted_request_json, now_ipn);
 
                     if (hash_equals($hmac, $recived_hmac) && $step == '3') {
-                        $url = $url_2 . $request_data['payment_id'];
+                        $paymentId = $request_data['payment_id'] ?? '';
+                        if (!is_scalar($paymentId) || $paymentId === '') {
+                            break;
+                        }
+                        $url = $url_2 . rawurlencode((string) $paymentId);
                         $result = sendCurlRequest($url);
 
-                        $status = $result['response']['payment_status'];
-                        $tracking_code = $result['response']['payment_id'];
+                        $response = is_array($result['response'] ?? null) ? $result['response'] : [];
+                        $status = $response['payment_status'] ?? '';
+                        $tracking_code = (string) ($response['payment_id'] ?? '');
 
-                        if ($status === 'finished' && ($result['response']['invoice_id'] ?? null) == $payment['tracking_code']) {
-                            $stmt = $db->update('transactions', [
-                                'status' => 1,
-                                'tracking_code' => $tracking_code,
-                                'getway' => $paymentEn,
-                                'type' => 'payment'
-                            ], ['id' => $code, 'status' => 3]);
-                            if ($stmt && $stmt->rowCount() > 0) {
+                        if ($status === 'finished'
+                            && ($response['invoice_id'] ?? null) == $payment['tracking_code']
+                            && markPaymentAsSuccessful($code, $tracking_code, $paymentEn)
+                        ) {
                                 $result_ok = true;
-                            }
                         }
                     } else {
                         $result_ipn = true;
@@ -134,25 +135,19 @@ if ($type === 'get') {
                 if ($step == '3') {
                     $np_id = $_GET['NP_id'] ?? 0;
                     if (!$np_id) { break; }
-                    $url = $url_2 . $np_id;
+                    $url = $url_2 . rawurlencode((string) $np_id);
                     $result = sendCurlRequest($url);
 
-                    $status = $result['response']['payment_status'];
-                    $tracking_code = $result['response']['payment_id'];
+                    $response = is_array($result['response'] ?? null) ? $result['response'] : [];
+                    $status = $response['payment_status'] ?? '';
+                    $tracking_code = (string) ($response['payment_id'] ?? '');
 
                     if (
                         $status === 'finished' &&
-                        ($result['response']['invoice_id'] ?? null) == $payment['tracking_code']
+                        ($response['invoice_id'] ?? null) == $payment['tracking_code'] &&
+                        markPaymentAsSuccessful($code, $tracking_code, $paymentEn)
                     ) {
-                        $stmt = $db->update('transactions', [
-                            'status' => 1,
-                            'tracking_code' => $tracking_code,
-                            'getway' => $paymentEn,
-                            'type' => 'payment'
-                        ], ['id' => $code, 'status' => 3]);
-                        if ($stmt && $stmt->rowCount() > 0) {
-                            $result_ok = true;
-                        }
+                        $result_ok = true;
                     } else {
                         $check_array = ['waiting', 'confirming', 'confirmed', 'sending'];
                         if (in_array($status, $check_array)) {
