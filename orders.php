@@ -66,10 +66,10 @@ if (!get_option('cron_order_lock', 1)) {
 
 						if (empty($fd) || !is_array($fd)) continue;
 						$user_id = $fd['user_id'];
-                        
-                        
+
+
 						if (isset($val['status'])) {
-						    $val['status'] = strtolower($val['status']);
+							$val['status'] = strtolower($val['status']);
 							switch ($val['status']) {
 								case 'pending':
 									break;
@@ -167,9 +167,9 @@ if (!get_option('cron_order_lock', 1)) {
 				$result_order = $api->status($api_info, $order['code_api']);
 				if ($result_order['result']) {
 					$user_id = $order['user_id'];
-					
-                    $result_order['data']['status'] = strtolower($result_order['data']['status']);
-                    
+
+					$result_order['data']['status'] = strtolower($result_order['data']['status']);
+
 					switch ($result_order['data']['status']) {
 						case 'pending':
 							break;
@@ -243,6 +243,48 @@ if (!get_option('cron_order_lock', 1)) {
 
 		$api_info = $db->get('apis', '*', ['name' => $order['api']]);
 		if (!$api_info) continue;
+
+		if ($api_info['status'] != 1) {
+			$user_id = $order['user_id'];
+
+			$usResult = $db->get('users_information', '*', ['user_id' => $user_id]);
+			$old_balance = $usResult['balance'];
+			$new_balance = $old_balance + $order['price'];
+
+			insertTransaction(
+				'orders_back',
+				$user_id,
+				$old_balance,
+				$new_balance,
+				$order['price'],
+				$order['id']
+			);
+
+			$decode_data = !empty($order['extra_data'])
+				? json_decode((string)$order['extra_data'], true)
+				: [];
+
+			$decode_data['error'] = 'Api status is off';
+
+			$db->update('orders', [
+				'status' => 'error',
+				'extra_data[JSON]' => $decode_data
+			], ['id' => $order['id']]);
+
+			$db->update('users_information', [
+				'balance[+]'      => $order['price'],
+				'amount_spent[-]' => $order['price']
+			], ['user_id' => $user_id]);
+
+			sm_user(['order_cancel', $order, $show_channel], null, $user_id);
+			sm_channel('channel_errors', [
+				'order_add_error',
+				$order,
+				'Api status is off'
+			]);
+
+			continue;
+		}
 
 		$link     = $order['link'];
 		$count    = $order['count'];
