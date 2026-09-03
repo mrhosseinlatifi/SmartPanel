@@ -813,6 +813,9 @@ $discount_tx
             case 'off_buy':
                 $t = "❌ بخش خرید موقتا غیرفعال میباشد.";
                 break;
+            case 'off_product':
+                $t = "❌ این محصول موقتا غیرفعال شده است.";
+                break;
             case 'shop1':
                 $t = "👈 دسته بندی مورد نظر خود را انتخاب کنید.";
                 break;

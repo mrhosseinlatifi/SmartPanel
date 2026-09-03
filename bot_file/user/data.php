@@ -95,7 +95,7 @@ function user_data()
 										$result = get_products(['inline', 'offset' => 0], $categoryResult['id']);
 										if ($result) {
 
-											$c = $db->count('products', ['status' => 1, 'category_id' => $categoryResult['id']]);
+											$c = get_products_count($categoryResult['id']);
 											edt_user(['price_info'], ['price_info_products', $result, $c, $categoryResult['id'], 0]);
 										} else {
 											alert_user(['not_found']);
@@ -165,6 +165,11 @@ function user_data()
 							$code = $ex['2'];
 							$result_product = $db->get('products', '*', ['status' => 1, 'id' => $code]);
 							if ($result_product) {
+								if ($result_product['api'] != 'noapi' && !$db->has('apis', ['name' => $result_product['api'], 'status' => 1])) {
+									alert_user(['off_product']);
+									break;
+								}
+
 								$price = product_base_price($result_product);
 
 								if ($result_product['discount']) {
@@ -197,7 +202,7 @@ function user_data()
 							if ($categoryResult) {
 								$result = get_products(['inline', 'offset' => 0], $categoryResult['id']);
 								if ($result) {
-									$c = $db->count('products', ['status' => 1, 'category_id' => $categoryResult['id']]);
+									$c = get_products_count($categoryResult['id']);
 									edt_user(['price_info'], ['price_info_products', $result, $c, $categoryResult['id'], 0]);
 								} else {
 									alert_user(['not_found']);
@@ -211,7 +216,7 @@ function user_data()
 							$now = $ex['3'];
 
 							$result = get_products(['inline', 'offset' => $now], $depth);
-							$c = $db->count('products', ['status' => 1, 'category_id' => $depth]);
+							$c = get_products_count($depth);
 							edt_user(['price_info'], ['price_info_products', $result, $c, $depth, $now]);
 							break;
 						case 'order':
@@ -221,6 +226,11 @@ function user_data()
 							$result_product = $db->get('products', '*', ['status' => 1, 'id' => $name_e]);
 
 							if ($result_product) {
+								if ($result_product['api'] != 'noapi' && !$db->has('apis', ['name' => $result_product['api'], 'status' => 1])) {
+									alert_user(['off_product']);
+									break;
+								}
+
 								$bot->delete_msg($fid, $message_id);
 								
 								$userdata = [];

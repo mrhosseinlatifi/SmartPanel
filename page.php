@@ -2,7 +2,7 @@
 // ---------- تنظیمات متغیرها ---------- //
 if (file_exists('config.php')) {
     require_once 'config.php';
-    require ROOTPATH . "/include/hkbot.php";
+    require_once ROOTPATH . "/include/hkbot.php";
     $bot = new hkbot(Token);
     $getBotInfo = $bot->bot('getMe');
     $idbot = $getBotInfo['result']['username'];

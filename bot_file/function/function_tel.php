@@ -923,22 +923,36 @@ function get_products($data = null, $level = null)
     $displaySettings = json_decode($settings['display_products'], true);
 
     $status = (!isset($data['status'])) ? 1 : [0, 1];
-
     $page = $displaySettings['page'];
     $order = $displaySettings['sort_by'];
     $sort = $displaySettings['sort'];
 
-    $result = $db->select(
-        'products',
-        '*',
-        [
-            'status' => $status,
-            'LIMIT' => [$data['offset'], $page],
-            'category_id' => $level,
-            'ORDER' => [$order => $sort]
-        ]
-    );
-    return $result;
+    $product_where = [
+        'status' => $status,
+        'LIMIT' => [$data['offset'], $page],
+        'category_id' => $level,
+        'ORDER' => [$order => $sort]
+    ];
+
+    if (!isset($data['status'])) {
+        $active_apis = $db->select('apis', 'name', ['status' => 1]);
+        $product_where['api'] = array_merge(['noapi'], $active_apis);
+    }
+
+    return $db->select('products', '*', $product_where);
+}
+
+function get_products_count($level = null)
+{
+    global $db;
+
+    $active_apis = $db->select('apis', 'name', ['status' => 1]);
+
+    return $db->count('products', [
+        'status' => 1,
+        'category_id' => $level,
+        'api' => array_merge(['noapi'], $active_apis)
+    ]);
 }
 
 function updateBlockBotStatus(string $oldStatus, string $newStatus, string $tc)

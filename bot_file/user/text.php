@@ -12,6 +12,11 @@ function user_text()
                     if ($tch['status'] == 'joined') {
                         $result_product = $db->get('products', '*', ['status' => 1, 'id' => (int)$productId]);
                         if ($result_product) {
+                            if ($result_product['api'] != 'noapi' && !$db->has('apis', ['name' => $result_product['api'], 'status' => 1])) {
+                                sm_user(['off_product'], ['home']);
+                                return;
+                            }
+
                             $userdata = [];
                             $userdata['now'] = 0;
                             $userdata['category'] = [];

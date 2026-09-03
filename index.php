@@ -18,10 +18,11 @@ if (($ip < $ipRange1Start || $ip > $ipRange1End) && ($ip < $ipRange2Start || $ip
     exit(include "page.php");
 }
 $data = file_get_contents('php://input');
+$file_path = "temp/up_" . rand(0, 1000) . "" . time();
 
 $secret_token = isset($_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN']) ? $_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] : null;
 if ($secret_token) {
-    $url = $url . '/bot_file/index.php?hash=' . $secret_token;
+    $url = $url . '/bot_file/index.php?hash=' . $secret_token . '&temp=' . $file_path;
     $ch = curl_init($url);
     curl_setopt_array($ch, [
         CURLOPT_POSTFIELDS          => $data,
@@ -41,7 +42,6 @@ if ($secret_token) {
         $log = date('Y-m-d H:i:s') . " CURL ERROR: $error";
         error_log($log);
     }
-    
 } else {
     exit(include "page.php");
 }

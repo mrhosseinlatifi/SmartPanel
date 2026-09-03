@@ -727,7 +727,7 @@ function user_step()
                                 $result = get_products(['offset' => 0], $result_categorys['id']);
                                 if ($result) {
 
-                                    $c = $db->count('products', ['status' => 1, 'category_id' => $result_categorys['id']]);
+                                    $c = get_products_count($result_categorys['id']);
 
                                     $userdata['now'] += 1;
                                     $userdata['category'][] = ["offset" => 0, "id" => $result_categorys['id'], 'name' => $result_categorys['name']];
@@ -793,7 +793,7 @@ function user_step()
                         $result = get_products(['offset' => $str], $last_category['id']);
                         if ($result) {
 
-                            $c = $db->count('products', ['status' => 1, 'category_id' => $last_category['id']]);
+                            $c = get_products_count($last_category['id']);
 
                             $userdata['category'][count($userdata['category']) - 1] = $last_category;
 
@@ -812,6 +812,12 @@ function user_step()
 
 
                         if ($result_product) {
+                            if ($result_product['api'] != 'noapi' && !$db->has('apis', ['name' => $result_product['api'], 'status' => 1])) {
+                                user_set_step();
+                                sm_user(['off_product'], ['home']);
+                                break;
+                            }
+
                             $price = product_base_price($result_product);
 
                             if ($result_product['discount']) {
@@ -862,7 +868,7 @@ function user_step()
                         $result = get_products(['offset' => $last_category['offset']], $last_category['id']);
                         if ($result) {
 
-                            $c = $db->count('products', ['status' => 1, 'category_id' => $last_category['id']]);
+                            $c = get_products_count($last_category['id']);
 
                             user_set_data(['step' => 'buy2', 'data[JSON]' => $userdata]);
 
@@ -887,7 +893,10 @@ function user_step()
                 } else {
                     $result_product = $db->get('products', '*', ['id' => $userdata['product']['product']]);
 
-                    if ($result_product && $result_product['type'] == 'custom_comments') {
+                    if (!$result_product || ($result_product['api'] != 'noapi' && !$db->has('apis', ['name' => $result_product['api'], 'status' => 1]))) {
+                        user_set_step();
+                        sm_user(['off_product'], ['home']);
+                    } elseif ($result_product['type'] == 'custom_comments') {
                         $comments = array_filter(array_map('trim', explode("\n", $text)));
 
                         if (empty($comments)) {
@@ -974,6 +983,12 @@ function user_step()
 
 
                     if ($result_product) {
+                        if ($result_product['api'] != 'noapi' && !$db->has('apis', ['name' => $result_product['api'], 'status' => 1])) {
+                            user_set_step();
+                            sm_user(['off_product'], ['home']);
+                            break;
+                        }
+
                         $price = product_base_price($result_product);
 
                         if ($result_product['discount']) {
@@ -1004,7 +1019,7 @@ function user_step()
                                 $last_category = end($userdata['category']);
                                 $result = get_products(['offset' => $last_category['offset']], $last_category['id']);
                                 if ($result) {
-                                    $c = $db->count('products', ['status' => 1, 'category_id' => $last_category['id']]);
+                                    $c = get_products_count($last_category['id']);
                                     user_set_data(['step' => 'buy2', 'data[JSON]' => $userdata]);
                                     sm_user(['shop3', $last_category['name']], ['shop_keyboard', $result, $c, 'product', -1]);
                                 } else {
@@ -1020,6 +1035,12 @@ function user_step()
                     }
                 } else {
                     $result_product = $db->get('products', '*', ['id' => $userdata['product']['product']]);
+                    if (!$result_product || ($result_product['api'] != 'noapi' && !$db->has('apis', ['name' => $result_product['api'], 'status' => 1]))) {
+                        user_set_step();
+                        sm_user(['off_product'], ['home']);
+                        break;
+                    }
+
                     $pattern = $db->get('pattern', 'pattern', ['type' => $userdata['product']['pattern']]);
                     if (preg_match($pattern, $text, $matches)) {
                         user_set_data(['step' => 'sefaresh', 'link' => $matches[0]]);
@@ -1042,15 +1063,21 @@ function user_step()
                     sm_user(['cancel_order'], ['home']);
                 } elseif ($text == $key['ok_order']) {
                     if ($section_status['main']['buy']) {
+                        $product_id = $userdata['product']['product'];
+                        $result_product = $db->get('products', '*', ['id' => $product_id, 'status' => 1]);
+
+                        if (!$result_product || ($result_product['api'] != 'noapi' && !$db->has('apis', ['name' => $result_product['api'], 'status' => 1]))) {
+                            user_set_step();
+                            sm_user(['off_product'], ['home']);
+                            break;
+                        }
+
                         $deduct = $db->update('users_information', ['balance[-]' => $userdata['price']], [
                             'user_id' => $fid,
                             'balance[>=]' => $userdata['price'],
                         ]);
 
                         if ($deduct && $deduct->rowCount() > 0) {
-                                $product_id = $userdata['product']['product'];
-                                $result_product = $db->get('products', '*', ['id' => $product_id, 'status' => 1]);
-
                                 if ($result_product) {
                                     if ($result_product['api'] == 'noapi') {
                                         $extra_data = [
