@@ -177,13 +177,13 @@ trait admin_user_text
                 $t = "🗣 شما یک پیام از پشتیبانی دارید 📩\n$text";
                 break;
             case 'up_coin':
-                $amount = $data[0];
-                $balance = $data[1];
+                $amount = nformat((float) $data[0]);
+                $balance = nformat((float) $data[1]);
                 $t = "❤️ کاربر عزیز\n💸 {$amount} تومان از طرف مدیریت به حساب شما واریز شد.\n💎 موجودی جدید شما : {$balance}";
                 break;
             case 'down_coin':
-                $amount = $data[0];
-                $balance = $data[1];
+                $amount = nformat((float) $data[0]);
+                $balance = nformat((float) $data[1]);
                 $t = "❤️ کاربر عزیز\n💸 {$amount} تومان از طرف مدیریت از حساب شما کسر شد.\n💎 موجودی جدید شما : {$balance}";
                 break;
             case 'block':
@@ -412,8 +412,8 @@ $tt
 توضیحات کاربر : $caption";
                 break;
             case 'receipt_up':
-                $amount = $data[0];
-                $balance = $data[1];
+                $amount = nformat((float) $data[0]);
+                $balance = nformat((float) $data[1]);
                 $date = jdate('Y/m/d - H:i:s');
                 $t = "❤️ کاربر گرامی
 

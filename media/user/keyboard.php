@@ -344,7 +344,7 @@ trait user_keyboard
                 break;
             case 'payment_gateways':
                 $result = $data['0'];
-                $amount = number_format($data['1']);
+                $amount = nformat((float) $data['1']);
                 $domin = $data['2'];
                 $code = $data['3'];
                 $t[] = [['text' => $this->text('link_payment'), 'callback_data' => 'fyk']];
@@ -383,7 +383,7 @@ trait user_keyboard
             case 'send_receipt':
                 $t = [
                     'inline_keyboard' => [
-                        [['text' => number_format($data) . ' تومان', 'callback_data' => 'fyk']],
+                        [['text' => nformat((float) $data) . ' تومان', 'callback_data' => 'fyk']],
                         [['text' => $key['send_receipt'], 'callback_data' => 'send_receipt_' . $data]],
                     ]
                 ];

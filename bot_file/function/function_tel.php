@@ -1311,16 +1311,18 @@ function convertnumber($input)
 
 function nformat(float $number, $number_float = null, $decimal = '.')
 {
-    $broken_number = explode($decimal, (string)$number);
     $number_float = (isset($number_float)) ? $number_float : get_option('number_float', 0);
-    if (!empty($broken_number[1])) {
-        $dec = substr($broken_number[1], 0, $number_float);
-        $result = rtrim(number_format((float)($broken_number[0] . $decimal . $dec), $number_float, $decimal, ''), '0');
+    $number_float = max(0, (int) $number_float);
+    $result = number_format($number, max($number_float, 10), $decimal, '');
 
-        return rtrim($result, $decimal);
-    } else {
-        return $broken_number[0];
+    if (strpos($result, $decimal) !== false) {
+        [$integer, $fraction] = explode($decimal, $result, 2);
+        $fraction = substr($fraction, 0, $number_float);
+        $fraction = rtrim($fraction, '0');
+        $result = $integer . ($fraction !== '' ? $decimal . $fraction : '');
     }
+
+    return $result;
 }
 
 function row_chunk($array = [], $sizes = [])

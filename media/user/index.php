@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 trait user_text
 {
     public function text($tx, $data = null)
@@ -100,7 +100,7 @@ trait user_text
                 $user_name = $data[3];
                 $user = $data[4];
                 $fid = $user['user_id'];
-                $balance = nformat((float) $user['balance'], 10);
+                $balance = nformat((float) $user['balance']);
                 $number_order = $user['number_order'];
                 $amount_paid = $user['amount_paid'];
                 $amount_spent = $user['amount_spent'];
@@ -231,7 +231,7 @@ $discount_tx
                 $code_api = $order['code_api'];
                 $link = $order['link'];
                 $count = $order['count'];
-                $price = nformat((float) $order['price'], 10);
+                $price = nformat((float) $order['price']);
                 $date = jdate('Y/m/d - H:i', $order['date']);
                 $order_decode = json_decode($order['product'], true);
                 $sefaresh = implode("\n", $order_decode['category']) . "\n" . $order_decode['product'];
@@ -247,7 +247,7 @@ $discount_tx
                 break;
             case 'last_payment_row':
                 $payment = $data;
-                $amount = number_format($payment['amount']);
+                $amount = nformat((float) $payment['amount']);
                 $date = jdate('Y/m/d - H:i', $payment['date']);
                 $code = $payment['id'];
                 switch ($payment['status']) {
@@ -310,7 +310,7 @@ $discount_tx
                 $code_api = $order['code_api'];
                 $link = $order['link'];
                 $count = $order['count'];
-                $price = nformat((float) $order['price'], 10);
+                $price = nformat((float) $order['price']);
                 $date = jdate('Y/m/d - H:i', $order['date']);
                 $order_decode = json_decode($order['product'], true);
                 $sefaresh = implode("\n", $order_decode['category']) . "\n" . $order_decode['product'];
@@ -351,8 +351,8 @@ $discount_tx
                 $t = "❌ بخش پرداخت موقتا غیرفعال میباشد.";
                 break;
             case 'payment_amount':
-                $min_deposit = number_format($data[0]);
-                $max_deposit = number_format($data[1]);
+                $min_deposit = nformat((float) $data[0]);
+                $max_deposit = nformat((float) $data[1]);
                 $t = "💸 مبلغ مورد نظر خود را بین $min_deposit تومان تا $max_deposit تومان وارد کنید.";
                 break;
             case 'link_payment':
@@ -366,7 +366,7 @@ $discount_tx
             case 'payment_text':
                 $user = $data[0];
                 $fid = $user['user_id'];
-                $balance = nformat((float) $user['balance'], 10);
+                $balance = nformat((float) $user['balance']);
                 $code = $data[1];
                 $amount = $data[2];
                 if (isset($data[3])) {
@@ -762,25 +762,25 @@ $discount_tx
                 $t = "✅ مبلغ {$amount} تومان به کیف پول شما انتقال داده شد.";
                 break;
             case 'amount_gift_balance_wrong':
-                $min = number_format($data[0]);
-                $gift_balance = number_format($data[1]);
+                $min = nformat((float) $data[0]);
+                $gift_balance = nformat((float) $data[1]);
                 $t = "❌ لطفا عددی از بازه $min تومان الی {$gift_balance} تومان وارد کنید.";
                 break;
             case 'gift_balance_int':
                 $t = "❌ لطفا مقدار مورد نظر خود را فقط به عدد وارد کنید.";
                 break;
             case 'amount_withdraw_balance':
-                $min = number_format($data[0]);
-                $gift_balance = number_format($data[1]);
+                $min = nformat((float) $data[0]);
+                $gift_balance = nformat((float) $data[1]);
                 $t = "❌ لطفا عددی از بازه $min تومان الی {$gift_balance} تومان وارد کنید.";
                 break;
             case 'min_withdraw_balance':
-                $min = number_format($data);
+                $min = nformat((float) $data);
                 $t = "❌ کمترین حد برداشت $min تومان است !";
                 break;
             case 'amount_withdraw_balance_wrong':
-                $min = number_format($data[0]);
-                $gift_balance = number_format($data[1]);
+                $min = nformat((float) $data[0]);
+                $gift_balance = nformat((float) $data[1]);
                 $t = "❌ لطفا عددی از بازه $min تومان الی {$gift_balance} تومان وارد کنید.";
                 break;
             case 'info_withdraw_balance':
@@ -835,8 +835,8 @@ $discount_tx
                 $product = $data[0];
                 $product_name = json_decode($product['name']);
                 $ca = getCategoryHierarchy($product['category_id']);
-                $price = nformat((float) $data[1], 10);
-                $price_once = nformat((float) $data[2], 10);
+                $price = nformat((float) $data[1]);
+                $price_once = nformat((float) $data[2]);
                 $how_much = number_format($data[3]);
                 $min = number_format($product['min']);
                 $max = number_format($product['max']);
@@ -865,8 +865,8 @@ $discount_tx
                 $product = $data[0];
                 $product_name = json_decode($product['name']);
                 $ca = getCategoryHierarchy($product['category_id']);
-                $price = nformat((float) $data[1], 10);
-                $price_once = nformat((float) $data[2], 10);
+                $price = nformat((float) $data[1]);
+                $price_once = nformat((float) $data[2]);
                 $min = $data[3];
                 $max = $data[4];
                 $info = $product['info'];
@@ -892,8 +892,8 @@ $discount_tx
                 $product = $data[0];
                 $product_name = json_decode($product['name']);
                 $ca = getCategoryHierarchy($product['category_id']);
-                $price = nformat((float) $data[1], 10);
-                $price_once = nformat((float) $data[2], 10);
+                $price = nformat((float) $data[1]);
+                $price_once = nformat((float) $data[2]);
                 $link_text = $data[3];
                 $info = $product['info'];
                 if ($info != null) {
@@ -913,8 +913,8 @@ $discount_tx
                 break;
             case 'shop4_comments_simple':
                 $comment_count = $data[0];
-                $price_once = nformat((float) $data[1], 10);
-                $total_price = nformat((float) $data[2], 10);
+                $price_once = nformat((float) $data[1]);
+                $total_price = nformat((float) $data[2]);
                 $link_text = $data[3];
 
                 $t = "💬 تعداد کامنت‌ها : {$comment_count} عدد
@@ -928,8 +928,8 @@ $discount_tx
                 $product = $data[0];
                 $product_name = json_decode($product['name']);
                 $ca = getCategoryHierarchy($product['category_id']);
-                $total_price = nformat((float) $data[1], 10);
-                $price_once = nformat((float) $data[2], 10);
+                $total_price = nformat((float) $data[1]);
+                $price_once = nformat((float) $data[2]);
                 $comment_count = $data[3];
                 $link_text = $data[4];
                 $info = $product['info'];
@@ -954,8 +954,8 @@ $discount_tx
                 $product = $data[0];
                 $product_name = json_decode($product['name']);
                 $category_names = getCategoryHierarchy($product['category_id']);
-                $price = nformat((float) $data[1], 10);
-                $price_once = nformat((float) $data[2], 10);
+                $price = nformat((float) $data[1]);
+                $price_once = nformat((float) $data[2]);
                 $how_much = number_format($data[3]);
                 $min = $product['min'];
                 $max = number_format($product['max']);
@@ -972,7 +972,7 @@ $discount_tx
                 break;
             case 'low_balance':
                 $balance_required = $data[0];
-                $balance = $data[1]['balance'];
+                $balance = nformat((float) $data[1]['balance']);
                 $t = "❌ موجودی حساب شما جهت ثبت سفارش کافی نمیباشد، لطفا ابتدا اقدام به افزایش موجودی کنید
 
 • هزینه لازم برای ثبت این سفارش : $balance_required";
@@ -987,7 +987,7 @@ $discount_tx
                 $product_name = json_decode($product['name']);
                 $count = $data[1];
                 $link = $data[2];
-                $price = nformat((float) $data[3], 10);
+                $price = nformat((float) $data[3]);
                 $comments = isset($data[4]) ? $data[4] : null;
                 
                 $comments_text = "";
@@ -1023,7 +1023,7 @@ $discount_tx
                 $count = $data[7];
                 $link = $data[8];
                 $code = $data[9];
-                $price = nformat((float) $data[10], 10);
+                $price = nformat((float) $data[10]);
                 $old_balance = $data[11];
                 $new_balance = $data[12];
                 $date = jdate('Y/m/d - H:i:s');
@@ -1059,7 +1059,7 @@ $tt
             case 'order_receipt_ok':
                 $link = $data[0];
                 $count = $data[1];
-                $price = nformat((float) $data[2], 10);
+                $price = nformat((float) $data[2]);
                 $code = $data[3];
                 $product_name = $data[4];
                 $date = jdate('Y/m/d - H:i:s');
@@ -1173,7 +1173,7 @@ $tt
                 $t = "\n✅ با کلیک بر روی هر محصول میتوانید مشخصات آن محصول را مشاهده کنید.\n• برای سفارش سریع هر محصول میتوانید عدد آن را ارسال کنید.";
                 break;
             case 'inline_order_info':
-                $price = nformat((float) $data[0], 10);
+                $price = nformat((float) $data[0]);
                 $min = $data[1];
                 $max = $data[2];
                 $id = $data[3];
@@ -1183,7 +1183,7 @@ $tt
                 break;
             case 'move_balance':
                 $min = $data['0'];
-                $balance = $data['1'];
+                $balance = nformat((float) $data['1']);
                 $t = "💰 در این بخش میتوانید موجودی داخل ربات را برای بقیه کاربران منتقل کنید.\n⚠️ توجه : حتما هردو کاربر باید عضو ربات باشند.\n لطفا ایدی عددی کاربر مقصد را وارد کنید :
 
 💰 حداقل مبلغ برای انتقال : {$min} تومان
@@ -1197,7 +1197,7 @@ $tt
                 $t = "❌ این بخش غیرفعال میباشد.";
                 break;
             case 'min_charge_code':
-                $min = number_format($data);
+                $min = nformat((float) $data);
                 $t = "❌ حداقل موجودی برای استفاده از کد شارژ باید {$min} تومان باشد.";
                 break;
             case 'off_charge_code':
@@ -1235,7 +1235,7 @@ $tt
                 break;
             case 'move_balance_2':
                 $name = type_text($data['0'], 'm', $data['1']);
-                $amount = $data['2'];
+                $amount = nformat((float) $data['2']);
                 $t = "⁉️ آیا انتقال $amount تومان به کاربر $name را تایید میکنید؟";
                 break;
             case 'move_balance_int_2':
@@ -1268,20 +1268,20 @@ $tt
                 $t = "❌ شما قبلا از این کد استفاده کرده اید.";
                 break;
             case 'payment_offline':
-                $min = number_format($data[0]);
-                $max =  number_format($data[1]);
+                $min = nformat((float) $data[0]);
+                $max = nformat((float) $data[1]);
                 $t = "👈 لطفا مبلغ مورد نظر خود را از $min تومان الی $max تومان وارد کنید :";
                 break;
             case 'payment_offline_int':
                 $t = "❌ لطفا فقط عدد وارد کنید.";
                 break;
             case 'amount_deposit_wrong':
-                $min = number_format($data[0]);
-                $max = number_format($data[1]);
+                $min = nformat((float) $data[0]);
+                $max = nformat((float) $data[1]);
                 $t = "❌ لطفا عددی از بازه $min تومان الی {$max} تومان وارد کنید.";
                 break;
             case 'send_receipt_photo':
-                $amount = number_format($data);
+                $amount = nformat((float) $data);
                 $t = "💰 مبلغ درخواستی شما $amount تومان میباشد.
 📸 لطفا عکس فیش واریزی خود را ارسال کنید :";
                 break;
@@ -1291,8 +1291,8 @@ $tt
 کد پیگیری : $data";
                 break;
             case 'crypto_payment_amount':
-                $min = number_format($data[0]);
-                $max = number_format($data[1]);
+                $min = nformat((float) $data[0]);
+                $max = nformat((float) $data[1]);
                 $t = "👈 لطفا مبلغ مورد نظر خود را از $min تومان الی $max تومان وارد کنید :";
                 break;
             case 'off_crypto_payment':
@@ -1301,13 +1301,13 @@ $tt
             case 'starz_payment_amount':
                 $min = $data[0];
                 $max = $data[1];
-                $price = number_format($data[2]);
+                $price = nformat((float) $data[2]);
                 $t = "⭐️ لطفا تعداد استارز مورد نظر خود را وارد کنید:
 
 📊 محدوده مجاز: $min تا $max استارز
 💰 نرخ تبدیل: هر استارز = $price تومان
 
-💡 مثال: اگر $min استارز وارد کنید، " . number_format($min * $data[2]) . " تومان به حساب شما اضافه می‌شود.";
+💡 مثال: اگر $min استارز وارد کنید، " . nformat((float) ($min * $data[2])) . " تومان به حساب شما اضافه می‌شود.";
                 break;
             case 'starz_payment_help':
                 $t = "پس از پرداخت ، حساب شما بصورت خودکار شارژ خواهد شد";
@@ -1325,8 +1325,8 @@ $tt
                 $user = $data[2];
                 $old_balance = $user['balance'];
                 $new_balance = $old_balance + $irt_amount;
-                $new_balance = number_format($new_balance);
-                $old_balance = number_format($old_balance);
+                $new_balance = nformat((float) $new_balance);
+                $old_balance = nformat((float) $old_balance);
                 $date = jdate('Y/m/d - H:i:s');
                 $t = "✅ پرداخت شما با موفقیت انجام شد !
 💠 مقدار استارز پرداختی : $starz_amount
