@@ -137,28 +137,37 @@ class api
 
 		$response = curl_exec($ch);
 		$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		$curl_error = curl_error($ch);
+		$curl_errno = curl_errno($ch);
+		curl_close($ch);
 
 		if (file_exists($cookie_file)) {
 			chmod($cookie_file, 0600);
 		}
 
-		if (curl_errno($ch) || !$response) {
-			error_log('error curl : code ' . curl_errno($ch) . ' txt : ' . curl_error($ch) . ' - url : ' . $url);
-			return ['result' => false, 'data' => ['error' => curl_error($ch) ?: 'Empty response']];
-		}
-
-		if ($http_code < 200 || $http_code >= 300) {
-			error_log('error curl : unexpected HTTP status ' . $http_code . ' - url : ' . $url);
-			return ['result' => false, 'data' => ['error' => 'HTTP ' . $http_code]];
+		if ($curl_errno || !$response) {
+			error_log('error curl : code ' . $curl_errno . ' txt : ' . $curl_error . ' - url : ' . $url);
+			return ['result' => false, 'data' => ['error' => $curl_error ?: 'Empty response']];
 		}
 
 		$decoded = json_decode($response, true);
 
-		if (is_null($decoded)) {
-			error_log('error decoding JSON response: ' . substr($response, 0, 500) . ' - url: ' . $url);
-			return ['result' => false, 'data' => ['error' => 'Invalid JSON or null response']];
+		if (json_last_error() !== JSON_ERROR_NONE) {
+			error_log('error decoding JSON response: ' . json_last_error_msg() . ' (' . substr($response, 0, 500) . ') - url: ' . $url);
+			$error = ($http_code < 200 || $http_code >= 300)
+				? 'HTTP ' . $http_code . ': ' . trim(substr($response, 0, 500))
+				: 'Invalid JSON or null response';
+			return ['result' => false, 'data' => ['error' => $error]];
 		}
 
+		if ($http_code < 200 || $http_code >= 300) {
+			$error = is_array($decoded) ? ($decoded['error'] ?? ('HTTP ' . $http_code)) : ('HTTP ' . $http_code);
+			if (is_array($error)) {
+				$error = json_encode($error, JSON_UNESCAPED_UNICODE);
+			}
+			error_log('error curl : HTTP ' . $http_code . ' - ' . $error . ' - url : ' . $url);
+			return ['result' => false, 'data' => ['error' => $error, 'response' => $decoded]];
+		}
 
 		$success = !isset($decoded['error']);
 

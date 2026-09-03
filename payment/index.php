@@ -49,8 +49,9 @@ function markPaymentAsSuccessful($transactionId, $trackingCode, $paymentGateway)
     }
 
     // Unique MySQL advisory lock for this payment
+    // MySQL GET_LOCK() limits names to 64 characters, so use md5 (32 hex chars)
     $lockName = 'payment_tracking_' . hash(
-        'sha256',
+        'md5',
         $paymentGateway . ':' . $trackingCode
     );
 

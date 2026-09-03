@@ -100,7 +100,7 @@ trait user_text
                 $user_name = $data[3];
                 $user = $data[4];
                 $fid = $user['user_id'];
-                $balance = $user['balance'];
+                $balance = nformat((float) $user['balance'], 10);
                 $number_order = $user['number_order'];
                 $amount_paid = $user['amount_paid'];
                 $amount_spent = $user['amount_spent'];
@@ -231,7 +231,7 @@ $discount_tx
                 $code_api = $order['code_api'];
                 $link = $order['link'];
                 $count = $order['count'];
-                $price = $order['price'];
+                $price = nformat((float) $order['price'], 10);
                 $date = jdate('Y/m/d - H:i', $order['date']);
                 $order_decode = json_decode($order['product'], true);
                 $sefaresh = implode("\n", $order_decode['category']) . "\n" . $order_decode['product'];
@@ -310,7 +310,7 @@ $discount_tx
                 $code_api = $order['code_api'];
                 $link = $order['link'];
                 $count = $order['count'];
-                $price = $order['price'];
+                $price = nformat((float) $order['price'], 10);
                 $date = jdate('Y/m/d - H:i', $order['date']);
                 $order_decode = json_decode($order['product'], true);
                 $sefaresh = implode("\n", $order_decode['category']) . "\n" . $order_decode['product'];
@@ -366,7 +366,7 @@ $discount_tx
             case 'payment_text':
                 $user = $data[0];
                 $fid = $user['user_id'];
-                $balance = $user['balance'];
+                $balance = nformat((float) $user['balance'], 10);
                 $code = $data[1];
                 $amount = $data[2];
                 if (isset($data[3])) {
@@ -835,8 +835,8 @@ $discount_tx
                 $product = $data[0];
                 $product_name = json_decode($product['name']);
                 $ca = getCategoryHierarchy($product['category_id']);
-                $price = number_format($data[1]);
-                $price_once = number_format($data[2]);
+                $price = nformat((float) $data[1], 10);
+                $price_once = nformat((float) $data[2], 10);
                 $how_much = number_format($data[3]);
                 $min = number_format($product['min']);
                 $max = number_format($product['max']);
@@ -865,8 +865,8 @@ $discount_tx
                 $product = $data[0];
                 $product_name = json_decode($product['name']);
                 $ca = getCategoryHierarchy($product['category_id']);
-                $price = number_format($data[1]);
-                $price_once = number_format($data[2]);
+                $price = nformat((float) $data[1], 10);
+                $price_once = nformat((float) $data[2], 10);
                 $min = $data[3];
                 $max = $data[4];
                 $info = $product['info'];
@@ -892,8 +892,8 @@ $discount_tx
                 $product = $data[0];
                 $product_name = json_decode($product['name']);
                 $ca = getCategoryHierarchy($product['category_id']);
-                $price = number_format($data[1]);
-                $price_once = number_format($data[2]);
+                $price = nformat((float) $data[1], 10);
+                $price_once = nformat((float) $data[2], 10);
                 $link_text = $data[3];
                 $info = $product['info'];
                 if ($info != null) {
@@ -913,8 +913,8 @@ $discount_tx
                 break;
             case 'shop4_comments_simple':
                 $comment_count = $data[0];
-                $price_once = number_format($data[1]);
-                $total_price = number_format($data[2]);
+                $price_once = nformat((float) $data[1], 10);
+                $total_price = nformat((float) $data[2], 10);
                 $link_text = $data[3];
 
                 $t = "💬 تعداد کامنت‌ها : {$comment_count} عدد
@@ -928,8 +928,8 @@ $discount_tx
                 $product = $data[0];
                 $product_name = json_decode($product['name']);
                 $ca = getCategoryHierarchy($product['category_id']);
-                $total_price = number_format($data[1]);
-                $price_once = number_format($data[2]);
+                $total_price = nformat((float) $data[1], 10);
+                $price_once = nformat((float) $data[2], 10);
                 $comment_count = $data[3];
                 $link_text = $data[4];
                 $info = $product['info'];
@@ -954,8 +954,8 @@ $discount_tx
                 $product = $data[0];
                 $product_name = json_decode($product['name']);
                 $category_names = getCategoryHierarchy($product['category_id']);
-                $price = number_format($data[1]);
-                $price_once = number_format($data[2]);
+                $price = nformat((float) $data[1], 10);
+                $price_once = nformat((float) $data[2], 10);
                 $how_much = number_format($data[3]);
                 $min = $product['min'];
                 $max = number_format($product['max']);
@@ -987,7 +987,7 @@ $discount_tx
                 $product_name = json_decode($product['name']);
                 $count = $data[1];
                 $link = $data[2];
-                $price = $data[3];
+                $price = nformat((float) $data[3], 10);
                 $comments = isset($data[4]) ? $data[4] : null;
                 
                 $comments_text = "";
@@ -1023,7 +1023,7 @@ $discount_tx
                 $count = $data[7];
                 $link = $data[8];
                 $code = $data[9];
-                $price = $data[10];
+                $price = nformat((float) $data[10], 10);
                 $old_balance = $data[11];
                 $new_balance = $data[12];
                 $date = jdate('Y/m/d - H:i:s');
@@ -1059,7 +1059,7 @@ $tt
             case 'order_receipt_ok':
                 $link = $data[0];
                 $count = $data[1];
-                $price = $data[2];
+                $price = nformat((float) $data[2], 10);
                 $code = $data[3];
                 $product_name = $data[4];
                 $date = jdate('Y/m/d - H:i:s');
@@ -1173,7 +1173,7 @@ $tt
                 $t = "\n✅ با کلیک بر روی هر محصول میتوانید مشخصات آن محصول را مشاهده کنید.\n• برای سفارش سریع هر محصول میتوانید عدد آن را ارسال کنید.";
                 break;
             case 'inline_order_info':
-                $price = $data[0];
+                $price = nformat((float) $data[0], 10);
                 $min = $data[1];
                 $max = $data[2];
                 $id = $data[3];

@@ -464,7 +464,7 @@ function table($db)
             'TEXT',
         ],
         'balance' => [
-            'float',
+            'decimal(30,10)',
             'NOT NULL',
             'DEFAULT 0',
         ],
