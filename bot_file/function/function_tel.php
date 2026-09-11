@@ -1007,7 +1007,7 @@ function getCategoryHierarchy(string $categoryId, bool $array = false)
 
         $currentCategory = $db->get('categories', '*', ['id' => $currentCategoryId]);
 
-        $categoryNames[] = '- ' . json_decode($currentCategory['name']);
+        $categoryNames[] = json_decode($currentCategory['name']);
 
         if ($currentCategory['category_id'] === null) {
             break;
