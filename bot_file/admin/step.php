@@ -3482,6 +3482,10 @@ function admin_steps()
                     }
 
                     $new = $user1['balance'] + $amount;
+
+                    $decode['old'] = $user1['balance'];
+                    $decode['new'] = $new;
+                    
                     $db->update('transactions', ['amount' => $amount, 'data[JSON]' => $decode], ['id' => $invoice['id']]);
 
                     sm_to_user(['receipt_up', $amount, $new], null, $userId);

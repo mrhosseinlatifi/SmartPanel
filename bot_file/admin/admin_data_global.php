@@ -404,6 +404,8 @@ function admin_data_global()
                         }
 
                         $new = $user1['balance'] + $amount;
+                        $decode['old'] = $user1['balance'];
+                        $decode['new'] = $new;
                         $db->update('transactions', ['status' => 1, 's_date' => time(), 'data[JSON]' => $decode], ['id' => $invoice['id']]);
 
                         sm_to_user(['receipt_up', $amount, $new], null, $userId);
@@ -420,6 +422,7 @@ function admin_data_global()
                         alert_admin(['none']);
                         break;
                     case 'edit':
+                        $decode['manual'] = 1;
                         $db->update('transactions', ['status' => 1, 's_date' => time(), 'data[JSON]' => $decode], ['id' => $invoice['id']]);
 
                         admin_data(['step' => 'send_up_receipt', 'data' => $invoice['id']]);
