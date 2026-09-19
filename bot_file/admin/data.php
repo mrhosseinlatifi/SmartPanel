@@ -109,7 +109,10 @@ function admin_data_step()
                     case 'product':
                         $result = $db->get('products', '*', ['id' => $id]);
 
-                        admin_data(['step' => 'edit_info', 'data[JSON]' => ['type' => 'product', 'id' => $id]]);
+                        $admin_data = json_decode($admin['data'], true) ?: [];
+                        $admin_data['type'] = 'product';
+                        $admin_data['id'] = $id;
+                        admin_data(['step' => 'edit_info', 'data[JSON]' => $admin_data]);
 
                         sm_admin(['edit_product_info', $result, false], ['update_info', 'product', $result['id'], $result['is_usd'] ?? 0]);
 

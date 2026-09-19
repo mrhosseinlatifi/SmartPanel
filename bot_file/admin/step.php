@@ -2712,6 +2712,18 @@ function admin_steps()
         case 'edit_info':
             $admin_data = json_decode($admin['data'], true);
             if ($text == $key_admin['back_admin_before']) {
+                if ($admin_data['type'] == 'product' && isset($admin_data['category'])) {
+                    $result = get_products(['offset' => $admin_data['offset_product'] ?? 0, 'status' => 1], $admin_data['category']);
+                    if ($result) {
+                        $c = $db->count('products', ['category_id' => $admin_data['category']]);
+                        admin_data(['step' => 'edit_3', 'data[JSON]' => $admin_data]);
+                        sm_admin(['edit_shop_3'], ['product_select_panel', $result, $c, $admin_data['category'], $admin_data['offset_product'] ?? 0]);
+                    } else {
+                        sm_admin(['edit_shop_error_3']);
+                    }
+                    break;
+                }
+
                 $result = get_category(['offset' => 0, 'status' => 1], null);
                 if ($result) {
                     $c = $db->count('categories', ['category_id' => null]);
@@ -3047,7 +3059,9 @@ function admin_steps()
                         case 'product':
                             $result = $db->get('products', '*', ['id' => $id]);
 
-                            admin_data(['step' => 'edit_info', 'data[JSON]' => ['type' => 'product', 'id' => $id]]);
+                            $admin_data['type'] = 'product';
+                            $admin_data['id'] = $id;
+                            admin_data(['step' => 'edit_info', 'data[JSON]' => $admin_data]);
 
                             sm_admin(['edit_product_info', $result, false], ['update_info', 'product', $result['id'], $result['is_usd'] ?? 0]);
 
