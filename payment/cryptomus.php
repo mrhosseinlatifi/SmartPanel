@@ -21,6 +21,7 @@ if ($type === 'get') {
             $amount = $amount / $dollar_price;
 
             $amount = (string) round_up($amount, '-0.01');
+            $decode_data['price_amount'] = $amount;
 
             $life = 12 * 60 * 60;
 
@@ -121,6 +122,12 @@ if ($type === 'get') {
                         break;
                     }
 
+                    $paid_amount = $update_in_de['amount'] ?? null;
+                    $expected_amount = $decode_data['price_amount'] ?? null;
+                    if ($paid_amount !== null && $expected_amount !== null && abs((float) $paid_amount - (float) $expected_amount) > 0.000001) {
+                        break;
+                    }
+
                     switch ($status_get) {
                         case 'paid':
                         case 'paid_over':
@@ -164,6 +171,12 @@ if ($type === 'get') {
                         
                         $status_get = $responseResult['status'] ?? '';
                         $tracking_code = (string) ($responseResult['uuid'] ?? '');
+                        $paid_amount = $responseResult['amount'] ?? null;
+                        $expected_amount = $decode_data['price_amount'] ?? null;
+
+                        if ($paid_amount !== null && $expected_amount !== null && abs((float) $paid_amount - (float) $expected_amount) > 0.000001) {
+                            break;
+                        }
 
                         switch ($status_get) {
                             case 'paid':

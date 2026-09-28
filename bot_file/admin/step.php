@@ -3159,10 +3159,10 @@ function admin_steps()
                     case 'products':
                         $db->delete('products', []);
                         break;
-                    case 'products_off':
+                    case 'off_products':
                         $db->delete('products', ['status' => 0]);
                         break;
-                    case 'category_off':
+                    case 'off_categories':
                         $result = $db->select('categories', '*', ['status' => 0, 'category_id' => null]);
                         foreach ($result as $row) {
                             if (!$db->has('categories', ['category_id' => $row['id']])) {
@@ -3178,14 +3178,14 @@ function admin_steps()
                             }
                         }
                         break;
-                    case 'under_off':
+                    case 'off_subcategories':
                         $result = $db->select('categories', '*', ['status' => 0, 'category_id[!]' => null]);
                         foreach ($result as $row) {
                             $db->delete('products', ['category_id' => $row['id']]);
                             $db->delete('categories', ['id' => $row['id']]);
                         }
                         break;
-                    case 'category_empty':
+                    case 'empty_categories':
                         $result = $db->select('categories', '*', ['category_id' => null]);
                         foreach ($result as $row) {
                             if (!$db->has('categories', ['category_id' => $row['id']])) {

@@ -1450,11 +1450,15 @@ $data
                     $usd_line = "\n\n💵 حالت دلاری: ❌ خاموش (قیمت دلاری ثبت‌شده: " . number_format((float) $product['price_usd'], 4) . " دلار، فعلاً استفاده نمی‌شود)";
                 }
 
+                $ordering = $product['ordering'];
+
                 $date = ($data['1']) ? "\n" . jdate('Y/m/d H:i:s') : null;
                 $t = "ℹ️ اطلاعات فعلی محصول:
 اسم: {$product['name']}
 دسته‌بندی:
 {$category_by}
+
+اولویت : {$ordering}
 
 قیمت: {$product['price']}
 تخفیف: {$product['discount']}

@@ -23,6 +23,7 @@ if ($type === 'get') {
             $dollar_price = (is_numeric($dollar_price) && $dollar_price > 0) ? $dollar_price : 1;
             $amount = $amount / $dollar_price;
             $amount = (string) round_up($amount, '-0.01');
+            $decode_data['price_amount'] = $amount;
 
             $data_transaction = [
                 'order_id' => $code,
@@ -118,9 +119,12 @@ if ($type === 'get') {
                         $response = is_array($result['response'] ?? null) ? $result['response'] : [];
                         $status = $response['payment_status'] ?? '';
                         $tracking_code = (string) ($response['payment_id'] ?? '');
+                        $paid_amount = $response['price_amount'] ?? null;
+                        $expected_amount = $decode_data['price_amount'] ?? null;
 
                         if ($status === 'finished'
                             && ($response['invoice_id'] ?? null) == $payment['tracking_code']
+                            && ($paid_amount === null || $expected_amount === null || abs((float) $paid_amount - (float) $expected_amount) <= 0.000001)
                             && markPaymentAsSuccessful($code, $tracking_code, $paymentEn)
                         ) {
                                 $result_ok = true;
@@ -141,10 +145,13 @@ if ($type === 'get') {
                     $response = is_array($result['response'] ?? null) ? $result['response'] : [];
                     $status = $response['payment_status'] ?? '';
                     $tracking_code = (string) ($response['payment_id'] ?? '');
+                    $paid_amount = $response['price_amount'] ?? null;
+                    $expected_amount = $decode_data['price_amount'] ?? null;
 
                     if (
                         $status === 'finished' &&
                         ($response['invoice_id'] ?? null) == $payment['tracking_code'] &&
+                        ($paid_amount === null || $expected_amount === null || abs((float) $paid_amount - (float) $expected_amount) <= 0.000001) &&
                         markPaymentAsSuccessful($code, $tracking_code, $paymentEn)
                     ) {
                         $result_ok = true;

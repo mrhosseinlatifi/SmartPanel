@@ -114,9 +114,12 @@ if ($type === 'get') {
                     if (hash_equals($calculated_signature, $received_signature) && $step == '3') {
                         $payment_status = $request_data['status'] ?? '';
                         $tracking_code = $request_data['uuid'] ?? '';
+                        $paid_amount = $request_data['amount'] ?? null;
+                        $expected_amount = $decode_data['price_amount'] ?? null;
 
                         if ($payment_status === 'paid'
                             && (string) ($request_data['order_id'] ?? '') === (string) $code
+                            && ($paid_amount === null || $expected_amount === null || abs((float) $paid_amount - (float) $expected_amount) <= 0.000001)
                             && $tracking_code !== ''
                             && markPaymentAsSuccessful($code, $tracking_code, $paymentEn)
                         ) {
@@ -144,9 +147,12 @@ if ($type === 'get') {
                         if (isset($response['state']) && !empty($responseResult)) {
                             $payment_status = $responseResult['status'] ?? '';
                             $tracking_code = $responseResult['uuid'] ?? '';
+                            $paid_amount = $responseResult['amount'] ?? null;
+                            $expected_amount = $decode_data['price_amount'] ?? null;
 
                             if ($payment_status === 'paid'
                                 && $tracking_code === (string) $payment['tracking_code']
+                                && ($paid_amount === null || $expected_amount === null || abs((float) $paid_amount - (float) $expected_amount) <= 0.000001)
                                 && markPaymentAsSuccessful($code, $tracking_code, $paymentEn)
                             ) {
                                     $result_ok = true;

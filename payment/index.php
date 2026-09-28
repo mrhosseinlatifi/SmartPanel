@@ -30,6 +30,17 @@ function calculateGatewayCommission($amount, $percent_fee, $max_fee = 0)
   return $commission;
 }
 
+function calculateGatewayAmount($amount, $gatewayType, $percent_fee, $max_fee = 0)
+{
+  $chargedAmount = (float) $amount + calculateGatewayCommission($amount, $percent_fee, $max_fee);
+
+  if ($gatewayType === 'IRT') {
+    return (int) floor($chargedAmount);
+  }
+
+  return $chargedAmount;
+}
+
 function markPaymentAsSuccessful($transactionId, $trackingCode, $paymentGateway)
 {
     global $db;
@@ -225,9 +236,9 @@ if (isset($_GET['file']) && is_string($_GET['file']) && preg_match('/^[a-zA-Z0-9
                 $gateway_data = is_array($gateway_data) ? $gateway_data : [];
                 $percent_fee = isset($gateway_data['percent_fee']) ? floatval($gateway_data['percent_fee']) : 0;
                 $max_fee = isset($gateway_data['max_fee']) ? floatval($gateway_data['max_fee']) : 0;
-                $commission = calculateGatewayCommission($original_amount, $percent_fee, $max_fee);
-                $amount = $original_amount + $commission;
+                $amount = calculateGatewayAmount($original_amount, $result_payment['type'], $percent_fee, $max_fee);
                 $decode_data['charged_amount'] = $amount;
+                $db->update('transactions', ['data[JSON]' => $decode_data], ['id' => $code, 'status' => [2, 3]]);
 
                 if ($date + $ttl >= time()) {
 
@@ -270,8 +281,13 @@ if (isset($_GET['file']) && is_string($_GET['file']) && preg_match('/^[a-zA-Z0-9
                 $gateway_data = is_array($gateway_data) ? $gateway_data : [];
                 $percent_fee = isset($gateway_data['percent_fee']) ? floatval($gateway_data['percent_fee']) : 0;
                 $max_fee = isset($gateway_data['max_fee']) ? floatval($gateway_data['max_fee']) : 0;
-                $commission = calculateGatewayCommission($original_amount, $percent_fee, $max_fee);
-                $amount = $decode_data['charged_amount'] ?? ($original_amount + $commission);
+                if (isset($decode_data['charged_amount']) && is_numeric($decode_data['charged_amount'])) {
+                  $amount = $decode_data['charged_amount'];
+                } else {
+                  $amount = calculateGatewayAmount($original_amount, $result_payment['type'], $percent_fee, $max_fee);
+                  $decode_data['charged_amount'] = $amount;
+                  $db->update('transactions', ['data[JSON]' => $decode_data], ['id' => $code, 'status' => 3]);
+                }
 
                 if ($date + $ttl >= time()) {
                   if (!$user['block']) {

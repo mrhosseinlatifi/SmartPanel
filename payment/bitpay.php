@@ -30,11 +30,13 @@ if ($type === 'get') {
             } else {
                 if (is_numeric($result['response']) && $result['response'] > 0) {
                     $tracking_code = $result['response'];
+                    $decode_data['ip'] = getip();
+                    $decode_data['payment'] = $paymentEn;
                     $db->update('transactions', [
                         'status' => 3,
                         'tracking_code' => $tracking_code,
                         'getway' => $paymentEn,
-                        'data[JSON]' => ['ip' => getip(), 'payment' => $paymentEn],
+                        'data[JSON]' => $decode_data,
                         'type' => 'payment'
                     ], ['id' => $code]);
 
