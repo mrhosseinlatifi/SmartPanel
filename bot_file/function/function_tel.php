@@ -716,8 +716,10 @@ function redirect($url)
 
 function redirect_payment($url)
 {
-    echo "<script type='text/javascript'>window.location.href='$url'</script>";
-    echo "<noscript><meta http-equiv='refresh' content='0;url=$url'/></noscript>";
+    $safeUrl = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+    echo "<!DOCTYPE html><meta charset='utf-8'>";
+    echo "<script>window.location.href='" . $safeUrl . "'</script>";
+    echo "<noscript><meta http-equiv='refresh' content='0;url=" . $safeUrl . "'/></noscript>";
 }
 
 function round_up($float, $step = 500, $dec = 0)
