@@ -34,11 +34,23 @@ function calculateGatewayAmount($amount, $gatewayType, $percent_fee, $max_fee = 
 {
   $chargedAmount = (float) $amount + calculateGatewayCommission($amount, $percent_fee, $max_fee);
 
-  if ($gatewayType === 'IRT') {
-    return (int) floor($chargedAmount);
+  if (isIranianGatewayType($gatewayType)) {
+    return normalizeIrtAmount($chargedAmount);
   }
 
   return $chargedAmount;
+}
+
+function isIranianGatewayType($gatewayType)
+{
+  $gatewayType = strtolower(trim((string) $gatewayType));
+
+  return !in_array($gatewayType, ['crypto', 'usd', 'usdt'], true);
+}
+
+function normalizeIrtAmount($amount)
+{
+  return (int) floor(round((float) $amount, 6));
 }
 
 function markPaymentAsSuccessful($transactionId, $trackingCode, $paymentGateway)
@@ -283,6 +295,10 @@ if (isset($_GET['file']) && is_string($_GET['file']) && preg_match('/^[a-zA-Z0-9
                 $max_fee = isset($gateway_data['max_fee']) ? floatval($gateway_data['max_fee']) : 0;
                 if (isset($decode_data['charged_amount']) && is_numeric($decode_data['charged_amount'])) {
                   $amount = $decode_data['charged_amount'];
+                  if (isIranianGatewayType($result_payment['type'])) {
+                    $amount = normalizeIrtAmount($amount);
+                    $decode_data['charged_amount'] = $amount;
+                  }
                 } else {
                   $amount = calculateGatewayAmount($original_amount, $result_payment['type'], $percent_fee, $max_fee);
                   $decode_data['charged_amount'] = $amount;
