@@ -748,9 +748,11 @@ function admin_steps()
             if ($text == $key_admin['back_admin_before']) {
                 admin_step('add_api');
                 sm_admin(['add_api_1'], ['back_panel']);
+            } elseif ($text != $key_admin['api_type_yes'] && $text != $key_admin['api_type_no']) {
+                sm_admin(['add_api_2'], ['type_api_panel']);
             } else {
                 $admin_data = json_decode($admin['data'], 1);
-                $smart = str_replace([$key_admin['api_type_yes'], $key_admin['api_type_no']], [1, 0], $text);
+                $smart = ($text == $key_admin['api_type_yes']) ? 1 : 0;
                 $admin_data['smart'] = $smart;
                 admin_data(['step' => "add_api_2", 'data[JSON]' => $admin_data]);
                 sm_admin(['add_api_3'], ['back_panel']);
@@ -1177,7 +1179,11 @@ function admin_steps()
                 admin_step('add_payment');
                 sm_admin(['add_payment_1'], ['back_panel']);
             } else {
-                if (!$db->has('payment_gateways', ['file' => $text])) {
+                $payment_files = array_diff(scandir(ROOTPATH . '/payment'), ['.', '..', 'index.php', 'error_log', '.htaccess', 'show.php']);
+                if (!in_array($text . '.php', $payment_files, true)) {
+                    $result = $payment_files;
+                    sm_admin(['add_payment_2'], ['payment_file', $result, $db]);
+                } elseif (!$db->has('payment_gateways', ['file' => $text])) {
                     $admin_data['file'] = $text;
                     admin_data(['step' => 'add_payment_3', 'data[JSON]' => $admin_data]);
                     sm_admin(['add_payment_3'], ['back_panel']);
