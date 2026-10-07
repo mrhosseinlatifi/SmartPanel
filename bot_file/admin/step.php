@@ -2523,7 +2523,7 @@ function admin_steps()
                 }
             } else {
 
-                $text = removeWhiteSpace($text);
+                $text = removeWhiteSpaceKeepHtml($text);
                 $db->update('products', ['info' => $text], ['id' => $admin_data['id']]);
 
                 $result = $db->select('apis', 'name', ['LIMIT' => 95]);
@@ -2983,7 +2983,7 @@ function admin_steps()
                         }
                         break;
                     case 'info':
-                        $text = removeWhiteSpace($text);
+                        $text = removeWhiteSpaceKeepHtml($text);
                         $db->update('products', ['info' => $text], ['id' => $id]);
                         $true = true;
                         break;
@@ -3332,7 +3332,7 @@ function admin_steps()
                 sm_admin(['add_pattern_1'], ['back_panel']);
             } else {
                 $admin_data = json_decode($admin['data'], true);
-                $text = removeWhiteSpace($text);
+                $text = removeWhiteSpaceKeepHtml($text);
                 $admin_data['text'] = $text;
                 admin_data(['step' => 'add_pattern_3', 'data[JSON]' => $admin_data]);
                 sm_admin(['add_pattern_3'], ['back_panel']);
@@ -3429,7 +3429,7 @@ function admin_steps()
             } else {
                 switch ($admin_data['type_edit']) {
                     case 'text':
-                        $text = removeWhiteSpace($text);
+                        $text = removeWhiteSpaceKeepHtml($text);
                         admin_data(['step' => 'edit_pattern_2', 'data[JSON]' => ['id' => $admin_data['id'], 'type' => $admin_data['type']]]);
                         $db->update('pattern', ['text' => $text], ['id' => $admin_data['id']]);
                         $pattern = $db->get('pattern', '*', ['id' => $admin_data['id']]);

@@ -614,6 +614,22 @@ function removeWhiteSpace($text)
     return trim(strip_tags($text));
 }
 
+// مثل removeWhiteSpace ولی تگ‌های HTML مجاز تلگرام (از جمله tg-emoji برای ایموجی پریمیوم) را نگه می‌دارد
+function removeWhiteSpaceKeepHtml($text)
+{
+    if (!is_string($text)) {
+        $text = is_scalar($text) ? (string) $text : '';
+    }
+
+    if (empty($text)) {
+        return $text;
+    }
+
+    $text = str_replace("\xC2\xA0", '', $text);
+    $allowed = ['b', 'strong', 'i', 'em', 'u', 'ins', 's', 'strike', 'del', 'a', 'code', 'pre', 'blockquote', 'span', 'tg-spoiler', 'tg-emoji'];
+    return trim(strip_tags($text, $allowed));
+}
+
 function getip()
 {
     if (!empty($_SERVER['HTTP_CLIENT_IP']))
