@@ -644,6 +644,8 @@ function first_data($db, $admin)
         'limit' => 300,
         'limit_multi' => 100,
         'multi_check_rounds' => 3,
+        'single_check_rounds' => 1,
+        'add_order_rounds' => 1,
         'order_unknown_days' => 15,
         'min_deposit' => 1000,
         'max_deposit' => 500000,

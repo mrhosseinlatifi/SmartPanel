@@ -12,6 +12,28 @@ require ROOTPATH . "/media/index.php";
 
 check_cron_token();
 
+// Atomically move an order to $new_status only if it is still in one of the $from statuses.
+// Returns true for the single caller that won the transition, so refunds/notifications run once.
+function claim_order_status($order_id, $new_status, array $from = ['pending', 'in progress'], array $extra = [])
+{
+	global $db;
+	$res = $db->update('orders', array_merge($extra, ['status' => $new_status]), [
+		'id'     => $order_id,
+		'status' => $from
+	]);
+	return $res && $res->rowCount() > 0;
+}
+
+// Keeps the lock alive while a long run is still working (throttled to one write per 20s).
+function cron_orders_heartbeat()
+{
+	static $last = 0;
+	if (time() - $last >= 20) {
+		update_option('last_cron_orders', time());
+		$last = time();
+	}
+}
+
 //--------------------------------------------------------------//
 //--------------------------------------------------------------//
 if (!get_option('cron_order_lock', 1)) {
@@ -41,102 +63,119 @@ if (!get_option('cron_order_lock', 1)) {
 
 			$checked_apis[] = $api_multi['name'];
 
-			$ord_multi_check = $db->select("orders", '*', [
-				'api' => $api_multi['name'],
-				'OR'  => ['status' => ['pending', 'in progress']],
-				'LIMIT' => get_option('limit_multi', 50),
-				'code_api[!]' => 0
-			]);
+			$limit_multi = (int) get_option('limit_multi', 50);
+			$rounds      = max(1, (int) get_option('multi_check_rounds', 3));
+			$last_id     = 0;
 
-			if ($ord_multi_check) {
-				$ids = [];
-				foreach ($ord_multi_check as $co) {
-					$ids[] = $co['code_api'];
-				}
+			for ($round = 0; $round < $rounds; $round++) {
 
-				$res_api = $api->status_multi($api_multi, $ids);
+				cron_orders_heartbeat();
 
-				if ($res_api['result']) {
-					foreach ($res_api['data'] as $order => $val) {
+				$ord_multi_check = $db->select("orders", '*', [
+					'api' => $api_multi['name'],
+					'OR'  => ['status' => ['pending', 'in progress']],
+					'id[>]' => $last_id,
+					'ORDER' => ['id' => 'ASC'],
+					'LIMIT' => $limit_multi,
+					'code_api[!]' => 0
+				]);
 
-						$fd = $db->get('orders', '*', [
-							'code_api' => $order,
-							'api'      => $api_multi['name']
-						]);
+				if (!$ord_multi_check) break;
+				$last_id = end($ord_multi_check)['id'];
 
-						if (empty($fd) || !is_array($fd)) continue;
-						$user_id = $fd['user_id'];
+				if ($ord_multi_check) {
+					$ids = [];
+					foreach ($ord_multi_check as $co) {
+						$ids[] = $co['code_api'];
+					}
+
+					$res_api = $api->status_multi($api_multi, $ids);
+
+					if (!empty($res_api['result']) && is_array($res_api['data'] ?? null)) {
+						foreach ($res_api['data'] as $order => $val) {
+
+							$fd = $db->get('orders', '*', [
+								'code_api' => $order,
+								'api'      => $api_multi['name']
+							]);
+
+							if (empty($fd) || !is_array($fd)) continue;
+							$user_id = $fd['user_id'];
 
 
-						if (isset($val['status'])) {
-							$val['status'] = strtolower($val['status']);
-							switch ($val['status']) {
-								case 'pending':
-									break;
+							if (isset($val['status'])) {
+								$val['status'] = strtolower($val['status']);
+								switch ($val['status']) {
+									case 'pending':
+										break;
 
-								case 'in progress':
-									if ($fd['status'] == 'pending') {
-										$db->update('orders', ['status' => 'in progress'], ['id' => $fd['id']]);
-										sm_user(['order_go', $fd, $show_channel], null, $user_id);
-									}
-									break;
+									case 'in progress':
+										if (claim_order_status($fd['id'], 'in progress', ['pending'])) {
+											sm_user(['order_go', $fd, $show_channel], null, $user_id);
+										}
+										break;
 
-								case 'completed':
-									$db->update('orders', ['status' => 'completed'], ['id' => $fd['id']]);
-									sm_user(['order_confirmation', $fd, $show_channel], null, $user_id);
-									break;
+									case 'completed':
+										if (claim_order_status($fd['id'], 'completed')) {
+											sm_user(['order_confirmation', $fd, $show_channel], null, $user_id);
+										}
+										break;
 
-								case 'canceled':
-								case 'refunded':
-									$usResult    = $db->get('users_information', '*', ['user_id' => $user_id]);
-									$old_balance = $usResult['balance'];
-									$new_balance = $old_balance + $fd['price'];
+									case 'canceled':
+									case 'refunded':
+										if (!claim_order_status($fd['id'], 'canceled')) break;
 
-									insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $fd['price'], $fd['id']);
-									$db->update('orders', ['status' => 'canceled'], ['id' => $fd['id']]);
-									$db->update('users_information', [
-										'balance[+]'      => $fd['price'],
-										'amount_spent[-]' => $fd['price']
-									], ['user_id' => $user_id]);
+										$usResult    = $db->get('users_information', '*', ['user_id' => $user_id]);
+										$old_balance = $usResult['balance'];
+										$new_balance = $old_balance + $fd['price'];
 
-									sm_user(['order_cancel', $fd, $show_channel], null, $user_id);
-									break;
+										insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $fd['price'], $fd['id']);
+										$db->update('users_information', [
+											'balance[+]'      => $fd['price'],
+											'amount_spent[-]' => $fd['price']
+										], ['user_id' => $user_id]);
 
-								case 'partial':
-									$usResult    = $db->get('users_information', '*', ['user_id' => $user_id]);
-									$old_balance = $usResult['balance'];
-									$new_balance = $old_balance + $fd['price'];
+										sm_user(['order_cancel', $fd, $show_channel], null, $user_id);
+										break;
 
-									insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $fd['price'], $fd['id']);
+									case 'partial':
+										if (!claim_order_status($fd['id'], 'partial')) break;
 
-									$val['remains'] = (isset($val['remains']) && $val['remains'] > 0) ? $val['remains'] : 0;
-									$back = (($val['remains'] * $fd['price']) / $fd['count']);
+										$val['remains'] = (isset($val['remains']) && $val['remains'] > 0) ? $val['remains'] : 0;
+										$back = (($val['remains'] * $fd['price']) / $fd['count']);
 
-									$db->update('orders', ['status' => 'partial'], ['id' => $fd['id']]);
-									$db->update('users_information', [
-										'balance[+]'      => $back,
-										'amount_spent[-]' => $back
-									], ['user_id' => $user_id]);
+										$usResult    = $db->get('users_information', '*', ['user_id' => $user_id]);
+										$old_balance = $usResult['balance'];
+										$new_balance = $old_balance + $back;
 
-									sm_user(['order_partial', $fd, $back, $show_channel], null, $user_id);
-									break;
-							}
-						} else {
-							$decode_data = [];
-							if (!empty($fd['extra_data'])) {
-								$tmpDecode = json_decode((string)$fd['extra_data'], true);
-								if (is_array($tmpDecode)) {
-									$decode_data = $tmpDecode;
+										insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $back, $fd['id']);
+
+										$db->update('users_information', [
+											'balance[+]'      => $back,
+											'amount_spent[-]' => $back
+										], ['user_id' => $user_id]);
+
+										sm_user(['order_partial', $fd, $back, $show_channel], null, $user_id);
+										break;
 								}
+							} else {
+								$decode_data = [];
+								if (!empty($fd['extra_data'])) {
+									$tmpDecode = json_decode((string)$fd['extra_data'], true);
+									if (is_array($tmpDecode)) {
+										$decode_data = $tmpDecode;
+									}
+								}
+								$decode_data['error_check'] = 'Error';
+								claim_order_status($fd['id'], 'error', ['pending', 'in progress'], [
+									'extra_data[JSON]' => $decode_data
+								]);
 							}
-							$decode_data['error_check'] = 'Error';
-							$db->update('orders', [
-								'status' => 'error',
-								'extra_data[JSON]' => $decode_data
-							], ['id' => $fd['id']]);
 						}
 					}
 				}
+
+				if (count($ord_multi_check) < $limit_multi) break;
 			}
 		}
 	}
@@ -146,15 +185,28 @@ if (!get_option('cron_order_lock', 1)) {
 	$checked_apis[] = 'noapi';
 	$order_unknown_days = (int) get_option('order_unknown_days', 15);
 
-	$orders_single_check = $db->select('orders', '*', [
-		'api[!]' => $checked_apis,
-		'OR' => ['status' => ['pending', 'in progress']],
-		'LIMIT' => get_option('limit', 100),
-		'code_api[!]' => '0'
-	]);
+	$limit_single  = (int) get_option('limit', 100);
+	$rounds_single = max(1, (int) get_option('single_check_rounds', 1));
+	$last_id       = 0;
 
-	if ($orders_single_check) {
+	for ($round = 0; $round < $rounds_single; $round++) {
+
+		cron_orders_heartbeat();
+
+		$orders_single_check = $db->select('orders', '*', [
+			'api[!]' => $checked_apis,
+			'OR' => ['status' => ['pending', 'in progress']],
+			'id[>]' => $last_id,
+			'ORDER' => ['id' => 'ASC'],
+			'LIMIT' => $limit_single,
+			'code_api[!]' => '0'
+		]);
+
+		if (!$orders_single_check) break;
+		$last_id = end($orders_single_check)['id'];
+
 		foreach ($orders_single_check as $order) {
+			cron_orders_heartbeat();
 			$now = (time() - $order['date']) / 86400;
 
 			if ($now >= $order_unknown_days) {
@@ -175,25 +227,26 @@ if (!get_option('cron_order_lock', 1)) {
 							break;
 
 						case 'in progress':
-							if ($order['status'] == 'pending') {
-								$db->update('orders', ['status' => 'in progress'], ['id' => $order['id']]);
+							if (claim_order_status($order['id'], 'in progress', ['pending'])) {
 								sm_user(['order_go', $order, $show_channel], null, $user_id);
 							}
 							break;
 
 						case 'completed':
-							$db->update('orders', ['status' => 'completed'], ['id' => $order['id']]);
-							sm_user(['order_confirmation', $order, $show_channel], null, $user_id);
+							if (claim_order_status($order['id'], 'completed')) {
+								sm_user(['order_confirmation', $order, $show_channel], null, $user_id);
+							}
 							break;
 
 						case 'canceled':
 						case 'refunded':
+							if (!claim_order_status($order['id'], 'canceled')) break;
+
 							$usResult    = $db->get('users_information', '*', ['user_id' => $user_id]);
 							$old_balance = $usResult['balance'];
 							$new_balance = $old_balance + $order['price'];
 
 							insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], $order['id']);
-							$db->update('orders', ['status' => 'canceled'], ['id' => $order['id']]);
 							$db->update('users_information', [
 								'balance[+]'      => $order['price'],
 								'amount_spent[-]' => $order['price']
@@ -203,14 +256,17 @@ if (!get_option('cron_order_lock', 1)) {
 							break;
 
 						case 'partial':
+							if (!claim_order_status($order['id'], 'partial')) break;
+
+							$remains = (isset($result_order['data']['remains']) && $result_order['data']['remains'] > 0) ? $result_order['data']['remains'] : 0;
+							$back = (($remains * $order['price']) / $order['count']);
+
 							$usResult    = $db->get('users_information', '*', ['user_id' => $user_id]);
 							$old_balance = $usResult['balance'];
-							$new_balance = $old_balance + $order['price'];
+							$new_balance = $old_balance + $back;
 
-							insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], $order['id']);
+							insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $back, $order['id']);
 
-							$back = (($result_order['data']['remains'] * $order['price']) / $order['count']);
-							$db->update('orders', ['status' => 'partial'], ['id' => $order['id']]);
 							$db->update('users_information', [
 								'balance[+]'      => $back,
 								'amount_spent[-]' => $back
@@ -222,106 +278,120 @@ if (!get_option('cron_order_lock', 1)) {
 				}
 			}
 		}
+
+		if (count($orders_single_check) < $limit_single) break;
 	}
 
 	//--------------------------------------------------------------//
 	//--------------------------------------------------------------//
-	$result_add_order = $db->select("orders", '*', [
-		'status'   => 'pending',
-		'api[!]'   => 'noapi',
-		'code_api' => '0',
-		'LIMIT'    => 50
-	]);
+	$limit_add  = 50;
+	$rounds_add = max(1, (int) get_option('add_order_rounds', 1));
+	$last_id    = 0;
 
-	foreach ($result_add_order as $order) {
-		$now = (time() - $order['date']) / 86400;
+	for ($round = 0; $round < $rounds_add; $round++) {
 
-		if ($now >= $order_unknown_days) {
-			$db->update('orders', ['status' => 'unknow'], ['id' => $order['id']]);
-			continue;
-		}
+		cron_orders_heartbeat();
 
-		$api_info = $db->get('apis', '*', ['name' => $order['api']]);
-		if (!$api_info) continue;
+		$result_add_order = $db->select("orders", '*', [
+			'status'   => 'pending',
+			'api[!]'   => 'noapi',
+			'code_api' => '0',
+			'id[>]'    => $last_id,
+			'ORDER'    => ['id' => 'ASC'],
+			'LIMIT'    => $limit_add
+		]);
 
-		if ($api_info['status'] != 1) {
-			$user_id = $order['user_id'];
+		if (!$result_add_order) break;
+		$last_id = end($result_add_order)['id'];
 
-			$usResult = $db->get('users_information', '*', ['user_id' => $user_id]);
-			$old_balance = $usResult['balance'];
-			$new_balance = $old_balance + $order['price'];
+		foreach ($result_add_order as $order) {
+			cron_orders_heartbeat();
+			$now = (time() - $order['date']) / 86400;
 
-			insertTransaction(
-				'orders_back',
-				$user_id,
-				$old_balance,
-				$new_balance,
-				$order['price'],
-				$order['id']
-			);
+			if ($now >= $order_unknown_days) {
+				$db->update('orders', ['status' => 'unknow'], ['id' => $order['id']]);
+				continue;
+			}
 
-			$decode_data = !empty($order['extra_data'])
-				? json_decode((string)$order['extra_data'], true)
-				: [];
+			$api_info = $db->get('apis', '*', ['name' => $order['api']]);
+			if (!$api_info) continue;
 
-			$decode_data['error'] = 'Api status is off';
+			if ($api_info['status'] != 1) {
+				$user_id = $order['user_id'];
 
-			$db->update('orders', [
-				'status' => 'error',
-				'extra_data[JSON]' => $decode_data
-			], ['id' => $order['id']]);
+				$decode_data = !empty($order['extra_data'])
+					? json_decode((string)$order['extra_data'], true)
+					: [];
 
-			$db->update('users_information', [
-				'balance[+]'      => $order['price'],
-				'amount_spent[-]' => $order['price']
-			], ['user_id' => $user_id]);
+				$decode_data['error'] = 'Api status is off';
 
-			sm_user(['order_cancel', $order, $show_channel], null, $user_id);
-			sm_channel('channel_errors', [
-				'order_add_error',
-				$order,
-				'Api status is off'
-			]);
+				if (!claim_order_status($order['id'], 'error', ['pending'], ['extra_data[JSON]' => $decode_data])) continue;
 
-			continue;
-		}
-
-		$link     = $order['link'];
-		$count    = $order['count'];
-		$user_id  = $order['user_id'];
-		$decode_data = !empty($order['extra_data'])
-			? json_decode((string)$order['extra_data'], true)
-			: [];
-
-		$service  = $decode_data['product']['service_id'] ?? 0;
-		$comments = $decode_data['comments'] ?? null;
-
-		if ($db->get('orders', 'status', ['id' => $order['id']]) == 'pending') {
-			$add_info = $api->add_order($api_info, $service, $link, $count, $comments);
-
-			if ($add_info['result']) {
-				$db->update('orders', ['code_api' => $add_info['order']], ['id' => $order['id']]);
-			} else {
-				$usResult    = $db->get('users_information', '*', ['user_id' => $user_id]);
+				$usResult = $db->get('users_information', '*', ['user_id' => $user_id]);
 				$old_balance = $usResult['balance'];
 				$new_balance = $old_balance + $order['price'];
 
-				insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], $order['id']);
+				insertTransaction(
+					'orders_back',
+					$user_id,
+					$old_balance,
+					$new_balance,
+					$order['price'],
+					$order['id']
+				);
 
-				$decode_data['error'] = $add_info['error'] ?? 'Error';
-				$db->update('orders', [
-					'status' => 'error',
-					'extra_data[JSON]' => $decode_data
-				], ['id' => $order['id']]);
 				$db->update('users_information', [
 					'balance[+]'      => $order['price'],
 					'amount_spent[-]' => $order['price']
 				], ['user_id' => $user_id]);
 
 				sm_user(['order_cancel', $order, $show_channel], null, $user_id);
-				sm_channel('channel_errors', ['order_add_error', $order, $decode_data['error']]);
+				sm_channel('channel_errors', [
+					'order_add_error',
+					$order,
+					'Api status is off'
+				]);
+
+				continue;
+			}
+
+			$link     = $order['link'];
+			$count    = $order['count'];
+			$user_id  = $order['user_id'];
+			$decode_data = !empty($order['extra_data'])
+				? json_decode((string)$order['extra_data'], true)
+				: [];
+
+			$service  = $decode_data['product']['service_id'] ?? 0;
+			$comments = $decode_data['comments'] ?? null;
+
+			if ($db->get('orders', 'status', ['id' => $order['id']]) == 'pending') {
+				$add_info = $api->add_order($api_info, $service, $link, $count, $comments);
+
+				if ($add_info['result']) {
+					$db->update('orders', ['code_api' => $add_info['order']], ['id' => $order['id']]);
+				} else {
+					$decode_data['error'] = $add_info['error'] ?? 'Error';
+					if (!claim_order_status($order['id'], 'error', ['pending'], ['extra_data[JSON]' => $decode_data])) continue;
+
+					$usResult    = $db->get('users_information', '*', ['user_id' => $user_id]);
+					$old_balance = $usResult['balance'];
+					$new_balance = $old_balance + $order['price'];
+
+					insertTransaction('orders_back', $user_id, $old_balance, $new_balance, $order['price'], $order['id']);
+
+					$db->update('users_information', [
+						'balance[+]'      => $order['price'],
+						'amount_spent[-]' => $order['price']
+					], ['user_id' => $user_id]);
+
+					sm_user(['order_cancel', $order, $show_channel], null, $user_id);
+					sm_channel('channel_errors', ['order_add_error', $order, $decode_data['error']]);
+				}
 			}
 		}
+
+		if (count($result_add_order) < $limit_add) break;
 	}
 
 	echo 'OK';
