@@ -643,6 +643,7 @@ function first_data($db, $admin)
         's_block' => 30,
         'limit' => 300,
         'limit_multi' => 100,
+        'multi_check_rounds' => 3,
         'order_unknown_days' => 15,
         'min_deposit' => 1000,
         'max_deposit' => 500000,
